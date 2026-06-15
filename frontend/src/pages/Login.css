@@ -1,0 +1,418 @@
+/* ============================================================
+   Login — Hector Tattoos
+   Firma: marcas de registro de stencil en las esquinas del card,
+   monograma gótico H y humo japonés (irezumi) de fondo.
+   Mobile-first; dos columnas en desktop. Todo bajo .auth.
+   ============================================================ */
+
+.auth {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: clamp(20px, 6vw, 56px);
+  padding-top: max(clamp(20px, 6vw, 56px), env(safe-area-inset-top));
+  padding-bottom: max(clamp(20px, 6vw, 56px), env(safe-area-inset-bottom));
+  background:
+    radial-gradient(120% 90% at 18% 12%, rgba(60, 74, 84, 0.22), transparent 55%),
+    radial-gradient(90% 80% at 100% 100%, rgba(40, 52, 60, 0.18), transparent 50%),
+    var(--ink);
+}
+
+/* ---------- Atmósfera (decorativa) ---------- */
+.stage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.stage__smoke {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  color: var(--line);
+  opacity: 0.55;
+  mask-image: radial-gradient(140% 120% at 20% 30%, #000 30%, transparent 80%);
+}
+
+.stage__mark {
+  position: absolute;
+  top: 50%;
+  left: -0.08em;
+  transform: translateY(-50%);
+  font-family: var(--font-mark);
+  font-size: clamp(280px, 52vw, 760px);
+  line-height: 0.8;
+  color: var(--steel-hi);
+  opacity: 0.035;
+  user-select: none;
+}
+
+.stage__copy {
+  display: none;
+}
+
+/* ---------- Panel del formulario ---------- */
+.auth__panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 430px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+/* ---------- Card con marcas de registro ---------- */
+.card {
+  position: relative;
+  width: 100%;
+  padding: clamp(28px, 6vw, 44px);
+  background: linear-gradient(180deg, rgba(19, 22, 27, 0.92), rgba(11, 13, 16, 0.92));
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  backdrop-filter: blur(8px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.03) inset,
+    0 30px 80px -40px rgba(0, 0, 0, 0.9);
+  animation: card-in 0.5s ease both;
+}
+
+/* Marcas de registro tipo stencil: cruces en las cuatro esquinas */
+.card::before,
+.card::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+.card::before {
+  top: 10px;
+  left: 10px;
+  border-top: 1px solid var(--steel);
+  border-left: 1px solid var(--steel);
+}
+.card::after {
+  bottom: 10px;
+  right: 10px;
+  border-bottom: 1px solid var(--steel);
+  border-right: 1px solid var(--steel);
+}
+/* Las otras dos esquinas con un wrapper en el panel */
+.auth__panel::before,
+.auth__panel::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.55;
+}
+.auth__panel::before {
+  top: 10px;
+  right: 10px;
+  border-top: 1px solid var(--steel);
+  border-right: 1px solid var(--steel);
+}
+.auth__panel::after {
+  /* alineado al borde inferior del card, no del panel (que incluye el legal) */
+  left: 10px;
+  bottom: 54px;
+  border-bottom: 1px solid var(--steel);
+  border-left: 1px solid var(--steel);
+}
+
+.card__mark {
+  display: block;
+  font-family: var(--font-mark);
+  font-size: 56px;
+  line-height: 1;
+  background: linear-gradient(180deg, var(--steel-hi), #8fa3b0);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: 22px;
+  user-select: none;
+}
+
+.card__eyebrow {
+  margin: 0 0 14px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.card__title {
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(34px, 8vw, 44px);
+  line-height: 1.04;
+  letter-spacing: -0.01em;
+  color: var(--steel-hi);
+}
+.card__title-em {
+  font-style: italic;
+  color: var(--steel);
+}
+
+.card__sub {
+  margin: 0 0 28px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ash);
+  max-width: 34ch;
+}
+
+/* ---------- Formulario ---------- */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form__alert {
+  margin: 0;
+  padding: 11px 14px;
+  font-size: 13.5px;
+  color: var(--danger);
+  background: var(--danger-bg);
+  border: 1px solid rgba(194, 104, 95, 0.3);
+  border-radius: 3px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.field__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.field__label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fog);
+}
+
+.field__toggle {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ash);
+  transition: color 0.18s;
+}
+.field__toggle:hover {
+  color: var(--steel);
+}
+
+.field__input {
+  width: 100%;
+  padding: 13px 14px;
+  font-size: 15px;
+  color: var(--steel-hi);
+  background: var(--ink-3);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+.field__input::placeholder {
+  color: #4a525b;
+}
+.field__input:hover {
+  border-color: #313742;
+}
+.field__input:focus-visible {
+  border-color: var(--steel);
+  box-shadow: 0 0 0 3px rgba(195, 210, 219, 0.14);
+}
+.field__input[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+.field__input:disabled {
+  opacity: 0.55;
+}
+
+.field__error {
+  font-size: 12.5px;
+  color: var(--danger);
+}
+
+.form__forgot {
+  align-self: flex-end;
+  margin-top: -4px;
+  font-size: 13px;
+  color: var(--ash);
+  text-decoration: none;
+  transition: color 0.18s;
+}
+.form__forgot:hover {
+  color: var(--steel);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---------- Botón con barrido de tinta ---------- */
+.btn {
+  position: relative;
+  margin-top: 4px;
+  padding: 14px 20px;
+  border: 1px solid var(--steel);
+  border-radius: 3px;
+  background: var(--steel-hi);
+  color: var(--ink);
+  overflow: hidden;
+  transition: transform 0.12s ease, box-shadow 0.2s ease;
+}
+.btn__label {
+  position: relative;
+  z-index: 1;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+/* barrido de tinta oscura al pasar el cursor */
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--ink);
+  transform: translateY(100%);
+  transition: transform 0.28s ease;
+}
+.btn:hover:not(:disabled)::before {
+  transform: translateY(0);
+}
+.btn:hover:not(:disabled) {
+  color: var(--steel-hi);
+}
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(195, 210, 219, 0.25);
+}
+.btn:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+/* ---------- Pie y estado de éxito ---------- */
+.card__foot {
+  margin: 26px 0 0;
+  padding-top: 22px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 14px;
+  color: var(--ash);
+}
+.card__foot a {
+  color: var(--steel);
+  font-weight: 600;
+  text-decoration: none;
+}
+.card__foot a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.card__success {
+  margin: 0 0 4px;
+  padding: 16px 18px;
+  font-size: 15px;
+  color: var(--steel-hi);
+  background: rgba(195, 210, 219, 0.08);
+  border: 1px solid rgba(195, 210, 219, 0.25);
+  border-radius: 3px;
+}
+
+.auth__legal {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #424a52;
+}
+
+/* ---------- Animaciones ---------- */
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================
+   Desktop: dos columnas (atmósfera a la izquierda, form a la derecha)
+   ============================================================ */
+@media (min-width: 920px) {
+  .auth {
+    justify-content: flex-end;
+    padding-inline: clamp(56px, 8vw, 130px);
+  }
+
+  .auth__panel {
+    margin-left: auto;
+  }
+
+  .stage__mark {
+    left: 2%;
+    font-size: clamp(440px, 40vw, 720px);
+    opacity: 0.05;
+  }
+
+  .stage__copy {
+    display: block;
+    position: absolute;
+    left: clamp(56px, 8vw, 130px);
+    bottom: clamp(56px, 8vw, 96px);
+    max-width: 30ch;
+  }
+
+  .stage__brand {
+    margin: 0 0 10px;
+    font-family: var(--font-display);
+    font-size: 30px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: var(--steel-hi);
+  }
+
+  .stage__tagline {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--ash);
+  }
+}
+
+@media (min-width: 1280px) {
+  .auth__panel {
+    margin-right: 6vw;
+  }
+}

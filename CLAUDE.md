@@ -12,9 +12,12 @@ MVP de plataforma web para estudios de tatuaje. Stack: React + Node.js/Express +
 ```bash
 cd backend
 npm install
+npm run db:init    # crea tablas + usuario de prueba (requiere PostgreSQL arriba)
 npm run dev        # nodemon, hot-reload en puerto 3000
 npm start          # producción
 ```
+
+Usuario de prueba sembrado por `db:init`: `hola@hectortattoos.cl` / `tatuajes123`.
 
 ### Frontend
 ```bash
@@ -46,11 +49,17 @@ Frontend lee `VITE_API_URL` (default en docker-compose: `http://localhost:3000`)
 
 ### Backend (`backend/src/`)
 - CommonJS (`require`/`module.exports`), Express 5
-- `config/db.js` — exporta un `Pool` de `pg`. Importar en routes/controllers para queries
-- `controllers/` — lógica de cada recurso (vacío, por implementar)
-- `routes/` — definiciones de Express Router (vacío, por implementar)
-- `middleware/` — middleware Express, aquí irá la verificación JWT (vacío, por implementar)
-- Auth: `jsonwebtoken` + `bcryptjs` ya instalados
+- `config/db.js` — exporta un `Pool` de `pg`. Importar en models/controllers para queries
+- `db/schema.sql` + `db/init.js` — esquema y seed (no hay ORM ni migraciones versionadas)
+- `models/` — queries SQL crudas vía el pool (p. ej. `userModel.js`)
+- `controllers/` — lógica de cada recurso (`authController.js`: login + register)
+- `routes/` — Express Router montado en `index.js` (`/api/auth`)
+- `middleware/auth.js` — `requireAuth`: valida `Authorization: Bearer <token>` y deja el payload en `req.user`
+
+#### Contrato de autenticación (consumido por el frontend)
+- `POST /api/auth/login` → `{ token, user: { id, name, email } }`; 401 con `{ message }` si falla
+- `POST /api/auth/register` → igual respuesta; 409 si el correo ya existe
+- JWT firmado con `JWT_SECRET`, expira en 7 días, payload `{ sub, email }`
 
 ### Frontend (`frontend/src/`)
 - ESM, React 19 + TypeScript + Vite 8

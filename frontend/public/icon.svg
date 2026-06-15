@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Hector Tattoos">
+  <defs>
+    <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e7eef2" />
+      <stop offset="1" stop-color="#8fa3b0" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="#07080a" />
+  <g fill="url(#steel)">
+    <!-- left stem -->
+    <rect x="150" y="128" width="48" height="256" />
+    <!-- right stem -->
+    <rect x="314" y="128" width="48" height="256" />
+    <!-- crossbar -->
+    <rect x="150" y="232" width="212" height="48" />
+    <!-- gothic serif spurs -->
+    <rect x="128" y="128" width="92" height="22" />
+    <rect x="128" y="362" width="92" height="22" />
+    <rect x="292" y="128" width="92" height="22" />
+    <rect x="292" y="362" width="92" height="22" />
+  </g>
+</svg>
