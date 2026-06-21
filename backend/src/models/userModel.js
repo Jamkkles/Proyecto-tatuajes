@@ -23,4 +23,12 @@ async function create({ name, email, passwordHash }) {
   return rows[0];
 }
 
-module.exports = { findByEmail, create };
+/** Actualiza el hash de contraseña de un usuario. */
+async function updatePassword(userId, passwordHash) {
+  await pool.query(
+    'UPDATE users SET password_hash = $1 WHERE id = $2',
+    [passwordHash, userId],
+  );
+}
+
+module.exports = { findByEmail, create, updatePassword };

@@ -16,10 +16,8 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
-    environment:
-      PORT: 3000
-      DATABASE_URL: postgresql://${DB_USER:-tatuajes_user}:${DB_PASSWORD:-tatuajes_pass}@postgres:5432/${DB_NAME:-tatuajes_db}
-      JWT_SECRET: ${JWT_SECRET:-dev_secret_changeme}
+    env_file:
+      - ./backend/.env
     depends_on:
       - postgres
     volumes:
