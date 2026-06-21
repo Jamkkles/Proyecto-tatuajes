@@ -57,10 +57,6 @@ export default function Login() {
 
       <main className="auth__panel">
         <section className="card" aria-labelledby="auth-title">
-          <span className="card__mark" aria-hidden="true">
-            H
-          </span>
-
           <p className="card__eyebrow">Panel del artista</p>
           <h1 className="card__title" id="auth-title">
             Bienvenido <span className="card__title-em">de vuelta</span>
@@ -155,7 +151,7 @@ export default function Login() {
           </p>
         </section>
 
-        <p className="auth__legal">hectortattoos.m · Curicó, Chile</p>
+       
       </main>
     </div>
   )
@@ -165,6 +161,7 @@ export default function Login() {
 function Stage() {
   return (
     <div className="stage" aria-hidden="true">
+      <img className="stage__photo" src="/espalda.png" alt="" />
       <svg
         className="stage__smoke"
         viewBox="0 0 600 900"
@@ -180,12 +177,8 @@ function Stage() {
         </g>
       </svg>
 
-      <span className="stage__mark" aria-hidden="true">
-        H
-      </span>
-
       <div className="stage__copy">
-        <p className="stage__brand">hectortattoos.m</p>
+   
         <p className="stage__tagline">Todo tu estudio, en un solo trazo.</p>
       </div>
     </div>
