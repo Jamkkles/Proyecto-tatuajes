@@ -149,7 +149,7 @@ export default function Login() {
           )}
 
           <p className="card__foot">
-            ¿Aún no tienes estudio? <a href="#crear">Crear cuenta</a>
+            ¿Aún no tienes estudio? <Link to="/registro">Crear cuenta</Link>
           </p>
         </section>
 
