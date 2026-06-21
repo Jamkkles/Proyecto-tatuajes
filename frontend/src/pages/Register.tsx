@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '../lib/api'
-import { register, saveToken } from '../lib/auth'
+import { register, saveToken, saveUser } from '../lib/auth'
 import AuthStage from '../components/AuthStage'
 import './Login.css'
 
@@ -41,9 +41,10 @@ export default function Register() {
 
     setLoading(true)
     try {
-      const { token } = await register({ name: name.trim(), email: email.trim(), password })
+      const { token, user } = await register({ name: name.trim(), email: email.trim(), password })
       saveToken(token)
-      navigate('/')
+      saveUser(user)
+      navigate('/dashboard')
     } catch (err) {
       setFormError(
         err instanceof ApiError ? err.message : 'Algo salió mal. Inténtalo de nuevo.'

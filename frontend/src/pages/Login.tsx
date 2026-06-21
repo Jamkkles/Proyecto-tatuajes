@@ -1,15 +1,16 @@
 import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '../lib/api'
-import { login, saveToken } from '../lib/auth'
+import { login, saveToken, saveUser } from '../lib/auth'
 import AuthStage from '../components/AuthStage'
 import './Login.css'
 
-type Status = 'idle' | 'loading' | 'success'
+type Status = 'idle' | 'loading'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function Login() {
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -33,10 +34,10 @@ export default function Login() {
 
     setStatus('loading')
     try {
-      const { token } = await login({ email: email.trim(), password })
+      const { token, user } = await login({ email: email.trim(), password })
       saveToken(token)
-      setStatus('success')
-      // TODO: redirigir al panel del estudio cuando exista el enrutado.
+      saveUser(user)
+      navigate('/dashboard')
     } catch (err) {
       setStatus('idle')
       if (err instanceof ApiError) {
@@ -67,12 +68,7 @@ export default function Login() {
             Entra a tu estudio para gestionar bocetos, citas y cotizaciones.
           </p>
 
-          {status === 'success' ? (
-            <p className="card__success" role="status">
-              Sesión iniciada. Abriendo tu estudio…
-            </p>
-          ) : (
-            <form className="form" onSubmit={handleSubmit} noValidate>
+          <form className="form" onSubmit={handleSubmit} noValidate>
               {formError && (
                 <p className="form__alert" role="alert">
                   {formError}
@@ -91,7 +87,7 @@ export default function Login() {
                   autoComplete="email"
                   autoCapitalize="none"
                   spellCheck={false}
-                  placeholder="hola@hectortattoos.cl"
+                  placeholder="tu@correo.cl"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
@@ -145,8 +141,7 @@ export default function Login() {
               <button className="btn" type="submit" disabled={loading}>
                 <span className="btn__label">{loading ? 'Entrando…' : 'Entrar'}</span>
               </button>
-            </form>
-          )}
+          </form>
 
           <p className="card__foot">
             ¿Aún no tienes estudio? <Link to="/registro">Crear cuenta</Link>

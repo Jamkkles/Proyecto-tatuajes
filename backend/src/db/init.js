@@ -6,10 +6,12 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const pool = require('../config/db');
 
+// Credenciales del usuario de prueba: se leen del entorno (.env) para no
+// exponer datos personales en el código fuente.
 const SEED_USER = {
-  name: 'Héctor Salazar',
-  email: 'hola@hectortattoos.cl',
-  password: 'tatuajes123',
+  name: process.env.SEED_NAME || 'Artista Demo',
+  email: process.env.SEED_EMAIL || 'demo@estudio.cl',
+  password: process.env.SEED_PASSWORD || 'cambia-esta-clave',
 };
 
 async function main() {
@@ -27,9 +29,9 @@ async function main() {
   );
 
   if (result.rowCount > 0) {
-    console.log(`✓ Usuario de prueba creado: ${SEED_USER.email} / ${SEED_USER.password}`);
+    console.log('✓ Usuario de prueba creado (credenciales en SEED_EMAIL / SEED_PASSWORD)');
   } else {
-    console.log(`• El usuario ${SEED_USER.email} ya existía, sin cambios`);
+    console.log('• El usuario de prueba ya existía, sin cambios');
   }
 }
 
