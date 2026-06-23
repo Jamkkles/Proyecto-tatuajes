@@ -1,13 +1,16 @@
 import { useState, type FormEvent } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '../lib/api'
-import { login, saveToken } from '../lib/auth'
+import { login, saveToken, saveUser } from '../lib/auth'
+import AuthStage from '../components/AuthStage'
 import './Login.css'
 
-type Status = 'idle' | 'loading' | 'success'
+type Status = 'idle' | 'loading'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function Login() {
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -31,10 +34,10 @@ export default function Login() {
 
     setStatus('loading')
     try {
-      const { token } = await login({ email: email.trim(), password })
+      const { token, user } = await login({ email: email.trim(), password })
       saveToken(token)
-      setStatus('success')
-      // TODO: redirigir al panel del estudio cuando exista el enrutado.
+      saveUser(user)
+      navigate('/dashboard')
     } catch (err) {
       setStatus('idle')
       if (err instanceof ApiError) {
@@ -53,14 +56,10 @@ export default function Login() {
 
   return (
     <div className="auth">
-      <Stage />
+      <AuthStage />
 
       <main className="auth__panel">
         <section className="card" aria-labelledby="auth-title">
-          <span className="card__mark" aria-hidden="true">
-            H
-          </span>
-
           <p className="card__eyebrow">Panel del artista</p>
           <h1 className="card__title" id="auth-title">
             Bienvenido <span className="card__title-em">de vuelta</span>
@@ -69,12 +68,7 @@ export default function Login() {
             Entra a tu estudio para gestionar bocetos, citas y cotizaciones.
           </p>
 
-          {status === 'success' ? (
-            <p className="card__success" role="status">
-              Sesión iniciada. Abriendo tu estudio…
-            </p>
-          ) : (
-            <form className="form" onSubmit={handleSubmit} noValidate>
+          <form className="form" onSubmit={handleSubmit} noValidate>
               {formError && (
                 <p className="form__alert" role="alert">
                   {formError}
@@ -93,7 +87,7 @@ export default function Login() {
                   autoComplete="email"
                   autoCapitalize="none"
                   spellCheck={false}
-                  placeholder="hola@hectortattoos.cl"
+                  placeholder="tu@correo.cl"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
@@ -140,54 +134,23 @@ export default function Login() {
                 )}
               </div>
 
-              <a className="form__forgot" href="#recuperar">
+              <Link className="form__forgot" to="/recuperar">
                 ¿Olvidaste tu contraseña?
-              </a>
+              </Link>
 
               <button className="btn" type="submit" disabled={loading}>
                 <span className="btn__label">{loading ? 'Entrando…' : 'Entrar'}</span>
               </button>
-            </form>
-          )}
+          </form>
 
           <p className="card__foot">
-            ¿Aún no tienes estudio? <a href="#crear">Crear cuenta</a>
+            ¿Aún no tienes estudio? <Link to="/registro">Crear cuenta</Link>
           </p>
         </section>
 
-        <p className="auth__legal">hectortattoos.m · Curicó, Chile</p>
+       
       </main>
     </div>
   )
 }
 
-/** Atmósfera: humo japonés + watermark del monograma. Puramente decorativa. */
-function Stage() {
-  return (
-    <div className="stage" aria-hidden="true">
-      <svg
-        className="stage__smoke"
-        viewBox="0 0 600 900"
-        preserveAspectRatio="xMidYMid slice"
-        fill="none"
-      >
-        <g stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.5">
-          <path d="M-40 210 C 120 150, 200 300, 140 410 S 60 620, 220 690 S 420 700, 360 540" />
-          <path d="M10 120 C 180 90, 250 250, 180 360 S 90 560, 250 650 S 470 660, 410 470" />
-          <path d="M-60 330 C 110 280, 180 420, 110 520 S 30 700, 200 770" />
-          <path d="M80 40 C 240 30, 320 190, 250 300 S 150 500, 320 590 S 540 600, 470 400" />
-          <path d="M-20 470 C 140 440, 210 560, 150 650 S 70 820, 240 880" />
-        </g>
-      </svg>
-
-      <span className="stage__mark" aria-hidden="true">
-        H
-      </span>
-
-      <div className="stage__copy">
-        <p className="stage__brand">hectortattoos.m</p>
-        <p className="stage__tagline">Todo tu estudio, en un solo trazo.</p>
-      </div>
-    </div>
-  )
-}
