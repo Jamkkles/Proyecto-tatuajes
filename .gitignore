@@ -39,5 +39,8 @@ jspm_packages/
 dist/
 build/
 
+# Bocetos subidos con STORAGE_DRIVER=local (T0010)
+backend/uploads/
+
 # Docker
 .env

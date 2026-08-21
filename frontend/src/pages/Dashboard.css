@@ -442,6 +442,21 @@
 }
 .panelbox__link:hover { color: var(--steel-hi); text-decoration: underline; text-underline-offset: 3px; }
 
+/* Galería vacía: todavía no hay bocetos importados. */
+.panelbox__empty {
+  margin: 0;
+  padding: 34px 20px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--ash);
+}
+
+/* Módulos aún no implementados: visibles pero sin acción. */
+.navitem:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 /* ---- Lista de citas ---- */
 .appt-list { list-style: none; margin: 0; padding: 6px; }
 .appt {

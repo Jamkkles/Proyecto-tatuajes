@@ -1,6 +1,7 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getUser, logout } from '../lib/auth'
+import { listSketches, type Sketch } from '../lib/sketches'
 import './Dashboard.css'
 
 /* ---------- Iconos (line, 24px) ---------- */
@@ -43,9 +44,10 @@ const icons: Record<string, ReactNode> = {
   ),
 }
 
+// `to` apunta a la ruta del módulo; los que aún no existen quedan sin ella.
 const NAV = [
-  { key: 'resumen', label: 'Resumen' },
-  { key: 'bocetos', label: 'Bocetos' },
+  { key: 'resumen', label: 'Resumen', to: '/dashboard' },
+  { key: 'bocetos', label: 'Bocetos', to: '/bocetos' },
   { key: 'citas', label: 'Citas' },
   { key: 'cotizaciones', label: 'Cotizaciones' },
   { key: 'inventario', label: 'Inventario' },
@@ -66,19 +68,28 @@ const APPOINTMENTS = [
   { time: '18:00', client: 'Matías Herrera', detail: 'Black & grey · pierna', dur: '3 h', live: false },
 ]
 
-const FLASH = [
-  { src: '/descarga2.jpg', title: 'Oni', zone: 'Máscara' },
-  { src: '/descarga1.jpg', title: 'Dragón', zone: 'Brazo completo' },
-  { src: '/clouds.jpg', title: 'Nubes', zone: 'Relleno' },
-  { src: '/dashboard-bg.jpg', title: 'Templo', zone: 'Espalda' },
-]
-
 export default function Dashboard() {
   const navigate = useNavigate()
   const user = getUser()
   const [navOpen, setNavOpen] = useState(
     () => typeof window !== 'undefined' && window.innerWidth >= 900,
   )
+  const [flash, setFlash] = useState<Sketch[]>([])
+  const [sketchCount, setSketchCount] = useState<number | null>(null)
+
+  // Bocetos reales de la galería (T0010): los cuatro más recientes para el
+  // panel y el total para la tarjeta de estadísticas.
+  useEffect(() => {
+    listSketches()
+      .then((list) => {
+        setFlash(list.slice(0, 4))
+        setSketchCount(list.length)
+      })
+      .catch(() => {
+        setFlash([])
+        setSketchCount(null)
+      })
+  }, [])
 
   const firstName = user?.name?.trim().split(/\s+/)[0] ?? 'artista'
   const initial = firstName.charAt(0).toUpperCase()
@@ -119,6 +130,8 @@ export default function Dashboard() {
               type="button"
               className={`navitem${item.key === 'resumen' ? ' navitem--active' : ''}`}
               aria-current={item.key === 'resumen' ? 'page' : undefined}
+              disabled={!item.to}
+              onClick={() => item.to && navigate(item.to)}
             >
               <span className="navitem__icon">{icons[item.key]}</span>
               {item.label}
@@ -178,13 +191,18 @@ export default function Dashboard() {
 
           {/* Stats */}
           <section className="stats" aria-label="Resumen de actividad">
-            {STATS.map((s) => (
-              <article className="statcard" key={s.label}>
-                <p className="statcard__label">{s.label}</p>
-                <p className="statcard__value">{s.value}</p>
-                <p className="statcard__sub">{s.sub}</p>
-              </article>
-            ))}
+            {STATS.map((s) => {
+              // "Bocetos" ya sale de la base de datos; el resto sigue siendo
+              // maqueta hasta que se implementen sus módulos.
+              const real = s.label === 'Bocetos' && sketchCount !== null
+              return (
+                <article className="statcard" key={s.label}>
+                  <p className="statcard__label">{s.label}</p>
+                  <p className="statcard__value">{real ? sketchCount : s.value}</p>
+                  <p className="statcard__sub">{real ? 'en tu galería' : s.sub}</p>
+                </article>
+              )
+            })}
           </section>
 
           {/* Paneles */}
@@ -212,19 +230,39 @@ export default function Dashboard() {
             <section className="panelbox" aria-labelledby="flash-h">
               <div className="panelbox__head">
                 <h3 className="panelbox__title" id="flash-h">Bocetos recientes</h3>
-                <button type="button" className="panelbox__link">Ver galería</button>
+                <button
+                  type="button"
+                  className="panelbox__link"
+                  onClick={() => navigate('/bocetos')}
+                >
+                  Ver galería
+                </button>
               </div>
-              <div className="gallery">
-                {FLASH.map((f) => (
-                  <figure className="flash" key={f.title}>
-                    <img className="flash__img" src={f.src} alt={`${f.title} — ${f.zone}`} loading="lazy" />
-                    <figcaption className="flash__cap">
-                      <span className="flash__title">{f.title}</span>
-                      <span className="flash__zone">{f.zone}</span>
-                    </figcaption>
-                  </figure>
-                ))}
-              </div>
+              {flash.length === 0 ? (
+                <p className="panelbox__empty">
+                  Aún no hay bocetos.{' '}
+                  <button type="button" className="panelbox__link" onClick={() => navigate('/bocetos')}>
+                    Importa el primero
+                  </button>
+                </p>
+              ) : (
+                <div className="gallery">
+                  {flash.map((f) => (
+                    <figure className="flash" key={f.id}>
+                      <img
+                        className="flash__img"
+                        src={f.url}
+                        alt={`${f.title}${f.body_zone ? ` — ${f.body_zone}` : ''}`}
+                        loading="lazy"
+                      />
+                      <figcaption className="flash__cap">
+                        <span className="flash__title">{f.title}</span>
+                        <span className="flash__zone">{f.body_zone ?? f.status}</span>
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
+              )}
             </section>
           </div>
         </div>

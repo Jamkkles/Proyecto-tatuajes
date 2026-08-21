@@ -14,6 +14,8 @@ export default defineConfig({
     watch: {
       usePolling: true,
     },
-    historyApiFallback: true,
+    // El fallback a index.html para rutas del cliente (/bocetos, /nueva-contrasena)
+    // ya viene activado por defecto en `appType: 'spa'`; declararlo aquí rompía
+    // el typecheck porque no es una opción válida de `server`.
   },
 })

@@ -4,6 +4,7 @@ import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import Dashboard from './pages/Dashboard'
+import Gallery from './pages/Gallery'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
@@ -19,6 +20,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/bocetos"
+          element={
+            <ProtectedRoute>
+              <Gallery />
             </ProtectedRoute>
           }
         />
