@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getUser, logout } from '../lib/auth'
 import { listSketches, type Sketch } from '../lib/sketches'
@@ -42,6 +42,17 @@ const icons: Record<string, ReactNode> = {
       <path d="M15 4h3a2 2 0 012 2v12a2 2 0 01-2 2h-3M10 17l5-5-5-5M15 12H3" />
     </svg>
   ),
+  sun: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <circle cx="12" cy="12" r="4.2" />
+      <path d="M12 2.5v2.6M12 18.9v2.6M4.6 4.6l1.9 1.9M17.5 17.5l1.9 1.9M2.5 12h2.6M18.9 12h2.6M4.6 19.4l1.9-1.9M17.5 6.5l1.9-1.9" strokeLinecap="round" />
+    </svg>
+  ),
+  moon: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M20 14.5A8 8 0 019.5 4a7 7 0 100 14 8 8 0 0010.5-3.5z" strokeLinejoin="round" />
+    </svg>
+  ),
 }
 
 // `to` apunta a la ruta del módulo; los que aún no existen quedan sin ella.
@@ -67,10 +78,71 @@ const APPOINTMENTS = [
   { time: '16:00', client: 'Valentina Soto', detail: 'Retoque · hombro', dur: '45 min', live: false },
   { time: '18:00', client: 'Matías Herrera', detail: 'Black & grey · pierna', dur: '3 h', live: false },
 ]
+// Ritmo de la animación de nubes (ajusta estos valores aquí):
+const CLOUD_LOOP_SECONDS = 9.8 // tramo que se repite (el clip dura ~10 s)
+const CLOUD_SPEED = 0.6 // velocidad de reproducción (1 = normal, <1 = más lento)
+const CLOUD_FADE_SECONDS = 1.2 // duración del fundido junto al empalme
 
 export default function Dashboard() {
   const navigate = useNavigate()
   const user = getUser()
+  // Loop sin corte: dos copias del vídeo (A arriba, B abajo) desfasadas medio
+  // ciclo. Cada una repite su tramo [0, L]; en el instante de su corte esa capa
+  // está a opacidad 0 y la otra la cubre, así el salto nunca se ve.
+  const cloudTopRef = useRef<HTMLVideoElement>(null)
+  const cloudBackRef = useRef<HTMLVideoElement>(null)
+
+  // Modo claro (washi) / oscuro (irezumi). Persiste la preferencia; cada tema
+  // usa su propio vídeo de nubes.
+  const [light, setLight] = useState(
+    () => typeof window !== 'undefined' && localStorage.getItem('dash-theme') === 'light',
+  )
+  const cloudSrc = light ? '/japanese-clouds-loop.mp4' : '/clouds-loop.mp4'
+
+  function toggleTheme() {
+    setLight((v) => {
+      const next = !v
+      try {
+        localStorage.setItem('dash-theme', next ? 'light' : 'dark')
+      } catch {
+        /* localStorage no disponible: el tema vive solo en memoria */
+      }
+      return next
+    })
+  }
+
+  useEffect(() => {
+    const top = cloudTopRef.current
+    const back = cloudBackRef.current
+    if (!top || !back) return
+
+    const L = CLOUD_LOOP_SECONDS
+    top.playbackRate = CLOUD_SPEED
+    back.playbackRate = CLOUD_SPEED
+    // La capa de atrás arranca medio ciclo por delante para tapar el corte.
+    const offsetBack = () => { back.currentTime = L / 2 }
+    if (back.readyState >= 1) offsetBack()
+    else back.addEventListener('loadedmetadata', offsetBack, { once: true })
+
+    let raf = 0
+    const w = CLOUD_FADE_SECONDS / L // fracción del ciclo que dura el fundido
+    const tick = () => {
+      if (top.currentTime >= L) top.currentTime = 0
+      if (back.currentTime >= L) back.currentTime = 0
+      // La capa de atrás va siempre opaca; la de arriba solo se funde en una
+      // ventana corta junto a su empalme (p≈0 y p≈1). El resto del ciclo va a 1,
+      // así se ve una sola capa limpia, sin mezcla continua.
+      const p = (top.currentTime % L) / L
+      let o = 1
+      if (p < w) o = p / w
+      else if (p > 1 - w) o = (1 - p) / w
+      top.style.opacity = String(o)
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [cloudSrc])
+
   const [navOpen, setNavOpen] = useState(
     () => typeof window !== 'undefined' && window.innerWidth >= 900,
   )
@@ -105,7 +177,31 @@ export default function Dashboard() {
   }
 
   return (
-    <div className={`dash${navOpen ? ' dash--nav-open' : ''}`}>
+    <div className={`dash${navOpen ? ' dash--nav-open' : ''}${light ? ' dash--light' : ''}`}>
+      {/* ---------- Atmósfera: humo en bucle sin corte (semiarco) ---------- */}
+      <div className="dash__atmos" aria-hidden="true">
+        <video
+          key={`back-${cloudSrc}`}
+          ref={cloudBackRef}
+          className="dash__atmos-video"
+          src={cloudSrc}
+          autoPlay
+          muted
+          loop
+          playsInline
+        />
+        <video
+          key={`top-${cloudSrc}`}
+          ref={cloudTopRef}
+          className="dash__atmos-video"
+          src={cloudSrc}
+          autoPlay
+          muted
+          loop
+          playsInline
+        />
+      </div>
+
       {/* ---------- Backdrop (móvil) ---------- */}
       <div
         className="dash__backdrop"
@@ -172,7 +268,19 @@ export default function Dashboard() {
             </button>
             <h1 className="dash__top-title">Resumen</h1>
           </div>
-          <button className="dash__cta" type="button">Nueva cita</button>
+          <div className="dash__top-right">
+            <button
+              className="dash__theme"
+              type="button"
+              onClick={toggleTheme}
+              aria-pressed={light}
+              aria-label={light ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro'}
+              title={light ? 'Modo oscuro' : 'Modo claro'}
+            >
+              <span className="navitem__icon">{light ? icons.moon : icons.sun}</span>
+            </button>
+            <button className="dash__cta" type="button">Nueva cita</button>
+          </div>
         </header>
 
         <div className="dash__scroll">
