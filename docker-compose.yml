@@ -26,7 +26,9 @@ services:
     command: npm run dev
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      target: dev
     restart: unless-stopped
     ports:
       - "5173:5173"

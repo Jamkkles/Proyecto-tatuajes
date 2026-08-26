@@ -352,7 +352,7 @@ export default function Gallery() {
               {sketches.map((s) => (
                 <li className="card" key={s.id}>
                   <div className="card__media">
-                    <img className="card__img" src={s.url} alt={s.title} loading="lazy" />
+                    <img className="card__img" src={s.url} alt={s.title} loading="lazy" width={320} height={240} />
                     <span className={`badge badge--${s.status}`}>{s.status}</span>
                   </div>
 

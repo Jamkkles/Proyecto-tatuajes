@@ -20,7 +20,16 @@ app.get('/health', (req, res) => {
 // Imágenes del driver de disco local. Con STORAGE_DRIVER=cloudinary esta ruta
 // deja de usarse (las URLs apuntan al CDN) pero se mantiene para poder seguir
 // mostrando los bocetos subidos antes de migrar.
-app.use('/uploads', express.static(localDriver.UPLOAD_DIR, { maxAge: '1d' }));
+// Cada boceto se guarda con un nombre nuevo (UUID) y nunca se sobrescribe: si
+// cambia, es un archivo distinto en otra URL. Por eso el cache puede ser
+// permanente en vez de expirar en 1 día.
+app.use(
+  '/uploads',
+  express.static(localDriver.UPLOAD_DIR, {
+    maxAge: '1y',
+    immutable: true,
+  })
+);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/sketches', sketchRoutes);

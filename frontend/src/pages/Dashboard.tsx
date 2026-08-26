@@ -154,7 +154,7 @@ const APPOINTMENTS = [
 ]
 
 // Imágenes de reserva para el carrusel cuando aún no hay bocetos importados.
-const CAROUSEL_FALLBACK = ['/descarga1.jpg', '/descarga2.jpg', '/dashboard-bg.jpg']
+const CAROUSEL_FALLBACK = ['/descarga1.webp', '/descarga2.webp', '/dashboard-bg.webp']
 
 // Cada cuánto avanza solo el carrusel (ms).
 const CAROUSEL_AUTO_MS = 10200
@@ -170,26 +170,16 @@ function slideStride(el: HTMLElement) {
   return el.clientWidth / 3
 }
 
-// Ritmo de la animación de nubes (ajusta estos valores aquí):
-const CLOUD_LOOP_SECONDS = 9.8 // tramo que se repite (el clip dura ~10 s)
-const CLOUD_SPEED = 0.6 // velocidad de reproducción (1 = normal, <1 = más lento)
-const CLOUD_FADE_SECONDS = 1.2 // duración del fundido junto al empalme
-
 export default function Dashboard() {
   const navigate = useNavigate()
   const user = getUser()
-  // Loop sin corte: dos copias del vídeo (A arriba, B abajo) desfasadas medio
-  // ciclo. Cada una repite su tramo [0, L]; en el instante de su corte esa capa
-  // está a opacidad 0 y la otra la cubre, así el salto nunca se ve.
-  const cloudTopRef = useRef<HTMLVideoElement>(null)
-  const cloudBackRef = useRef<HTMLVideoElement>(null)
 
   // Modo claro (washi) / oscuro (irezumi). Persiste la preferencia; cada tema
-  // usa su propio vídeo de nubes.
+  // usa su propia imagen de nubes.
   const [light, setLight] = useState(
     () => typeof window !== 'undefined' && localStorage.getItem('dash-theme') === 'light',
   )
-  const cloudSrc = light ? '/japanese-clouds-loop.mp4' : '/clouds-loop.mp4'
+  const cloudSrc = light ? '/japanese-atmos.webp' : '/clouds-atmos.webp'
 
   function toggleTheme() {
     setLight((v) => {
@@ -202,38 +192,6 @@ export default function Dashboard() {
       return next
     })
   }
-
-  useEffect(() => {
-    const top = cloudTopRef.current
-    const back = cloudBackRef.current
-    if (!top || !back) return
-
-    const L = CLOUD_LOOP_SECONDS
-    top.playbackRate = CLOUD_SPEED
-    back.playbackRate = CLOUD_SPEED
-    // La capa de atrás arranca medio ciclo por delante para tapar el corte.
-    const offsetBack = () => { back.currentTime = L / 2 }
-    if (back.readyState >= 1) offsetBack()
-    else back.addEventListener('loadedmetadata', offsetBack, { once: true })
-
-    let raf = 0
-    const w = CLOUD_FADE_SECONDS / L // fracción del ciclo que dura el fundido
-    const tick = () => {
-      if (top.currentTime >= L) top.currentTime = 0
-      if (back.currentTime >= L) back.currentTime = 0
-      // La capa de atrás va siempre opaca; la de arriba solo se funde en una
-      // ventana corta junto a su empalme (p≈0 y p≈1). El resto del ciclo va a 1,
-      // así se ve una sola capa limpia, sin mezcla continua.
-      const p = (top.currentTime % L) / L
-      let o = 1
-      if (p < w) o = p / w
-      else if (p > 1 - w) o = (1 - p) / w
-      top.style.opacity = String(o)
-      raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [cloudSrc])
 
   const [navOpen, setNavOpen] = useState(
     () => typeof window !== 'undefined' && window.innerWidth >= 900,
@@ -342,28 +300,9 @@ export default function Dashboard() {
 
   return (
     <div className={`dash${navOpen ? ' dash--nav-open' : ''}${light ? ' dash--light' : ''}`}>
-      {/* ---------- Atmósfera: humo en bucle sin corte (semiarco) ---------- */}
+      {/* ---------- Atmósfera: nubes (imagen estática) ---------- */}
       <div className="dash__atmos" aria-hidden="true">
-        <video
-          key={`back-${cloudSrc}`}
-          ref={cloudBackRef}
-          className="dash__atmos-video"
-          src={cloudSrc}
-          autoPlay
-          muted
-          loop
-          playsInline
-        />
-        <video
-          key={`top-${cloudSrc}`}
-          ref={cloudTopRef}
-          className="dash__atmos-video"
-          src={cloudSrc}
-          autoPlay
-          muted
-          loop
-          playsInline
-        />
+        <img className="dash__atmos-img" src={cloudSrc} alt="" width={800} height={1422} fetchPriority="high" />
       </div>
 
       {/* ---------- Backdrop (móvil) ---------- */}
@@ -489,7 +428,7 @@ export default function Dashboard() {
                   key={`${c.id}-${i}`}
                   aria-hidden={i >= carousel.length ? true : undefined}
                 >
-                  <img className="slide__img" src={c.url} alt={c.title} loading="lazy" />
+                  <img className="slide__img" src={c.url} alt={c.title} loading="lazy" width={320} height={180} />
                   <figcaption className="slide__cap">
                     <span className="slide__title">{c.title}</span>
                     <span className="slide__zone">{c.zone}</span>
@@ -571,7 +510,7 @@ export default function Dashboard() {
                     <span className="navitem__icon">{icons.panDown}</span>
                   </button>
                 </div>
-                <img className="viewer__model" src="/espalda.png" alt="Torso masculino tatuado" />
+                <img className="viewer__model" src="/espalda.webp" alt="Torso masculino tatuado" width={800} height={1132} />
                 <span className="viewer__hint">Arrastra para rotar · rueda para acercar</span>
               </div>
             </section>

@@ -2,6 +2,7 @@ const multer = require('multer');
 const { imageSize } = require('image-size');
 const sketchModel = require('../models/sketchModel');
 const storage = require('../services/storage');
+const { optimizeImage } = require('../services/imageOptimizer');
 
 const MAX_FILE_BYTES = Number(process.env.MAX_UPLOAD_BYTES) || 5 * 1024 * 1024; // 5 MB
 const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -95,10 +96,18 @@ async function create(req, res) {
     return res.status(400).json({ message: 'Estado no válido.' });
   }
 
+  let optimized;
+  try {
+    optimized = await optimizeImage(req.file.buffer, req.file.mimetype);
+  } catch (err) {
+    console.error('Error optimizando la imagen:', err);
+    return res.status(400).json({ message: 'La imagen está dañada o no se pudo procesar.' });
+  }
+
   let stored;
   try {
     stored = await storage.save({
-      buffer: req.file.buffer,
+      buffer: optimized,
       mimeType: req.file.mimetype,
       userId: req.user.sub,
       originalName: req.file.originalname,
@@ -108,7 +117,7 @@ async function create(req, res) {
     return res.status(502).json({ message: 'No pudimos guardar la imagen. Inténtalo de nuevo.' });
   }
 
-  const { width, height } = readDimensions(req.file.buffer);
+  const { width, height } = readDimensions(optimized);
 
   try {
     const sketch = await sketchModel.create({
@@ -122,7 +131,7 @@ async function create(req, res) {
       storageKey: stored.key,
       url: stored.url,
       mimeType: req.file.mimetype,
-      sizeBytes: req.file.size,
+      sizeBytes: optimized.length,
       width,
       height,
     });

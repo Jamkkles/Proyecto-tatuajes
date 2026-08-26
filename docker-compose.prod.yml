@@ -1,0 +1,15 @@
+services:
+  backend:
+    volumes: !reset []
+    command: node src/index.js
+
+  frontend:
+    build:
+      context: ./frontend
+      target: prod
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+    volumes: !reset []
+    environment: !reset {}
+    ports: !override
+      - "8080:80"

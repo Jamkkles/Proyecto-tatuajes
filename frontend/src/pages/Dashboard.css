@@ -43,7 +43,7 @@
 }
 /* Dos capas apiladas para el fundido cruzado: la de atrás siempre opaca, la de
    arriba con opacidad animada por JS. */
-.dash__atmos-video {
+.dash__atmos-img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -86,7 +86,7 @@
      arriba (nav legible) y suave abajo (la nube se aprecia). */
   background:
     linear-gradient(180deg, rgba(8, 9, 12, 0.95) 0%, rgba(8, 9, 12, 0.82) 44%, rgba(8, 9, 12, 0.5) 100%),
-    url('/clouds.jpg') center bottom / cover no-repeat,
+    url('/clouds.webp') center bottom / cover no-repeat,
     var(--ink-2);
   border-right: 1px solid var(--line);
   transform: translateX(-100%);
@@ -744,7 +744,7 @@
 
 /* ---- Atmósfera ---- */
 .dash--light .dash__atmos { opacity: 0.5; }
-.dash--light .dash__atmos-video {
+.dash--light .dash__atmos-img {
   filter: grayscale(1) brightness(1.12) contrast(0.92);
   mix-blend-mode: multiply;
 }

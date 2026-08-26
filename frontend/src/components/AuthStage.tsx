@@ -1,7 +1,7 @@
 export default function AuthStage() {
   return (
     <div className="stage" aria-hidden="true">
-      <img className="stage__photo" src="/espalda.png" alt="" />
+      <img className="stage__photo" src="/espalda.webp" alt="" width={800} height={1132} />
       <svg
         className="stage__smoke"
         viewBox="0 0 600 900"
