@@ -7,11 +7,18 @@
 
 .gal {
   --accent: #c0392f;
+  position: relative;
   min-height: 100svh;
   background:
     linear-gradient(180deg, rgba(7, 8, 10, 0.86), rgba(7, 8, 10, 0.96)),
     var(--ink);
   color: var(--fog);
+}
+/* El contenido va por encima de la atmósfera (<Atmos/>, position: fixed
+   z-index: 0). La cabecera ya es sticky con su propio z-index. */
+.gal__body {
+  position: relative;
+  z-index: 1;
 }
 
 /* ============ Cabecera ============ */
@@ -482,4 +489,86 @@
 .card__del svg {
   width: 16px;
   height: 16px;
+}
+
+/* ============ Botón de tema (cabecera) ============ */
+.gal__toggle {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  color: var(--ash);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+.gal__toggle:hover {
+  color: var(--steel-hi);
+  border-color: var(--ash);
+}
+.gal__toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(195, 210, 219, 0.3);
+}
+.gal__toggle svg {
+  width: 19px;
+  height: 19px;
+}
+
+/* ============================================================
+   Modo claro "Washi" — mismo papel sumi-e que el Dashboard.
+   La galería usa tokens para casi todo, así que basta con
+   redefinirlos bajo `.gal` y ajustar los pocos colores literales
+   (cabecera translúcida, hover del botón primario, badges).
+   ============================================================ */
+[data-theme='light'] .gal {
+  --ink: #ebe8e1; /* lienzo */
+  --ink-2: rgba(255, 255, 255, 0.74); /* superficie de panel */
+  --ink-3: #e3ded4; /* superficie hundida (inputs, chips de tag) */
+  --line: #d3cec3;
+  --line-soft: #ddd8cd;
+  --fog: #3f434a; /* texto cuerpo */
+  --ash: #6b6f76; /* texto atenuado */
+  --steel: #2a2d33; /* texto medio */
+  --steel-hi: #1b1d21; /* texto fuerte / títulos / botón primario */
+  --danger: #b23b30;
+  --danger-bg: rgba(178, 59, 48, 0.1);
+
+  color: var(--fog);
+  background:
+    radial-gradient(120% 95% at 100% 55%, rgba(120, 110, 95, 0.1) 0%, transparent 58%),
+    linear-gradient(180deg, #efece6 0%, #ebe8e1 60%, #e7e3db 100%),
+    #ebe8e1;
+}
+
+/* Cabecera translúcida: el rgba oscuro literal no sirve sobre papel. */
+[data-theme='light'] .gal .gal__top {
+  background: rgba(237, 234, 227, 0.72);
+}
+
+/* El hover del primario iba a #fff (invisible sobre papel); lo llevamos a
+   tinta más profunda. */
+[data-theme='light'] .gal .btn--primary:hover:not(:disabled) {
+  background: #000;
+}
+
+/* Badges de estado: se conserva el tinte pero con texto legible sobre papel. */
+[data-theme='light'] .gal .badge {
+  backdrop-filter: none;
+}
+[data-theme='light'] .gal .badge--disponible {
+  color: #1f5133;
+  background: rgba(84, 196, 138, 0.22);
+}
+[data-theme='light'] .gal .badge--reservado {
+  color: #7a5310;
+  background: rgba(200, 150, 55, 0.24);
+}
+[data-theme='light'] .gal .badge--tatuado {
+  color: #8a2a22;
+  background: rgba(192, 57, 47, 0.18);
 }

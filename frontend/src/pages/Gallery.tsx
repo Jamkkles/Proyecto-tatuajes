@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getUser } from '../lib/auth'
 import { ApiError } from '../lib/api'
+import Atmos from '../components/Atmos'
+import ThemeToggle from '../components/ThemeToggle'
 import {
   ALLOWED_MIME,
   MAX_FILE_BYTES,
@@ -171,6 +173,8 @@ export default function Gallery() {
 
   return (
     <div className="gal">
+      <Atmos />
+
       <header className="gal__top">
         <button className="gal__back" type="button" onClick={() => navigate('/dashboard')}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
@@ -185,6 +189,7 @@ export default function Gallery() {
             {sketches.length} {sketches.length === 1 ? 'boceto' : 'bocetos'}
           </p>
         </div>
+        <ThemeToggle className="gal__toggle" />
       </header>
 
       <div className="gal__body">

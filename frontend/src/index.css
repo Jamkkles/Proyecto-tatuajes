@@ -70,6 +70,16 @@
   text-rendering: optimizeLegibility;
 }
 
+/* Tema claro "washi": el resto de la paleta la ajusta cada página bajo
+   `[data-theme="light"] .su-contenedor`. Aquí solo el lienzo de base y el
+   `color-scheme` para los controles nativos. */
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+:root[data-theme='light'] body {
+  background: #ebe8e1;
+}
+
 *,
 *::before,
 *::after {

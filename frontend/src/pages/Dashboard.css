@@ -23,34 +23,9 @@
   background-attachment: fixed;
 }
 
-/* ============ Atmósfera: humo a la deriva (semiarco) ============
-   El vídeo de nubes entra por la derecha y cruza pasada la mitad hacia la
-   izquierda dentro de un arco ancho y bajo; la cima no toca el tope y todo
-   el borde curvo se disuelve en el #090a0b del lienzo. La máscara va en el
-   contenedor para recortar el arco. Primeros segundos, en bucle (JS). */
-.dash__atmos {
-  position: fixed;
-  right: 0;
-  bottom: 0;
-  z-index: 0;
-  width: min(1000vw, 1000px);
-  height: 200vh; /* zona baja-derecha: la banda no llega al tope */
-  pointer-events: none;
-  overflow: hidden;
-  -webkit-mask-image: radial-gradient(86% 96% at 116% 120%, transparent 0%, transparent 40%, #000 56%, #000 66%, rgba(0, 0, 0, 0.35) 78%, transparent 90%);
-  mask-image: radial-gradient(86% 96% at 116% 120%, transparent 0%, transparent 40%, #000 56%, #000 66%, rgba(0, 0, 0, 0.35) 78%, transparent 90%);
-  opacity: 0.55;
-}
-/* Dos capas apiladas para el fundido cruzado: la de atrás siempre opaca, la de
-   arriba con opacidad animada por JS. */
-.dash__atmos-img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: grayscale(1) brightness(0.7) contrast(1.06);
-}
+/* La atmósfera de nubes vive ahora en el componente compartido <Atmos/>
+   (src/components/Atmos.tsx + Atmos.css). El contenido del panel va por
+   encima con .dash__main { z-index: 1 }. */
 
 /* ============ Backdrop (oscurece el contenido con el drawer abierto) ============ */
 .dash__backdrop {
@@ -274,7 +249,7 @@
 /* ============ Contenido ============ */
 .dash__main {
   position: relative;
-  z-index: 1; /* por encima de la atmósfera (.dash__atmos, z-index: 0) */
+  z-index: 1; /* por encima de la atmósfera (<Atmos/>, .atmos { z-index: 0 }) */
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -722,19 +697,18 @@
   .split { grid-template-columns: minmax(280px, 0.42fr) 1fr; align-items: start; }
 }
 
-/* Sin movimiento: el humo se retira y el modelo deja de flotar. */
+/* Sin movimiento: el modelo deja de flotar (la atmósfera se retira en Atmos.css). */
 @media (prefers-reduced-motion: reduce) {
-  .dash__atmos { display: none; }
   .viewer__model { animation: none; }
 }
 
 /* ============================================================
    Modo claro "Washi" — el reverso del irezumi
    Papel de arroz sumi-e: tinta sobre papel cálido, el bermellón
-   del sello hanko conservado como único acento. El vídeo japonés
-   se posa con `multiply`, como tinta aguada.
+   del sello hanko conservado como único acento. Las nubes se
+   muestran con el mismo tratamiento que en modo oscuro.
    ============================================================ */
-.dash.dash--light {
+[data-theme="light"] .dash {
   color: #3f434a;
   background:
     radial-gradient(120% 95% at 100% 55%, rgba(120, 110, 95, 0.1) 0%, transparent 58%),
@@ -742,89 +716,88 @@
     #ebe8e1;
 }
 
-/* ---- Atmósfera ---- */
-.dash--light .dash__atmos { opacity: 0.5; }
-.dash--light .dash__atmos-img {
-  filter: grayscale(1) brightness(1.12) contrast(0.92);
-  mix-blend-mode: multiply;
-}
-
-/* ---- Sidebar ---- */
-.dash--light .dash__sidebar {
-  background: linear-gradient(180deg, #efece6 0%, #eae6de 100%);
+/* ---- Sidebar ----
+   Mismo formato que el modo oscuro: nubes que suben desde el pie con un velo
+   vertical (fuerte arriba para que el nav se lea, suave abajo). Aquí el velo
+   es de papel washi en vez de tinta. */
+[data-theme="light"] .dash__sidebar {
+  background:
+    linear-gradient(180deg, rgba(239, 236, 230, 0.95) 0%, rgba(235, 232, 225, 0.82) 44%, rgba(231, 227, 219, 0.5) 100%),
+    url('/clouds-light.webp') center bottom / cover no-repeat,
+    #efece6;
   border-right-color: #d3cec3;
 }
-.dash--light .dash__wordmark { color: #1b1d21; text-shadow: none; }
-.dash--light .dash__brand-sub { color: var(--accent); }
-.dash--light .navitem { color: #4a4e55; text-shadow: none; }
-.dash--light .navitem:hover { color: #1b1d21; background: rgba(27, 29, 33, 0.05); }
-.dash--light .navitem--active { color: #1b1d21; background: rgba(192, 57, 47, 0.09); }
-.dash--light .navitem__icon svg { filter: none; }
-.dash--light .dash__side-foot { border-top-color: #d3cec3; }
-.dash--light .dash__avatar { background: #f4f2ec; border-color: #d3cec3; color: #1b1d21; }
-.dash--light .dash__user-name { color: #1b1d21; text-shadow: none; }
-.dash--light .dash__user-mail { color: #6b6f76; text-shadow: none; }
-.dash--light .dash__logout { color: #4a4e55; border-color: #d3cec3; }
-.dash--light .dash__logout:hover { color: #1b1d21; }
+[data-theme="light"] .dash__wordmark { color: #1b1d21; text-shadow: none; }
+[data-theme="light"] .dash__brand-sub { color: var(--accent); }
+[data-theme="light"] .navitem { color: #4a4e55; text-shadow: none; }
+[data-theme="light"] .navitem:hover { color: #1b1d21; background: rgba(27, 29, 33, 0.05); }
+[data-theme="light"] .navitem--active { color: #1b1d21; background: rgba(192, 57, 47, 0.09); }
+[data-theme="light"] .navitem__icon svg { filter: none; }
+[data-theme="light"] .dash__side-foot { border-top-color: #d3cec3; }
+[data-theme="light"] .dash__avatar { background: #f4f2ec; border-color: #d3cec3; color: #1b1d21; }
+[data-theme="light"] .dash__user-name { color: #1b1d21; text-shadow: none; }
+[data-theme="light"] .dash__user-mail { color: #6b6f76; text-shadow: none; }
+[data-theme="light"] .dash__logout { color: #4a4e55; border-color: #d3cec3; }
+[data-theme="light"] .dash__logout:hover { color: #1b1d21; }
 
 /* ---- Barra superior ---- */
-.dash--light .dash__top {
+[data-theme="light"] .dash__top {
   background: rgba(237, 234, 227, 0.72);
   border-bottom-color: #d3cec3;
 }
-.dash--light .dash__toggle,
-.dash--light .dash__iconbtn { color: #4a4e55; border-color: #d3cec3; }
-.dash--light .dash__toggle:hover,
-.dash--light .dash__iconbtn:hover { color: #1b1d21; border-color: #b7b1a3; background: rgba(27, 29, 33, 0.05); }
-.dash--light .dash__iconbtn--dot::after { box-shadow: 0 0 0 2px #ede9e2; }
+[data-theme="light"] .dash__toggle,
+[data-theme="light"] .dash__iconbtn { color: #4a4e55; border-color: #d3cec3; }
+[data-theme="light"] .dash__toggle:hover,
+[data-theme="light"] .dash__iconbtn:hover { color: #1b1d21; border-color: #b7b1a3; background: rgba(27, 29, 33, 0.05); }
+[data-theme="light"] .dash__iconbtn--dot::after { box-shadow: 0 0 0 2px #ede9e2; }
 
 /* ---- Saludo ---- */
-.dash--light .greet__title { color: #1b1d21; text-shadow: none; }
-.dash--light .greet__title-em { color: var(--accent); }
-.dash--light .greet__date { color: #6b6f76; text-shadow: none; }
+[data-theme="light"] .greet__title { color: #1b1d21; text-shadow: none; }
+[data-theme="light"] .greet__title-em { color: var(--accent); }
+[data-theme="light"] .greet__date { color: #6b6f76; text-shadow: none; }
 
 /* ---- Carrusel ---- */
-.dash--light .carousel__title { color: #4a4e55; }
-.dash--light .carousel__arrow {
+[data-theme="light"] .carousel__title { color: #4a4e55; }
+[data-theme="light"] .carousel__arrow {
   background: rgba(255, 255, 255, 0.72);
   border-color: #d3cec3;
   color: #4a4e55;
 }
-.dash--light .carousel__arrow:hover { color: #1b1d21; border-color: #b7b1a3; }
-.dash--light .slide { border-color: #d3cec3; background: #e3ded4; }
+[data-theme="light"] .carousel__arrow:hover { color: #1b1d21; border-color: #b7b1a3; }
+[data-theme="light"] .slide { border-color: #d3cec3; background: #e3ded4; }
 
 /* ---- Estadísticas: tinta suave sobre papel, texto oscuro ---- */
-.dash--light .statcard {
+[data-theme="light"] .statcard {
   background: var(--tone-paper);
   border-color: var(--tone-edge);
   color: #3f434a;
   box-shadow: 0 14px 30px -24px rgba(0, 0, 0, 0.4);
 }
-.dash--light .statcard::before { opacity: 0.55; }
-.dash--light .statcard:hover { border-color: var(--tone); }
-.dash--light .statcard__icon { background: rgba(255, 255, 255, 0.6); color: var(--tone-ink); }
-.dash--light .statcard__value { color: #1b1d21; }
-.dash--light .statcard__label { color: var(--tone-ink); }
-.dash--light .statcard__sub { color: rgba(27, 29, 33, 0.58); }
+[data-theme="light"] .statcard::before { opacity: 0.55; }
+[data-theme="light"] .statcard:hover { border-color: var(--tone); }
+[data-theme="light"] .statcard__icon { background: rgba(255, 255, 255, 0.6); color: var(--tone-ink); }
+[data-theme="light"] .statcard__value { color: #1b1d21; }
+[data-theme="light"] .statcard__label { color: var(--tone-ink); }
+[data-theme="light"] .statcard__sub { color: rgba(27, 29, 33, 0.58); }
 
 /* ---- Paneles ---- */
-.dash--light .panelbox { background: rgba(255, 255, 255, 0.74); border-color: #d3cec3; }
-.dash--light .panelbox__head { border-bottom-color: #d3cec3; }
-.dash--light .panelbox__title { color: #1b1d21; }
-.dash--light .panelbox__count { background: rgba(192, 57, 47, 0.14); color: #1b1d21; }
-.dash--light .panelbox__link { color: #2a2d33; }
-.dash--light .panelbox__link:hover { color: #1b1d21; }
+[data-theme="light"] .panelbox { background: rgba(255, 255, 255, 0.74); border-color: #d3cec3; }
+[data-theme="light"] .panelbox__head { border-bottom-color: #d3cec3; }
+[data-theme="light"] .panelbox__title { color: #1b1d21; }
+[data-theme="light"] .panelbox__count { background: rgba(192, 57, 47, 0.14); color: #1b1d21; }
+[data-theme="light"] .panelbox__link { color: #2a2d33; }
+[data-theme="light"] .panelbox__link:hover { color: #1b1d21; }
 
 /* ---- Citas ---- */
-.dash--light .appt:hover { background: rgba(27, 29, 33, 0.04); }
-.dash--light .appt__time { color: #2a2d33; }
-.dash--light .appt__client { color: #1b1d21; }
-.dash--light .appt__detail { color: #6b6f76; }
-.dash--light .appt__badge { color: #3f434a; border-color: #d3cec3; }
-.dash--light .appt__badge--live { color: #1f6b45; border-color: rgba(84, 196, 138, 0.5); background: rgba(84, 196, 138, 0.18); }
+[data-theme="light"] .appt:hover { background: rgba(27, 29, 33, 0.04); }
+[data-theme="light"] .appt__time { color: #2a2d33; }
+[data-theme="light"] .appt__client { color: #1b1d21; }
+[data-theme="light"] .appt__detail { color: #6b6f76; }
+[data-theme="light"] .appt__badge { color: #3f434a; border-color: #d3cec3; }
+[data-theme="light"] .appt__badge--live { color: #1f6b45; border-color: rgba(84, 196, 138, 0.5); background: rgba(84, 196, 138, 0.18); }
 
 /* ---- Visor 3D (mantiene su lienzo oscuro incluso en modo claro) ---- */
-.dash--light .viewer {
+[data-theme="light"] .viewer {
   background:
     radial-gradient(60% 70% at 50% 42%, rgba(120, 138, 150, 0.14) 0%, transparent 70%),
     #14161a;

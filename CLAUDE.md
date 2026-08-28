@@ -89,8 +89,26 @@ devuelve 404, no 403, para no revelar que existe).
 - `lib/api.ts` — `apiFetch`: adjunta el `Authorization` solo, detecta `FormData`
   para no pisar el `Content-Type`, y ante un 401 con token cierra la sesión
 - `lib/auth.ts`, `lib/sketches.ts` — un módulo por recurso de la API
+- `lib/theme.tsx` — tema claro/oscuro global. `<ThemeProvider>` (en `App.tsx`,
+  dentro de `BrowserRouter`) + hook `useTheme()` → `{ light, toggle }`. Persiste
+  en `localStorage['dash-theme']` y sincroniza entre pestañas. Pone
+  `data-theme="light|dark"` en `<html>`; un script inline en `index.html` lo
+  fija antes del primer paint para que no haya parpadeo
+- `components/Atmos.tsx` — fondo de nubes compartido (arco fijo abajo-derecha).
+  `components/ThemeToggle.tsx` — botón sol/luna, recibe `className`
 - `pages/` — una página por ruta, con su `.css` hermano
 - `VITE_API_URL` como base para llamadas al backend
+
+#### Convención de páginas de la app autenticada
+1. Renderizar `<Atmos />` una vez dentro del contenedor raíz de la página.
+2. Colocar `<ThemeToggle className="..." />` donde corresponda (usa `useTheme()`
+   por debajo).
+3. El contenedor raíz va `position: relative` y su contenido en `z-index: 1`
+   (la atmósfera es `position: fixed; z-index: 0`).
+4. **El estilo oscuro es el base.** El claro se escribe con el prefijo
+   `[data-theme="light"] .mi-pagina …`. Si la página usa los tokens globales
+   (`--ink`, `--fog`, `--ash`, …), lo más limpio es redefinirlos bajo
+   `[data-theme="light"] .mi-pagina` y ajustar solo los colores literales.
 
 ### Base de datos
 - PostgreSQL 16 (Docker). No hay migraciones definidas aún: al añadir tablas a

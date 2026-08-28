@@ -18,3 +18,16 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
     })
   })
 }
+
+// En desarrollo: si quedó un service worker de una build de producción previa
+// (nginx), sigue interceptando las peticiones y sirve assets viejos en caché.
+// Lo desregistramos, vaciamos sus cachés y recargamos una sola vez.
+if ('serviceWorker' in navigator && import.meta.env.DEV) {
+  navigator.serviceWorker.getRegistrations().then((regs) => {
+    if (!regs.length) return
+    Promise.all(regs.map((r) => r.unregister()))
+      .then(() => caches.keys())
+      .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+      .then(() => window.location.reload())
+  })
+}

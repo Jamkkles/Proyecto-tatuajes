@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getUser, logout } from '../lib/auth'
 import { listSketches, type Sketch } from '../lib/sketches'
+import Atmos from '../components/Atmos'
+import ThemeToggle from '../components/ThemeToggle'
 import './Dashboard.css'
 
 /* ---------- Iconos (line, 24px) ---------- */
@@ -46,17 +48,6 @@ const icons: Record<string, ReactNode> = {
   logout: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
       <path d="M15 4h3a2 2 0 012 2v12a2 2 0 01-2 2h-3M10 17l5-5-5-5M15 12H3" />
-    </svg>
-  ),
-  sun: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <circle cx="12" cy="12" r="4.2" />
-      <path d="M12 2.5v2.6M12 18.9v2.6M4.6 4.6l1.9 1.9M17.5 17.5l1.9 1.9M2.5 12h2.6M18.9 12h2.6M4.6 19.4l1.9-1.9M17.5 6.5l1.9-1.9" strokeLinecap="round" />
-    </svg>
-  ),
-  moon: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <path d="M20 14.5A8 8 0 019.5 4a7 7 0 100 14 8 8 0 0010.5-3.5z" strokeLinejoin="round" />
     </svg>
   ),
   bell: (
@@ -174,25 +165,6 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const user = getUser()
 
-  // Modo claro (washi) / oscuro (irezumi). Persiste la preferencia; cada tema
-  // usa su propia imagen de nubes.
-  const [light, setLight] = useState(
-    () => typeof window !== 'undefined' && localStorage.getItem('dash-theme') === 'light',
-  )
-  const cloudSrc = light ? '/japanese-atmos.webp' : '/clouds-atmos.webp'
-
-  function toggleTheme() {
-    setLight((v) => {
-      const next = !v
-      try {
-        localStorage.setItem('dash-theme', next ? 'light' : 'dark')
-      } catch {
-        /* localStorage no disponible: el tema vive solo en memoria */
-      }
-      return next
-    })
-  }
-
   const [navOpen, setNavOpen] = useState(
     () => typeof window !== 'undefined' && window.innerWidth >= 900,
   )
@@ -299,11 +271,8 @@ export default function Dashboard() {
   }
 
   return (
-    <div className={`dash${navOpen ? ' dash--nav-open' : ''}${light ? ' dash--light' : ''}`}>
-      {/* ---------- Atmósfera: nubes (imagen estática) ---------- */}
-      <div className="dash__atmos" aria-hidden="true">
-        <img className="dash__atmos-img" src={cloudSrc} alt="" width={800} height={1422} fetchPriority="high" />
-      </div>
+    <div className={`dash${navOpen ? ' dash--nav-open' : ''}`}>
+      <Atmos />
 
       {/* ---------- Backdrop (móvil) ---------- */}
       <div
@@ -371,16 +340,7 @@ export default function Dashboard() {
           </button>
 
           <div className="dash__top-right">
-            <button
-              className="dash__iconbtn"
-              type="button"
-              onClick={toggleTheme}
-              aria-pressed={light}
-              aria-label={light ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro'}
-              title={light ? 'Modo oscuro' : 'Modo claro'}
-            >
-              <span className="navitem__icon">{light ? icons.moon : icons.sun}</span>
-            </button>
+            <ThemeToggle className="dash__iconbtn" />
             <button className="dash__iconbtn dash__iconbtn--dot" type="button" aria-label="Notificaciones">
               <span className="navitem__icon">{icons.bell}</span>
             </button>

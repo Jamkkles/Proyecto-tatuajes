@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoute'
+import { ThemeProvider } from './lib/theme'
 
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
@@ -12,30 +13,32 @@ const Gallery = lazy(() => import('./pages/Gallery'))
 function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={null}>
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/registro" element={<Register />} />
-          <Route path="/recuperar" element={<ForgotPassword />} />
-          <Route path="/nueva-contrasena" element={<ResetPassword />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/bocetos"
-            element={
-              <ProtectedRoute>
-                <Gallery />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </Suspense>
+      <ThemeProvider>
+        <Suspense fallback={null}>
+          <Routes>
+            <Route path="/" element={<Login />} />
+            <Route path="/registro" element={<Register />} />
+            <Route path="/recuperar" element={<ForgotPassword />} />
+            <Route path="/nueva-contrasena" element={<ResetPassword />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/bocetos"
+              element={
+                <ProtectedRoute>
+                  <Gallery />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </Suspense>
+      </ThemeProvider>
     </BrowserRouter>
   )
 }

@@ -20,6 +20,18 @@
     />
 
     <title>Hector Tattoos — Acceso al estudio</title>
+
+    <!-- Fija el tema antes del primer paint para que no haya parpadeo
+         oscuro→claro al cargar. El estado de React se sincroniza después
+         (ver src/lib/theme.tsx). -->
+    <script>
+      try {
+        document.documentElement.dataset.theme =
+          localStorage.getItem('dash-theme') === 'light' ? 'light' : 'dark';
+      } catch (e) {
+        document.documentElement.dataset.theme = 'dark';
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
