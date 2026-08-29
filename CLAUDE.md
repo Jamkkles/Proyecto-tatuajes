@@ -94,8 +94,12 @@ devuelve 404, no 403, para no revelar que existe).
   en `localStorage['dash-theme']` y sincroniza entre pestañas. Pone
   `data-theme="light|dark"` en `<html>`; un script inline en `index.html` lo
   fija antes del primer paint para que no haya parpadeo
-- `components/Atmos.tsx` — fondo de nubes compartido (arco fijo abajo-derecha).
-  `components/ThemeToggle.tsx` — botón sol/luna, recibe `className`
+- `components/Atmos.tsx` — fondo de nubes compartido (arco fijo abajo-derecha);
+  se revela al hacer scroll (`--atmos-p`). `components/ThemeToggle.tsx` — botón
+  sol/luna, recibe `className`
+- `lib/useHideOnScroll.ts` — hook para header auto-oculto: `true` cuando el
+  header debería esconderse (baja = esconde, sube / tope / mouse arriba =
+  muestra). La página aplica su propia clase `--hidden` con `transform`
 - `pages/` — una página por ruta, con su `.css` hermano
 - `VITE_API_URL` como base para llamadas al backend
 

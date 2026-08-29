@@ -257,7 +257,10 @@
   margin-left: 0; /* el drawer se superpone en móvil; en escritorio reserva ancho */
 }
 
-/* ---- Barra superior: toggle + buscador central + acciones ---- */
+/* ---- Barra superior: toggle + buscador central + acciones ----
+   Anclada arriba (sticky) y más oscura que el lienzo para separarse del
+   contenido que pasa por debajo. Se esconde al bajar por la página y vuelve
+   al subir o al acercar el mouse al borde superior (useHideOnScroll). */
 .dash__top {
   position: sticky;
   top: 0;
@@ -267,8 +270,13 @@
   gap: clamp(10px, 2vw, 18px);
   padding: clamp(12px, 3vw, 16px) clamp(16px, 5vw, 40px);
   border-bottom: 1px solid var(--line);
-  background: rgba(7, 8, 10, 0.7);
+  background: rgba(2, 3, 4, 0.9); /* más oscuro que el lienzo (#090a0b) */
   backdrop-filter: blur(8px);
+  box-shadow: 0 10px 26px -18px rgba(0, 0, 0, 0.95);
+  transition: transform 0.28s ease;
+}
+.dash__top--hidden {
+  transform: translateY(-100%);
 }
 
 .dash__toggle,
@@ -740,10 +748,12 @@
 [data-theme="light"] .dash__logout { color: #4a4e55; border-color: #d3cec3; }
 [data-theme="light"] .dash__logout:hover { color: #1b1d21; }
 
-/* ---- Barra superior ---- */
+/* ---- Barra superior ----
+   Gris ceniza (más frío y opaco que el papel) para separarse del contenido. */
 [data-theme="light"] .dash__top {
-  background: rgba(237, 234, 227, 0.72);
-  border-bottom-color: #d3cec3;
+  background: rgba(214, 214, 210, 0.88);
+  border-bottom-color: #c7c3b8;
+  box-shadow: 0 10px 24px -20px rgba(31, 29, 24, 0.5);
 }
 [data-theme="light"] .dash__toggle,
 [data-theme="light"] .dash__iconbtn { color: #4a4e55; border-color: #d3cec3; }

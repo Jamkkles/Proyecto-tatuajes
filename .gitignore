@@ -29,8 +29,8 @@ venv/
 .venv/
 env/
 ENV/
-bin/
-lib/
+/bin/
+/lib/
 
 node_modules/
 jspm_packages/

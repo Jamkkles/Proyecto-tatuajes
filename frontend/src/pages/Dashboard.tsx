@@ -4,6 +4,7 @@ import { getUser, logout } from '../lib/auth'
 import { listSketches, type Sketch } from '../lib/sketches'
 import Atmos from '../components/Atmos'
 import ThemeToggle from '../components/ThemeToggle'
+import { useHideOnScroll } from '../lib/useHideOnScroll'
 import './Dashboard.css'
 
 /* ---------- Iconos (line, 24px) ---------- */
@@ -171,6 +172,9 @@ export default function Dashboard() {
   const [flash, setFlash] = useState<Sketch[]>([])
   const [sketchCount, setSketchCount] = useState<number | null>(null)
 
+  // El header se esconde al bajar y vuelve al subir o con el mouse arriba.
+  const headerHidden = useHideOnScroll()
+
   // Carrusel "Últimos bocetos": auto-avance por pasos. Las tarjetas se
   // renderizan dos veces; cada movimiento anima `scrollLeft` y lo mantiene
   // dentro de una copia con módulo. Como ambas copias son idénticas, el salto
@@ -325,7 +329,7 @@ export default function Dashboard() {
       {/* ---------- Contenido ---------- */}
       <div className="dash__main">
         {/* ---- Barra superior: buscador central + acciones ---- */}
-        <header className="dash__top">
+        <header className={`dash__top${headerHidden ? ' dash__top--hidden' : ''}`}>
           <button
             className="dash__toggle"
             type="button"

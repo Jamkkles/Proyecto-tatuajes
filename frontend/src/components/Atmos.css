@@ -9,6 +9,9 @@
    solo cambia la imagen (la elige <Atmos/>).
    ============================================================ */
 .atmos {
+  /* Progreso de scroll 0→1, lo escribe <Atmos/>. Con scroll arriba del todo
+     la imagen está tenue; se revela al bajar. */
+  --atmos-p: 0;
   position: fixed;
   right: 0;
   bottom: 0;
@@ -19,7 +22,8 @@
   overflow: hidden;
   -webkit-mask-image: radial-gradient(86% 96% at 116% 120%, transparent 0%, transparent 40%, #000 56%, #000 66%, rgba(0, 0, 0, 0.35) 78%, transparent 90%);
   mask-image: radial-gradient(86% 96% at 116% 120%, transparent 0%, transparent 40%, #000 56%, #000 66%, rgba(0, 0, 0, 0.35) 78%, transparent 90%);
-  opacity: 0.55;
+  opacity: calc(0.34 + 0.48 * var(--atmos-p));
+  transition: opacity 0.15s linear;
 }
 
 .atmos__img {
@@ -31,7 +35,7 @@
   filter: grayscale(1) brightness(0.7) contrast(1.06);
 }
 
-/* Sin movimiento: el humo se retira. */
+/* Sin movimiento: el humo se retira y no se anima al hacer scroll. */
 @media (prefers-reduced-motion: reduce) {
   .atmos {
     display: none;
