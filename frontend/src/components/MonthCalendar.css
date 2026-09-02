@@ -1,0 +1,189 @@
+/* ============================================================
+   MonthCalendar — calendario del mes del panel.
+   El contenedor reutiliza el chrome de `.panelbox` (Dashboard.css);
+   aquí solo las piezas propias `mcal*`. Estilo oscuro de base,
+   variante clara bajo `[data-theme="light"]`.
+   ============================================================ */
+
+.mcal {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- Navegación de mes (en el slot de acción de .panelbox__head) ---- */
+.mcal__nav {
+  display: flex;
+  gap: 6px;
+}
+.mcal__navbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fog);
+  transition: color 0.16s, border-color 0.16s, background 0.16s;
+}
+.mcal__navbtn:hover {
+  color: var(--steel-hi);
+  border-color: var(--steel);
+  background: rgba(195, 210, 219, 0.06);
+}
+.mcal__navbtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(195, 210, 219, 0.3);
+}
+.mcal__navbtn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ---- Cuerpo ---- */
+.mcal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px 18px;
+}
+.mcal__month {
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--steel);
+}
+/* Solo la inicial en mayúscula: "Septiembre de 2026", no "Septiembre De 2026". */
+.mcal__month::first-letter {
+  text-transform: uppercase;
+}
+
+.mcal__grid {
+  display: grid;
+  /* La rejilla ocupa todo el ancho del panel (menos su padding); solo se
+     recorta y centra en paneles muy anchos para que las celdas no crezcan
+     desproporcionadas. */
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  width: 100%;
+  max-width: 640px;
+  margin-inline: auto;
+}
+.mcal__weekrow {
+  margin-bottom: 2px;
+}
+.mcal__wd {
+  text-align: center;
+  padding: 4px 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+/* ---- Día ---- */
+.mcal__day {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 50px;
+  padding: 5px 0;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--fog);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.mcal__day:hover {
+  background: rgba(195, 210, 219, 0.06);
+  color: var(--steel-hi);
+}
+.mcal__day:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(195, 210, 219, 0.35);
+}
+.mcal__day.is-outside {
+  color: var(--ash);
+  opacity: 0.45;
+}
+.mcal__day.is-today {
+  border-color: var(--accent);
+  color: var(--steel-hi);
+  font-weight: 700;
+}
+.mcal__day.is-selected {
+  background: rgba(192, 57, 47, 0.16);
+  border-color: rgba(192, 57, 47, 0.5);
+  color: var(--steel-hi);
+}
+.mcal__day.has-appts .mcal__daynum {
+  font-weight: 600;
+}
+.mcal__daynum {
+  line-height: 1;
+}
+.mcal__dot {
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ============================================================
+   Modo claro "washi" — el .panelbox ya lo cubre Dashboard.css.
+   ============================================================ */
+[data-theme="light"] .mcal__navbtn {
+  color: #4a4e55;
+  border-color: #d3cec3;
+}
+[data-theme="light"] .mcal__navbtn:hover {
+  color: #1b1d21;
+  border-color: #b7b1a3;
+  background: rgba(27, 29, 33, 0.05);
+}
+[data-theme="light"] .mcal__month {
+  color: #4a4e55;
+}
+[data-theme="light"] .mcal__wd {
+  color: #6b6f76;
+}
+[data-theme="light"] .mcal__day {
+  color: #4a4e55;
+}
+[data-theme="light"] .mcal__day:hover {
+  background: rgba(27, 29, 33, 0.05);
+  color: #1b1d21;
+}
+[data-theme="light"] .mcal__day.is-outside {
+  color: #9a9186;
+  opacity: 0.6;
+}
+[data-theme="light"] .mcal__day.is-today {
+  border-color: var(--accent);
+  color: #1b1d21;
+}
+[data-theme="light"] .mcal__day.is-selected {
+  background: rgba(192, 57, 47, 0.12);
+  border-color: rgba(192, 57, 47, 0.4);
+  color: #1b1d21;
+}
+[data-theme="light"] .mcal__dot {
+  background: var(--accent);
+  color: #fff;
+}

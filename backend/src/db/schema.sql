@@ -56,3 +56,29 @@ CREATE INDEX IF NOT EXISTS sketches_user_created_idx
 
 -- Filtrado por etiquetas (tags @> ARRAY['blackwork']).
 CREATE INDEX IF NOT EXISTS sketches_tags_idx ON sketches USING GIN (tags);
+
+-- ============================================================
+-- Previsualizaciones 3D (T00xx)
+-- Una escena guardada: el modelo de cuerpo elegido, el encuadre de cámara y
+-- los tatuajes colocados encima. Las colocaciones van en JSONB porque su forma
+-- todavía se está afinando; lo que sí es fijo es la pertenencia al usuario.
+--
+-- Cada colocación guarda la RECETA, no los píxeles:
+--   { sketchId, position:[x,y,z], quaternion:[x,y,z,w], size:[w,h,d],
+--     anchor:{ faceIndex, uv:[u,v] }, render:{ order, opacity, flipX } }
+-- Se guarda cuaternión (el Euler necesita orden explícito para round-trip) y
+-- el ancla uv/faceIndex, que permite recolocar si algún día cambia el modelo.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS previews (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name       TEXT NOT NULL,
+  model_id   TEXT NOT NULL,
+  camera     JSONB,
+  placements JSONB NOT NULL DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS previews_user_created_idx
+  ON previews (user_id, created_at DESC);

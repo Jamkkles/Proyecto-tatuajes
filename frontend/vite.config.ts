@@ -8,6 +8,12 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] })
   ],
+  build: {
+    // three.js queda aislado en el chunk de `tattooViewer` (~670 KB), que solo
+    // se descarga al entrar en /previsualizacion. El aviso por defecto a los
+    // 500 KB no aporta nada aquí: el reparto ya es el que queremos.
+    chunkSizeWarningLimit: 800,
+  },
   server: {
     host: true,
     port: 5173,

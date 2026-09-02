@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { getUser } from '../lib/auth'
 import { ApiError } from '../lib/api'
-import Atmos from '../components/Atmos'
-import ThemeToggle from '../components/ThemeToggle'
+import { useAppShellHeader } from '../lib/useAppShellHeader'
 import {
   ALLOWED_MIME,
   MAX_FILE_BYTES,
@@ -29,9 +28,29 @@ const EMPTY_FORM = {
 type Filter = 'todos' | SketchStatus
 
 export default function Gallery() {
-  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const user = getUser()
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Boceto ampliado en el visor (lightbox): se deriva de `?ver=<id>`, así el
+  // enlace desde el panel («/bocetos?ver=…») lo abre solo cuando la galería
+  // termina de cargar, y compartir la URL reproduce la misma vista.
+  const verId = searchParams.get('ver')
+
+  function setVer(id: string | null) {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        if (id) next.set('ver', id)
+        else next.delete('ver')
+        return next
+      },
+      { replace: true },
+    )
+  }
+
+  const openZoom = (sketch: Sketch) => setVer(sketch.id)
+  const closeZoom = () => setVer(null)
 
   const [sketches, setSketches] = useState<Sketch[]>([])
   const [loading, setLoading] = useState(true)
@@ -51,6 +70,14 @@ export default function Gallery() {
   // Se incrementa para forzar una recarga de la galería tras subir o borrar.
   const [reloadKey, setReloadKey] = useState(0)
   const reload = () => setReloadKey((k) => k + 1)
+
+  // Título en la barra superior compartida (<AppShell>).
+  useAppShellHeader({
+    title: 'Galería de bocetos',
+    subtitle: `${user?.name ? `${user.name} · ` : ''}${sketches.length} ${
+      sketches.length === 1 ? 'boceto' : 'bocetos'
+    }`,
+  })
 
   useEffect(() => {
     let cancelled = false
@@ -77,6 +104,19 @@ export default function Gallery() {
       cancelled = true
     }
   }, [filter, tagFilter, reloadKey])
+
+  const zoomed = verId ? sketches.find((s) => s.id === verId) ?? null : null
+
+  // Cerrar el visor con la tecla Escape.
+  useEffect(() => {
+    if (!verId) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setVer(null)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [verId])
 
   // La preview es una URL de objeto (blob): se libera al reemplazarla, al
   // descartar el archivo y al desmontar, o el navegador la mantiene en memoria.
@@ -173,25 +213,6 @@ export default function Gallery() {
 
   return (
     <div className="gal">
-      <Atmos />
-
-      <header className="gal__top">
-        <button className="gal__back" type="button" onClick={() => navigate('/dashboard')}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-          Panel
-        </button>
-        <div className="gal__titles">
-          <h1 className="gal__title">Galería de bocetos</h1>
-          <p className="gal__sub">
-            {user?.name ? `${user.name} · ` : ''}
-            {sketches.length} {sketches.length === 1 ? 'boceto' : 'bocetos'}
-          </p>
-        </div>
-        <ThemeToggle className="gal__toggle" />
-      </header>
-
       <div className="gal__body">
         {/* ---------- Importar ---------- */}
         <section className="uploader" aria-labelledby="up-h">
@@ -356,10 +377,15 @@ export default function Gallery() {
             <ul className="grid">
               {sketches.map((s) => (
                 <li className="card" key={s.id}>
-                  <div className="card__media">
+                  <button
+                    type="button"
+                    className="card__media"
+                    onClick={() => openZoom(s)}
+                    aria-label={`Ampliar ${s.title}`}
+                  >
                     <img className="card__img" src={s.url} alt={s.title} loading="lazy" width={320} height={240} />
                     <span className={`badge badge--${s.status}`}>{s.status}</span>
-                  </div>
+                  </button>
 
                   <div className="card__body">
                     <h3 className="card__title">{s.title}</h3>
@@ -410,6 +436,34 @@ export default function Gallery() {
           )}
         </section>
       </div>
+
+      {zoomed && (
+        <div
+          className="lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label={zoomed.title}
+          onClick={closeZoom}
+        >
+          <button
+            type="button"
+            className="lightbox__close"
+            onClick={closeZoom}
+            aria-label="Cerrar"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+          <figure className="lightbox__frame" onClick={(e) => e.stopPropagation()}>
+            <img className="lightbox__img" src={zoomed.url} alt={zoomed.title} />
+            <figcaption className="lightbox__cap">
+              <span className="lightbox__title">{zoomed.title}</span>
+              {zoomed.body_zone && <span className="lightbox__zone">{zoomed.body_zone}</span>}
+            </figcaption>
+          </figure>
+        </div>
+      )}
     </div>
   )
 }

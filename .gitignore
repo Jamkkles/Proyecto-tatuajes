@@ -44,3 +44,6 @@ backend/uploads/
 
 # Docker
 .env
+
+# Modelos 3D fuente (sin optimizar). El .glb optimizado sí se versiona.
+models-src/

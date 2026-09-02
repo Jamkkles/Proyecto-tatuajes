@@ -3,6 +3,7 @@ const cors = require('cors');
 
 const authRoutes = require('./routes/authRoutes');
 const sketchRoutes = require('./routes/sketchRoutes');
+const previewRoutes = require('./routes/previewRoutes');
 const { requireAuth } = require('./middleware/auth');
 const localDriver = require('./services/storage/localDriver');
 
@@ -33,6 +34,7 @@ app.use(
 
 app.use('/api/auth', authRoutes);
 app.use('/api/sketches', sketchRoutes);
+app.use('/api/previews', previewRoutes);
 
 // Ruta protegida de ejemplo: devuelve el usuario del token.
 app.get('/api/me', requireAuth, (req, res) => {

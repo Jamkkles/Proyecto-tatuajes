@@ -7,8 +7,10 @@ const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
 const ResetPassword = lazy(() => import('./pages/ResetPassword'))
+const AppShell = lazy(() => import('./components/AppShell'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Gallery = lazy(() => import('./pages/Gallery'))
+const Preview3D = lazy(() => import('./pages/Preview3D'))
 
 function App() {
   return (
@@ -20,22 +22,19 @@ function App() {
             <Route path="/registro" element={<Register />} />
             <Route path="/recuperar" element={<ForgotPassword />} />
             <Route path="/nueva-contrasena" element={<ResetPassword />} />
+
+            {/* App autenticada: shell compartido (sidebar + barra superior). */}
             <Route
-              path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <AppShell />
                 </ProtectedRoute>
               }
-            />
-            <Route
-              path="/bocetos"
-              element={
-                <ProtectedRoute>
-                  <Gallery />
-                </ProtectedRoute>
-              }
-            />
+            >
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/bocetos" element={<Gallery />} />
+              <Route path="/previsualizacion" element={<Preview3D />} />
+            </Route>
           </Routes>
         </Suspense>
       </ThemeProvider>

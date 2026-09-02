@@ -1,333 +1,13 @@
 /* ============================================================
-   Dashboard "Ink & Honor" — Hector Tattoos
-   Panel del estudio con humo en bucle sin corte de fondo.
-   Layout: sidebar de navegación + barra con buscador, saludo,
-   carrusel de bocetos, tarjetas pastel de métricas y una vista
-   dividida (citas de hoy 30% / visor 3D 70%). Acento bermellón
-   (tinta irezumi) con mesura; toques pastel en las métricas.
-   Mobile-first. Todo bajo .dash.
+   Panel "Resumen" (/dashboard) — Hector Tattoos
+   Solo el contenido de la vista: saludo, carrusel de bocetos,
+   tarjetas de métricas y la vista dividida (citas de hoy +
+   calendario del mes, con el visor 3D a ancho completo debajo).
+   El chrome (sidebar + barra superior + fondo .dash) vive en
+   AppShell.css. Este contenido se monta dentro de .dash__scroll.
    ============================================================ */
 
-.dash {
-  --accent: #c0392f; /* bermellón: el rojo del irezumi */
-  --nav-w: 268px;
-  position: relative;
-  min-height: 100svh;
-  color: var(--fog);
-  /* Lienzo monocromático: un halo de acero anclado abajo a la derecha —de
-     donde brota el humo del vídeo— sobre un degradado de tinta profunda. */
-  background:
-    radial-gradient(120% 95% at 100% 50%, rgba(70, 82, 92, 0.2) 0%, rgba(70, 82, 92, 0.06) 36%, transparent 60%),
-    linear-gradient(90deg, #090a0b 0%, #090a0b 46%, #090a0b 100%),
-    #090a0b;
-  background-attachment: fixed;
-}
-
-/* La atmósfera de nubes vive ahora en el componente compartido <Atmos/>
-   (src/components/Atmos.tsx + Atmos.css). El contenido del panel va por
-   encima con .dash__main { z-index: 1 }. */
-
-/* ============ Backdrop (oscurece el contenido con el drawer abierto) ============ */
-.dash__backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  background: rgba(7, 8, 10, 0.62);
-  backdrop-filter: blur(2px);
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
-}
-.dash--nav-open .dash__backdrop {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* ============ Sidebar (drawer deslizable) ============ */
-.dash__sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 50;
-  width: var(--nav-w);
-  height: 100svh;
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-  padding: clamp(16px, 3vw, 22px);
-  padding-top: max(clamp(16px, 3vw, 22px), env(safe-area-inset-top));
-  overflow-y: auto;
-  /* Nubes irezumi que suben como humo desde el pie; velo vertical fuerte
-     arriba (nav legible) y suave abajo (la nube se aprecia). */
-  background:
-    linear-gradient(180deg, rgba(8, 9, 12, 0.95) 0%, rgba(8, 9, 12, 0.82) 44%, rgba(8, 9, 12, 0.5) 100%),
-    url('/clouds.webp') center bottom / cover no-repeat,
-    var(--ink-2);
-  border-right: 1px solid var(--line);
-  transform: translateX(-100%);
-  transition: transform 0.32s ease;
-}
-.dash--nav-open .dash__sidebar {
-  transform: translateX(0);
-}
-
-.dash__brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.dash__seal {
-  position: relative;
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-  background: var(--accent);
-  border-radius: 3px;
-  box-shadow: 0 6px 18px -6px rgba(192, 57, 47, 0.7);
-}
-.dash__seal::after {
-  content: '';
-  position: absolute;
-  inset: 5px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 1px;
-}
-
-.dash__brand-text {
-  display: flex;
-  flex-direction: column;
-  line-height: 1;
-}
-.dash__wordmark {
-  font-family: var(--font-mark);
-  font-size: 24px;
-  letter-spacing: 0.02em;
-  color: var(--steel-hi);
-  text-shadow: 0 2px 12px rgba(7, 8, 10, 0.9);
-}
-.dash__brand-sub {
-  margin-top: 3px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-
-/* ---- Navegación ---- */
-.dash__nav {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.navitem {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  width: 100%;
-  flex-shrink: 0;
-  padding: 11px 13px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  font-size: 14px;
-  font-weight: 500;
-  white-space: nowrap;
-  color: var(--ash);
-  text-shadow: 0 1px 8px rgba(7, 8, 10, 0.95), 0 0 2px rgba(7, 8, 10, 0.9);
-  transition: color 0.18s, background 0.18s;
-}
-.navitem:hover {
-  color: var(--steel);
-  background: rgba(195, 210, 219, 0.05);
-}
-.navitem--active {
-  color: var(--steel-hi);
-  background: rgba(195, 210, 219, 0.07);
-  box-shadow: inset 2px 0 0 var(--accent);
-}
-.navitem:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(195, 210, 219, 0.3);
-}
-
-.navitem__icon {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-}
-.navitem__icon svg {
-  width: 18px;
-  height: 18px;
-  filter: drop-shadow(0 1px 4px rgba(7, 8, 10, 0.95));
-}
-
-/* ---- Pie del sidebar ---- */
-.dash__side-foot {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 12px;
-  margin-top: auto;
-  padding-top: 16px;
-  border-top: 1px solid var(--line);
-}
-
-.dash__user {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-}
-.dash__avatar {
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  flex-shrink: 0;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  background: var(--ink-3);
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--steel-hi);
-}
-.dash__avatar--sm {
-  width: 34px;
-  height: 34px;
-  font-size: 16px;
-}
-.dash__user-text { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
-.dash__user-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--steel);
-  text-shadow: 0 1px 8px rgba(7, 8, 10, 0.95);
-}
-.dash__user-mail {
-  font-size: 12px;
-  color: var(--ash);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  text-shadow: 0 1px 8px rgba(7, 8, 10, 0.95);
-}
-
-.dash__logout {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 11px 14px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: transparent;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--fog);
-  transition: border-color 0.18s, color 0.18s, background 0.18s;
-}
-.dash__logout:hover {
-  border-color: var(--accent);
-  color: var(--steel-hi);
-  background: rgba(192, 57, 47, 0.1);
-}
-.dash__logout:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(195, 210, 219, 0.25);
-}
-.dash__logout .navitem__icon svg { width: 17px; height: 17px; }
-
-/* Módulos aún no implementados: visibles pero sin acción. */
-.navitem:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-
-/* ============ Contenido ============ */
-.dash__main {
-  position: relative;
-  z-index: 1; /* por encima de la atmósfera (<Atmos/>, .atmos { z-index: 0 }) */
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 100svh;
-  margin-left: 0; /* el drawer se superpone en móvil; en escritorio reserva ancho */
-}
-
-/* ---- Barra superior: toggle + buscador central + acciones ----
-   Anclada arriba (sticky) y más oscura que el lienzo para separarse del
-   contenido que pasa por debajo. Se esconde al bajar por la página y vuelve
-   al subir o al acercar el mouse al borde superior (useHideOnScroll). */
-.dash__top {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  gap: clamp(10px, 2vw, 18px);
-  padding: clamp(12px, 3vw, 16px) clamp(16px, 5vw, 40px);
-  border-bottom: 1px solid var(--line);
-  background: rgba(2, 3, 4, 0.9); /* más oscuro que el lienzo (#090a0b) */
-  backdrop-filter: blur(8px);
-  box-shadow: 0 10px 26px -18px rgba(0, 0, 0, 0.95);
-  transition: transform 0.28s ease;
-}
-.dash__top--hidden {
-  transform: translateY(-100%);
-}
-
-.dash__toggle,
-.dash__iconbtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  flex-shrink: 0;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: transparent;
-  color: var(--fog);
-  transition: border-color 0.18s, color 0.18s, background 0.18s;
-}
-.dash__toggle:hover,
-.dash__iconbtn:hover {
-  border-color: var(--steel);
-  color: var(--steel-hi);
-  background: rgba(195, 210, 219, 0.06);
-}
-.dash__toggle:focus-visible,
-.dash__iconbtn:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(195, 210, 219, 0.3);
-}
-.dash__toggle svg { width: 20px; height: 20px; }
-.dash__iconbtn svg { width: 19px; height: 19px; }
-
-/* Punto de notificación en la campana. */
-.dash__iconbtn--dot { position: relative; }
-.dash__iconbtn--dot::after {
-  content: '';
-  position: absolute;
-  top: 9px;
-  right: 10px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 2px rgba(7, 8, 10, 0.9);
-}
-
-.dash__top-right {
-  display: flex;
-  align-items: center;
-  gap: clamp(8px, 2vw, 12px);
-  margin-left: auto; /* acciones ancladas a la derecha (sin buscador) */
-}
-
+/* ============ Contenido del panel (dentro de .dash__main del AppShell) ============ */
 .dash__scroll {
   flex: 1;
   padding: clamp(20px, 4vw, 36px) clamp(16px, 5vw, 40px) clamp(40px, 6vw, 72px);
@@ -437,6 +117,11 @@
   transition: transform 0.5s ease;
 }
 .slide:hover .slide__img { transform: scale(1.04); }
+.slide--link { cursor: pointer; }
+.slide--link:focus-visible {
+  outline: 2px solid var(--steel-hi);
+  outline-offset: 2px;
+}
 .slide__cap {
   position: absolute;
   left: 0;
@@ -451,36 +136,29 @@
 .slide__title { font-family: var(--font-display); font-size: 20px; font-weight: 600; color: var(--steel-hi); }
 .slide__zone { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fog); }
 
-/* ============ Estadísticas (tarjetas pastel) ============ */
+/* ============ Estadísticas ============ */
 .stats {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
 }
-/* Cada tarjeta define su propio tono en variables (--tone: acento, --tone-bg:
-   relleno del chip del icono, --tone-paper/--tone-ink: versión modo claro).
-   Así el mismo cuerpo sirve para ambos temas y los colores quedan apagados y
-   formales en oscuro, y suaves sobre papel en claro. */
-.statcard--blue { --tone: #6f93ad; --tone-bg: rgba(111, 147, 173, 0.16); --tone-paper: linear-gradient(150deg, #e7eef4, #dce7ef); --tone-ink: #3f6178; --tone-edge: #cad9e4; }
-.statcard--mint { --tone: #6fa585; --tone-bg: rgba(111, 165, 133, 0.16); --tone-paper: linear-gradient(150deg, #e6efe7, #d9e8dd); --tone-ink: #3d6b52; --tone-edge: #cfe0d3; }
-.statcard--butter { --tone: #bda06a; --tone-bg: rgba(189, 160, 106, 0.16); --tone-paper: linear-gradient(150deg, #f2ecd9, #ece2c9); --tone-ink: #7d663a; --tone-edge: #e3d7bb; }
-.statcard--lavender { --tone: #9089ad; --tone-bg: rgba(144, 137, 173, 0.16); --tone-paper: linear-gradient(150deg, #eae7f0, #dfdaeb); --tone-ink: #5a5379; --tone-edge: #d7d1e2; }
 
+/* Todas las tarjetas comparten el mismo aspecto, sin tintes por tarjeta:
+   tinta translúcida en oscuro, vidrio gris esmerilado en claro. */
 .statcard {
   position: relative;
   overflow: hidden;
   padding: 20px 22px;
   border: 1px solid var(--line);
   border-radius: 18px;
-  /* Superficie de tinta translúcida con un velo apenas teñido del tono. */
   background:
-    linear-gradient(150deg, var(--tone-bg), transparent 62%),
+    radial-gradient(130% 100% at 100% 0%, rgba(255, 255, 255, 0.07), transparent 58%),
     rgba(14, 16, 19, 0.74);
   backdrop-filter: blur(8px);
   color: var(--fog);
   transition: transform 0.16s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
-/* Filo superior del color del tono: el único toque saturado, con mesura. */
+/* Filo superior neutro, apenas un reflejo. */
 .statcard::before {
   content: '';
   position: absolute;
@@ -488,8 +166,7 @@
   top: 0;
   width: 100%;
   height: 3px;
-  background: var(--tone);
-  opacity: 0.75;
+  background: rgba(255, 255, 255, 0.1);
 }
 .statcard:hover {
   transform: translateY(-3px);
@@ -504,8 +181,8 @@
   height: 40px;
   margin-bottom: 14px;
   border-radius: 12px;
-  background: var(--tone-bg);
-  color: var(--tone);
+  background: rgba(255, 255, 255, 0.06);
+  color: #cdd2d8;
 }
 .statcard__icon svg { width: 22px; height: 22px; }
 .statcard__value {
@@ -526,8 +203,15 @@
 }
 .statcard__sub { margin: 0; font-size: 12.5px; color: var(--ash); }
 
-/* ============ Vista dividida (30 / 70) ============ */
+/* ============ Vista dividida ============ */
+/* .split apila en vertical: la fila (citas + calendario) y, debajo, el visor 3D
+   a ancho completo. .split__row es la fila de dos columnas en escritorio. */
 .split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(18px, 3vw, 24px);
+}
+.split__row {
   display: grid;
   grid-template-columns: 1fr;
   gap: clamp(18px, 3vw, 24px);
@@ -539,6 +223,15 @@
   background: rgba(14, 16, 19, 0.74);
   backdrop-filter: blur(8px);
   overflow: hidden;
+}
+/* "Citas hoy" y el calendario comparten la superficie de las tarjetas de
+   estadística: el mismo gris translúcido con un reflejo neutro arriba a la
+   derecha. El visor 3D conserva su lienzo oscuro. */
+.split__side,
+.mcal {
+  background:
+    radial-gradient(130% 100% at 100% 0%, rgba(255, 255, 255, 0.07), transparent 58%),
+    rgba(14, 16, 19, 0.74);
 }
 .panelbox__head {
   display: flex;
@@ -693,16 +386,16 @@
 
 /* ============ Desktop ============ */
 @media (min-width: 900px) {
-  .dash__sidebar { gap: 28px; }
-  /* En escritorio el drawer empuja el contenido en vez de superponerse. El
-     botón de menú queda siempre visible para poder colapsar el resumen. */
-  .dash--nav-open .dash__main { margin-left: var(--nav-w); }
-  .dash__backdrop { display: none; }
   .stats { grid-template-columns: repeat(4, 1fr); }
   /* Exactamente 3 tarjetas completas (2 separaciones de 14px = 28px). El bucle
      con las copias duplicadas da el recorrido para el auto-avance y las flechas. */
   .carousel__track { grid-auto-columns: calc((100% - 28px) / 3); }
-  .split { grid-template-columns: minmax(280px, 0.42fr) 1fr; align-items: start; }
+  /* Fila superior: citas (columna estrecha fija) + calendario (flexible).
+     El minmax(0, 1fr) evita que la rejilla de 7 columnas fuerce scroll. */
+  .split__row {
+    grid-template-columns: minmax(250px, 300px) minmax(0, 1fr);
+    align-items: start;
+  }
 }
 
 /* Sin movimiento: el modelo deja de flotar (la atmósfera se retira en Atmos.css). */
@@ -711,55 +404,11 @@
 }
 
 /* ============================================================
-   Modo claro "Washi" — el reverso del irezumi
+   Modo claro "Washi" — el reverso del irezumi.
    Papel de arroz sumi-e: tinta sobre papel cálido, el bermellón
-   del sello hanko conservado como único acento. Las nubes se
-   muestran con el mismo tratamiento que en modo oscuro.
+   del sello hanko como único acento. El chrome (sidebar + barra)
+   vive en AppShell.css; aquí solo el contenido del panel.
    ============================================================ */
-[data-theme="light"] .dash {
-  color: #3f434a;
-  background:
-    radial-gradient(120% 95% at 100% 55%, rgba(120, 110, 95, 0.1) 0%, transparent 58%),
-    linear-gradient(180deg, #efece6 0%, #ebe8e1 60%, #e7e3db 100%),
-    #ebe8e1;
-}
-
-/* ---- Sidebar ----
-   Mismo formato que el modo oscuro: nubes que suben desde el pie con un velo
-   vertical (fuerte arriba para que el nav se lea, suave abajo). Aquí el velo
-   es de papel washi en vez de tinta. */
-[data-theme="light"] .dash__sidebar {
-  background:
-    linear-gradient(180deg, rgba(239, 236, 230, 0.95) 0%, rgba(235, 232, 225, 0.82) 44%, rgba(231, 227, 219, 0.5) 100%),
-    url('/clouds-light.webp') center bottom / cover no-repeat,
-    #efece6;
-  border-right-color: #d3cec3;
-}
-[data-theme="light"] .dash__wordmark { color: #1b1d21; text-shadow: none; }
-[data-theme="light"] .dash__brand-sub { color: var(--accent); }
-[data-theme="light"] .navitem { color: #4a4e55; text-shadow: none; }
-[data-theme="light"] .navitem:hover { color: #1b1d21; background: rgba(27, 29, 33, 0.05); }
-[data-theme="light"] .navitem--active { color: #1b1d21; background: rgba(192, 57, 47, 0.09); }
-[data-theme="light"] .navitem__icon svg { filter: none; }
-[data-theme="light"] .dash__side-foot { border-top-color: #d3cec3; }
-[data-theme="light"] .dash__avatar { background: #f4f2ec; border-color: #d3cec3; color: #1b1d21; }
-[data-theme="light"] .dash__user-name { color: #1b1d21; text-shadow: none; }
-[data-theme="light"] .dash__user-mail { color: #6b6f76; text-shadow: none; }
-[data-theme="light"] .dash__logout { color: #4a4e55; border-color: #d3cec3; }
-[data-theme="light"] .dash__logout:hover { color: #1b1d21; }
-
-/* ---- Barra superior ----
-   Gris ceniza (más frío y opaco que el papel) para separarse del contenido. */
-[data-theme="light"] .dash__top {
-  background: rgba(214, 214, 210, 0.88);
-  border-bottom-color: #c7c3b8;
-  box-shadow: 0 10px 24px -20px rgba(31, 29, 24, 0.5);
-}
-[data-theme="light"] .dash__toggle,
-[data-theme="light"] .dash__iconbtn { color: #4a4e55; border-color: #d3cec3; }
-[data-theme="light"] .dash__toggle:hover,
-[data-theme="light"] .dash__iconbtn:hover { color: #1b1d21; border-color: #b7b1a3; background: rgba(27, 29, 33, 0.05); }
-[data-theme="light"] .dash__iconbtn--dot::after { box-shadow: 0 0 0 2px #ede9e2; }
 
 /* ---- Saludo ---- */
 [data-theme="light"] .greet__title { color: #1b1d21; text-shadow: none; }
@@ -776,22 +425,32 @@
 [data-theme="light"] .carousel__arrow:hover { color: #1b1d21; border-color: #b7b1a3; }
 [data-theme="light"] .slide { border-color: #d3cec3; background: #e3ded4; }
 
-/* ---- Estadísticas: tinta suave sobre papel, texto oscuro ---- */
+/* ---- Estadísticas: vidrio esmerilado neutro sobre papel. Sin tintes por
+   tarjeta (todas el mismo gris) y con la misma translucidez que el modo
+   oscuro: el fondo deja ver la atmósfera a través del blur. ---- */
 [data-theme="light"] .statcard {
-  background: var(--tone-paper);
-  border-color: var(--tone-edge);
+  background: linear-gradient(150deg, rgba(247, 247, 246, 0.58), rgba(220, 220, 223, 0.34));
+  border-color: rgba(255, 255, 255, 0.55);
   color: #3f434a;
-  box-shadow: 0 14px 30px -24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 14px 34px -26px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
 }
-[data-theme="light"] .statcard::before { opacity: 0.55; }
-[data-theme="light"] .statcard:hover { border-color: var(--tone); }
-[data-theme="light"] .statcard__icon { background: rgba(255, 255, 255, 0.6); color: var(--tone-ink); }
+[data-theme="light"] .statcard::before { background: rgba(90, 94, 102, 0.3); opacity: 1; }
+[data-theme="light"] .statcard:hover { border-color: rgba(120, 124, 132, 0.55); }
+[data-theme="light"] .statcard__icon { background: rgba(255, 255, 255, 0.55); color: #5a5e66; }
 [data-theme="light"] .statcard__value { color: #1b1d21; }
-[data-theme="light"] .statcard__label { color: var(--tone-ink); }
+[data-theme="light"] .statcard__label { color: #4a4e55; }
 [data-theme="light"] .statcard__sub { color: rgba(27, 29, 33, 0.58); }
 
 /* ---- Paneles ---- */
 [data-theme="light"] .panelbox { background: rgba(255, 255, 255, 0.74); border-color: #d3cec3; }
+/* "Citas hoy" y el calendario: mismo vidrio gris esmerilado que las tarjetas. */
+[data-theme="light"] .split__side,
+[data-theme="light"] .mcal {
+  background: linear-gradient(150deg, rgba(247, 247, 246, 0.58), rgba(220, 220, 223, 0.34));
+  border-color: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 14px 34px -26px rgba(0, 0, 0, 0.35);
+}
 [data-theme="light"] .panelbox__head { border-bottom-color: #d3cec3; }
 [data-theme="light"] .panelbox__title { color: #1b1d21; }
 [data-theme="light"] .panelbox__count { background: rgba(192, 57, 47, 0.14); color: #1b1d21; }
