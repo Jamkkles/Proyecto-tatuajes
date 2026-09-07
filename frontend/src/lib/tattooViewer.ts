@@ -17,14 +17,14 @@ import type { BodyModel, CameraPreset } from './bodyModels'
  * dentro. Mover o escalar obliga a **reconstruir** la geometría, así que las
  * actualizaciones se agrupan en un único rebuild por fotograma.
  *
- * El cuerpo se normaliza al cargarse (centrado, escalado a estatura estándar y
- * con la transformación horneada en la geometría), de modo que el objeto queda
- * en la identidad y el espacio del mundo coincide con el del modelo. Gracias a
- * eso las coordenadas que se guardan en la base de datos son estables.
+ * El cuerpo se normaliza al cargarse (centrado, escalado al `targetHeight` del
+ * modelo y con la transformación horneada en la geometría), de modo que el
+ * objeto queda en la identidad y el espacio del mundo coincide con el del
+ * modelo. Gracias a eso las coordenadas que se guardan en la base de datos son
+ * estables, y un tatuaje de 12 cm mide 12 cm tanto en un cuerpo entero como en
+ * una pieza suelta.
  */
 
-/** Estatura a la que se normaliza cualquier modelo cargado (m). */
-const TARGET_HEIGHT = 1.75
 /** Píxeles de desplazamiento por debajo de los cuales un arrastre es un clic. */
 const CLICK_SLOP = 5
 
@@ -181,32 +181,34 @@ export class TattooViewer {
 
   /* ---------------- Modelo ---------------- */
 
-  /** Carga el .glb del modelo, o arma el maniquí de primitivas si no tiene. */
+  /** Carga el .glb del modelo, lo normaliza y lo encuadra. */
   async loadModel(model: BodyModel): Promise<void> {
     this.clearBody()
     this.decalDepth = model.decalDepth
+    // Cámara y límites primero: así el encuadre ya es el correcto mientras se
+    // descarga, y sigue siéndolo aunque la descarga falle.
+    this.setBounds(model.targetHeight)
+    this.setCamera(model.camera)
 
     let geometry: THREE.BufferGeometry
-    if (model.file) {
-      try {
-        geometry = await this.loadGeometry(model.file)
-        // glTF ya es Y-up; un .obj de Blender/Max suele venir Z-up (tumbado).
-        if (model.orientation === 'z-up') geometry.rotateX(-Math.PI / 2)
-      } catch {
-        this.callbacks.onError?.(
-          `No pudimos cargar ${model.file}. Se muestra el maniquí de referencia.`,
-        )
-        geometry = buildMannequinGeometry()
-      }
-    } else {
-      geometry = buildMannequinGeometry()
+    try {
+      geometry = await this.loadGeometry(model.file)
+      // glTF ya es Y-up; un .obj de Blender/Max suele venir Z-up (tumbado).
+      if (model.orientation === 'z-up') geometry.rotateX(-Math.PI / 2)
+    } catch (err) {
+      console.error(`No se pudo cargar ${model.file}`, err)
+      this.callbacks.onError?.('No pudimos cargar este modelo 3D. Prueba con otra parte del cuerpo.')
+      // El contrato es "un onModelLoaded por cada loadModel": sin esto el
+      // contador de triángulos seguiría mostrando el del modelo anterior.
+      this.callbacks.onModelLoaded?.({ triangles: 0 })
+      return
     }
     if (this.disposed) {
       geometry.dispose()
       return
     }
 
-    normalizeGeometry(geometry)
+    normalizeGeometry(geometry, model.targetHeight)
 
     const material = new THREE.MeshStandardMaterial({
       color: 0xc9a992,
@@ -220,8 +222,21 @@ export class TattooViewer {
     const index = geometry.getIndex()
     const triangles = (index ? index.count : geometry.getAttribute('position').count) / 3
     this.callbacks.onModelLoaded?.({ triangles: Math.round(triangles) })
+  }
 
-    this.setCamera(model.camera)
+  /**
+   * Ajusta órbita y planos de recorte al tamaño de la pieza. Los límites fijos
+   * de antes estaban pensados para un cuerpo de 1.75 m: con ellos, una cabeza
+   * de 26 cm se quedaba clavada a su distancia de encuadre (0.44 m) sin poder
+   * acercarse. Con h=1.75 estos cálculos dan casi los mismos valores de antes.
+   */
+  private setBounds(height: number) {
+    this.controls.minDistance = Math.max(0.05, height * 0.12)
+    this.controls.maxDistance = Math.max(1.5, height * 5)
+    this.camera.near = Math.max(0.01, height * 0.02)
+    this.camera.far = Math.max(20, height * 40)
+    this.camera.updateProjectionMatrix()
+    this.controls.update()
   }
 
   /** Descarga el archivo y devuelve una única geometría fusionada. */
@@ -619,19 +634,20 @@ function extractGeometry(root: THREE.Object3D): THREE.BufferGeometry {
 }
 
 /**
- * Deja la geometría centrada en X/Z, con los pies en y=0 y a estatura estándar,
- * horneando la transformación. Así el objeto queda en la identidad y el espacio
- * del mundo coincide con el del modelo: las coordenadas guardadas son estables.
+ * Deja la geometría centrada en X/Z, con la base en y=0 y con `targetHeight`
+ * metros de alto, horneando la transformación. Así el objeto queda en la
+ * identidad y el espacio del mundo coincide con el del modelo: las coordenadas
+ * guardadas son estables, y un tatuaje de 12 cm mide 12 cm tanto en un cuerpo
+ * entero como en una cabeza suelta.
  */
-function normalizeGeometry(geometry: THREE.BufferGeometry) {
+function normalizeGeometry(geometry: THREE.BufferGeometry, targetHeight: number) {
   geometry.computeBoundingBox()
   const box = geometry.boundingBox
   if (!box) return
 
   const size = new THREE.Vector3()
   box.getSize(size)
-  const height = size.y || 1
-  const scale = TARGET_HEIGHT / height
+  const scale = targetHeight / (size.y || 1)
 
   const center = new THREE.Vector3()
   box.getCenter(center)
@@ -640,51 +656,13 @@ function normalizeGeometry(geometry: THREE.BufferGeometry) {
     .makeScale(scale, scale, scale)
     .multiply(new THREE.Matrix4().makeTranslation(-center.x, -box.min.y, -center.z))
   geometry.applyMatrix4(m)
-  geometry.computeVertexNormals()
+  // Ojo: NO se recalculan las normales. `applyMatrix4` con un escalado uniforme
+  // y positivo ya las deja bien, mientras que `computeVertexNormals()` sobre
+  // una geometría sin índice le da a cada triángulo su propia normal — o sea,
+  // sombreado facetado, tirando las normales suaves del .glb. En un cuerpo a
+  // 2.6 m pasaba por "estilo low-poly"; en una cabeza que llena la vista se
+  // vería rota.
   geometry.computeBoundingBox()
   geometry.computeBoundingSphere()
 }
 
-/**
- * Maniquí de referencia con primitivas, para poder usar (y probar) el módulo
- * antes de tener el .glb real. Se fusiona en una sola geometría porque
- * `DecalGeometry` necesita una única malla.
- */
-function buildMannequinGeometry(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = []
-
-  const add = (geo: THREE.BufferGeometry, x: number, y: number, z: number, rotZ = 0, rotX = 0) => {
-    const m = new THREE.Matrix4().makeTranslation(x, y, z)
-    if (rotZ) m.multiply(new THREE.Matrix4().makeRotationZ(rotZ))
-    if (rotX) m.multiply(new THREE.Matrix4().makeRotationX(rotX))
-    geo.applyMatrix4(m)
-    parts.push(geo.toNonIndexed())
-  }
-
-  // Torso, cadera, cuello y cabeza.
-  add(new THREE.CapsuleGeometry(0.2, 0.42, 12, 32), 0, 1.32, 0)
-  add(new THREE.CapsuleGeometry(0.17, 0.12, 10, 28), 0, 1.0, 0)
-  add(new THREE.CylinderGeometry(0.06, 0.07, 0.12, 20), 0, 1.63, 0)
-  add(new THREE.SphereGeometry(0.115, 28, 22), 0, 1.76, 0)
-
-  // Hombros y brazos (ligeramente abiertos).
-  for (const s of [1, -1]) {
-    add(new THREE.SphereGeometry(0.075, 20, 16), s * 0.21, 1.5, 0)
-    add(new THREE.CapsuleGeometry(0.055, 0.26, 10, 24), s * 0.28, 1.31, 0, s * 0.16)
-    add(new THREE.CapsuleGeometry(0.046, 0.25, 10, 24), s * 0.35, 1.02, 0, s * 0.1)
-    add(new THREE.SphereGeometry(0.05, 16, 14), s * 0.39, 0.85, 0)
-  }
-
-  // Piernas.
-  for (const s of [1, -1]) {
-    add(new THREE.CapsuleGeometry(0.085, 0.3, 10, 24), s * 0.1, 0.72, 0)
-    add(new THREE.CapsuleGeometry(0.065, 0.3, 10, 24), s * 0.1, 0.32, 0)
-    add(new THREE.SphereGeometry(0.07, 16, 14), s * 0.1, 0.07, 0.02)
-  }
-
-  const merged = mergeGeometries(parts, false)
-  parts.forEach((p) => p.dispose())
-  if (!merged) throw new Error('No se pudo construir el maniquí.')
-  merged.computeVertexNormals()
-  return merged
-}

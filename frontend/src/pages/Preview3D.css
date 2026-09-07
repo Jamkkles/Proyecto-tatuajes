@@ -224,6 +224,21 @@
   background: rgba(192, 57, 47, 0.16);
 }
 
+/* Dos filas de chips seguidas necesitan un rótulo entre medias, o parecen una
+   sola lista con dos selecciones. */
+.prev3d__sub {
+  margin: 14px 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+/* El rótulo y las pestañas ya traen su propio hueco debajo: sin esto se suma
+   al `margin-top` de los chips y quedan separados el doble. */
+.prev3d__sub + .prev3d__chips,
+.prev3d__tabs + .prev3d__chips { margin-top: 0; }
+
 /* ---- Pestañas galería / archivo ---- */
 .prev3d__tabs {
   display: flex;

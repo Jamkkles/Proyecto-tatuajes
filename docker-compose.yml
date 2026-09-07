@@ -18,6 +18,9 @@ services:
       - "3000:3000"
     env_file:
       - ./backend/.env
+    environment:
+      # Dentro de la red de Docker la base es el servicio "postgres", no localhost.
+      DATABASE_URL: postgresql://${DB_USER:-tatuajes_user}:${DB_PASSWORD:-tatuajes_pass}@postgres:5432/${DB_NAME:-tatuajes_db}
     depends_on:
       - postgres
     volumes:

@@ -10,11 +10,16 @@ import {
   type Sketch,
 } from '../lib/sketches'
 import {
-  BODY_MODELS,
+  DEFAULT_MODEL_ID,
   DEFAULT_TATTOO_SIZE,
-  MAX_TATTOO_SIZE,
   MIN_TATTOO_SIZE,
-  findBodyModel,
+  PART_LABEL,
+  PART_ORDER,
+  SEXES,
+  bodyModelId,
+  isStaleModelId,
+  maxTattooSize,
+  resolveBodyModel,
 } from '../lib/bodyModels'
 import {
   createPreview,
@@ -118,8 +123,16 @@ export default function Preview3D() {
   /** URLs de blob creadas aquí, para revocarlas al desmontar. */
   const blobUrlsRef = useRef<string[]>([])
 
+  /**
+   * Último id que se mandó cargar al visor. `openScene` carga el modelo él
+   * mismo antes de restaurar las calcas; sin esta marca el efecto de abajo lo
+   * cargaría otra vez en paralelo, dejando dos cuerpos en escena y borrando
+   * las calcas a medio restaurar.
+   */
+  const loadedModelIdRef = useRef<string | null>(null)
+
   const [ready, setReady] = useState(false)
-  const [modelId, setModelId] = useState('cuerpo')
+  const [modelId, setModelId] = useState(DEFAULT_MODEL_ID)
   const [zoneId, setZoneId] = useState<string | null>(null)
   const [triangles, setTriangles] = useState<number | null>(null)
 
@@ -140,7 +153,10 @@ export default function Preview3D() {
   const [opening, setOpening] = useState(false)
   const [notice, setNotice] = useState('')
 
-  const model = findBodyModel(modelId) ?? BODY_MODELS[0]
+  // El sexo y la parte se leen del modelo, no de un estado aparte: así abrir
+  // una escena guardada deja los botones sincronizados sin trabajo extra.
+  const model = resolveBodyModel(modelId)
+  const sizeMax = maxTattooSize(model)
   const selected = placed.find((p) => p.id === selectedId) ?? null
 
   useAppShellHeader({
@@ -224,7 +240,9 @@ export default function Preview3D() {
                 p.id === id ? { ...p, position: t.position, quaternion: t.quaternion } : p,
               ),
             ),
-          onModelLoaded: ({ triangles: n }) => setTriangles(n),
+          // 0 = el modelo no cargó; mejor que no salga insignia a que muestre
+          // la del modelo anterior.
+          onModelLoaded: ({ triangles: n }) => setTriangles(n > 0 ? n : null),
           onError: (message) => setNotice(message),
         })
         viewerRef.current = viewer
@@ -236,6 +254,7 @@ export default function Preview3D() {
       cancelled = true
       viewer?.dispose()
       viewerRef.current = null
+      loadedModelIdRef.current = null
       setReady(false)
     }
   }, [])
@@ -245,8 +264,10 @@ export default function Preview3D() {
     if (!ready) return
     const viewer = viewerRef.current
     if (!viewer) return
-    const target = findBodyModel(modelId) ?? BODY_MODELS[0]
-    viewer.loadModel(target)
+    // Ya lo cargó `openScene`: recargarlo aquí duplicaría el cuerpo en escena.
+    if (loadedModelIdRef.current === modelId) return
+    loadedModelIdRef.current = modelId
+    viewer.loadModel(resolveBodyModel(modelId))
     // Cambiar de cuerpo descarta las calcas: el espacio del modelo es otro.
     setPlaced([])
     setSelectedId(null)
@@ -317,8 +338,11 @@ export default function Preview3D() {
   }
 
   /* --------- Edición del tatuaje seleccionado --------- */
-  function changeSize(width: number) {
+  function changeSize(raw: number) {
     if (!selected) return
+    // El tope depende de la pieza: en una cabeza de 26 cm el máximo global de
+    // 60 cm daría una caja de proyección mayor que el propio modelo.
+    const width = Math.min(Math.max(raw, MIN_TATTOO_SIZE), sizeMax)
     const size: [number, number, number] = [width, width / selected.aspect, selected.size[2]]
     viewerRef.current?.updatePlacement(selected.id, { size })
     setPlaced((l) => l.map((p) => (p.id === selected.id ? { ...p, size } : p)))
@@ -424,12 +448,17 @@ export default function Preview3D() {
       const list = sketches.length ? sketches : await listSketches()
       if (sketches.length === 0) setSketches(list)
 
-      setModelId(scene.model_id)
+      // Se guarda el id ya resuelto, no el crudo: si la escena viene del
+      // catálogo viejo, el estado tiene que quedar en un id que exista o no se
+      // marcaría ningún botón.
+      const target = resolveBodyModel(scene.model_id)
+      setModelId(target.id)
+      // El modelo lo carga esta función; que el efecto no lo cargue otra vez.
+      loadedModelIdRef.current = target.id
       setSceneId(scene.id)
       setSceneName(scene.name)
       setZoneId(null)
 
-      const target = findBodyModel(scene.model_id) ?? BODY_MODELS[0]
       await viewer.loadModel(target)
       if (scene.camera) viewer.setCamera(scene.camera)
 
@@ -471,7 +500,11 @@ export default function Preview3D() {
       }
       setPlaced(restored)
       setSelectedId(null)
-      setNotice(`Abierta «${scene.name}».`)
+      setNotice(
+        isStaleModelId(scene.model_id)
+          ? `Abierta «${scene.name}». Se hizo sobre el maniquí, que ya no existe: revisa dónde quedaron los tatuajes.`
+          : `Abierta «${scene.name}».`,
+      )
     } catch (err) {
       setNotice(err instanceof ApiError ? err.message : 'No pudimos abrir la previsualización.')
     } finally {
@@ -551,7 +584,7 @@ export default function Preview3D() {
 
         <span className="prev3d__hint">
           {armed
-            ? `Haz clic sobre el cuerpo para colocar «${armed.title}»`
+            ? `Haz clic sobre el modelo para colocar «${armed.title}»`
             : 'Arrastra para girar · rueda para acercar'}
         </span>
 
@@ -571,39 +604,58 @@ export default function Preview3D() {
         {/* Modelo y zona */}
         <section className="prev3d__block">
           <h2 className="prev3d__h">Cuerpo</h2>
-          <select
-            className="prev3d__select"
-            value={modelId}
-            onChange={(e) => setModelId(e.target.value)}
-            aria-label="Modelo de cuerpo"
-          >
-            {BODY_MODELS.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.label}{m.file ? '' : ' (maniquí)'}
-              </option>
+          <div className="prev3d__tabs" role="tablist" aria-label="Sexo del modelo">
+            {SEXES.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                role="tab"
+                aria-selected={model.sex === s.id}
+                className={`prev3d__tab${model.sex === s.id ? ' prev3d__tab--on' : ''}`}
+                onClick={() => setModelId(bodyModelId(s.id, model.part))}
+              >
+                {s.label}
+              </button>
             ))}
-          </select>
+          </div>
+
+          <div className="prev3d__chips" role="group" aria-label="Parte del cuerpo">
+            {PART_ORDER.map((p) => (
+              <button
+                key={p}
+                type="button"
+                aria-pressed={model.part === p}
+                className={`prev3d__chip${model.part === p ? ' prev3d__chip--on' : ''}`}
+                onClick={() => setModelId(bodyModelId(model.sex, p))}
+              >
+                {PART_LABEL[p]}
+              </button>
+            ))}
+          </div>
 
           {model.zones.length > 0 && (
-            <div className="prev3d__chips">
-              <button
-                type="button"
-                className={`prev3d__chip${zoneId === null ? ' prev3d__chip--on' : ''}`}
-                onClick={() => goToZone(null)}
-              >
-                General
-              </button>
-              {model.zones.map((z) => (
+            <>
+              <p className="prev3d__sub">Encuadre</p>
+              <div className="prev3d__chips">
                 <button
-                  key={z.id}
                   type="button"
-                  className={`prev3d__chip${zoneId === z.id ? ' prev3d__chip--on' : ''}`}
-                  onClick={() => goToZone(z.id)}
+                  className={`prev3d__chip${zoneId === null ? ' prev3d__chip--on' : ''}`}
+                  onClick={() => goToZone(null)}
                 >
-                  {z.label}
+                  General
                 </button>
-              ))}
-            </div>
+                {model.zones.map((z) => (
+                  <button
+                    key={z.id}
+                    type="button"
+                    className={`prev3d__chip${zoneId === z.id ? ' prev3d__chip--on' : ''}`}
+                    onClick={() => goToZone(z.id)}
+                  >
+                    {z.label}
+                  </button>
+                ))}
+              </div>
+            </>
           )}
         </section>
 
@@ -680,7 +732,7 @@ export default function Preview3D() {
             <p className="prev3d__empty">Restaurando los tatuajes…</p>
           ) : placed.length === 0 ? (
             <p className="prev3d__empty">
-              Elige un boceto y haz clic sobre el cuerpo para colocarlo.
+              Elige un boceto y haz clic sobre el modelo para colocarlo.
             </p>
           ) : (
             <ul className="prev3d__layers">
@@ -713,7 +765,7 @@ export default function Preview3D() {
                 <input
                   type="range"
                   min={MIN_TATTOO_SIZE * 100}
-                  max={MAX_TATTOO_SIZE * 100}
+                  max={sizeMax * 100}
                   step={0.5}
                   value={selected.size[0] * 100}
                   onChange={(e) => changeSize(Number(e.target.value) / 100)}
