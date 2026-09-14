@@ -87,6 +87,8 @@ export class TattooViewer {
   private bodyGroup: THREE.Group
   private bodyMesh: THREE.Mesh | null = null
   private decalDepth = 0.3
+  /** Nº de la última carga pedida: una descarga más vieja que termina tarde se descarta. */
+  private loadSeq = 0
 
   private decals: DecalEntry[] = []
   private selectedId: string | null = null
@@ -183,6 +185,10 @@ export class TattooViewer {
 
   /** Carga el .glb del modelo, lo normaliza y lo encuadra. */
   async loadModel(model: BodyModel): Promise<void> {
+    // Si se piden dos cargas seguidas (p. ej. el modelo por defecto y, enseguida,
+    // el de la escena de un proyecto), solo la última llega a la escena: sin
+    // esto quedaban dos cuerpos superpuestos.
+    const seq = ++this.loadSeq
     this.clearBody()
     this.decalDepth = model.decalDepth
     // Cámara y límites primero: así el encuadre ya es el correcto mientras se
@@ -196,6 +202,7 @@ export class TattooViewer {
       // glTF ya es Y-up; un .obj de Blender/Max suele venir Z-up (tumbado).
       if (model.orientation === 'z-up') geometry.rotateX(-Math.PI / 2)
     } catch (err) {
+      if (seq !== this.loadSeq) return
       console.error(`No se pudo cargar ${model.file}`, err)
       this.callbacks.onError?.('No pudimos cargar este modelo 3D. Prueba con otra parte del cuerpo.')
       // El contrato es "un onModelLoaded por cada loadModel": sin esto el
@@ -203,7 +210,7 @@ export class TattooViewer {
       this.callbacks.onModelLoaded?.({ triangles: 0 })
       return
     }
-    if (this.disposed) {
+    if (this.disposed || seq !== this.loadSeq) {
       geometry.dispose()
       return
     }

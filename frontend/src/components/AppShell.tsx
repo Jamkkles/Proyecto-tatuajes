@@ -34,6 +34,12 @@ const icons: Record<string, ReactNode> = {
       <rect x="3" y="4.5" width="18" height="16" rx="2" /><path d="M3 9h18M8 2.5v4M16 2.5v4" />
     </svg>
   ),
+  clientes: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <circle cx="9" cy="8" r="3.5" /><path d="M2.5 20a6.5 6.5 0 0113 0" />
+      <path d="M16 4.6a3.5 3.5 0 010 6.8M18.5 14.2a6.5 6.5 0 013 5.8" />
+    </svg>
+  ),
   cotizaciones: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
       <rect x="5" y="2.5" width="14" height="19" rx="2" /><path d="M9 7h6M9 11h6M9 15h3" />
@@ -68,10 +74,12 @@ const icons: Record<string, ReactNode> = {
 }
 
 // `to` apunta a la ruta del módulo; los que aún no existen quedan sin ella.
-const NAV = [
+// `match`: prefijos de ruta que también marcan el ítem como activo (fichas).
+const NAV: { key: string; label: string; to?: string; match?: string[] }[] = [
   { key: 'resumen', label: 'Resumen', to: '/dashboard' },
   { key: 'bocetos', label: 'Bocetos', to: '/bocetos' },
-  { key: 'citas', label: 'Citas' },
+  { key: 'citas', label: 'Citas', to: '/citas' },
+  { key: 'clientes', label: 'Clientes', to: '/clientes', match: ['/clientes', '/proyectos'] },
   { key: 'cotizaciones', label: 'Cotizaciones' },
   { key: 'inventario', label: 'Inventario' },
   { key: 'prev3d', label: 'Previsualización 3D', to: '/previsualizacion' },
@@ -124,7 +132,10 @@ export default function AppShell() {
 
         <nav className="dash__nav" aria-label="Secciones del estudio">
           {NAV.map((item) => {
-            const active = !!item.to && location.pathname === item.to
+            const { pathname } = location
+            const active = item.match
+              ? item.match.some((p) => pathname === p || pathname.startsWith(`${p}/`))
+              : !!item.to && pathname === item.to
             return (
               <button
                 key={item.key}

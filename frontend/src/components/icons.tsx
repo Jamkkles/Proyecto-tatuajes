@@ -3,9 +3,9 @@ import type { ReactNode } from 'react'
 /**
  * Iconos de línea (24px, `currentColor`) compartidos entre vistas.
  *
- * Viven aquí y no dentro de una página porque el visor 3D real
- * (`pages/Preview3D.tsx`) y el visor de maqueta del panel
- * (`pages/Dashboard.tsx`) usan la misma toolbar.
+ * Viven aquí y no dentro de una página porque los usan varias vistas: la
+ * toolbar del visor 3D (`pages/Preview3D.tsx`) y la ficha de proyecto
+ * (`pages/Proyecto.tsx`).
  */
 export const viewerIcons: Record<string, ReactNode> = {
   zoomIn: (

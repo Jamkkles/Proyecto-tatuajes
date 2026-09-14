@@ -8,7 +8,8 @@
 //   STORAGE_DRIVER=cloudinary  → nube  (producción)
 //
 // Contrato que cumple cualquier driver:
-//   save({ buffer, mimeType, userId, originalName }) → { key, url }
+//   save({ buffer, mimeType, userId, originalName, folder }) → { key, url }
+//     folder: 'sketches' (por defecto) | 'sessions'
 //   remove(key) → void
 const DRIVERS = {
   local: () => require('./localDriver'),

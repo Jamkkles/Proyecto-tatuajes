@@ -50,8 +50,7 @@
   color: var(--ash);
 }
 
-/* Toolbar flotante. Autónoma a propósito: Dashboard.css (donde vive el visor
-   de maqueta con `.viewer__*`) no se carga en esta ruta. */
+/* Toolbar flotante del visor. */
 .prev3d__toolbar {
   position: absolute;
   left: 16px;

@@ -145,9 +145,108 @@
   line-height: 1;
 }
 
+/* ---- Vista previa del día ----
+   Se monta en <body> (portal), fuera de .dash: por eso colores literales en
+   vez de los tokens de página. max-width = TIP_WIDTH en MonthCalendar.tsx. */
+.mcal-tip {
+  position: fixed;
+  z-index: 60;
+  width: max-content;
+  max-width: 260px;
+  padding: 12px 14px;
+  transform: translate(-50%, -100%);
+  border: 1px solid #23272e;
+  border-radius: 12px;
+  background: rgba(10, 11, 13, 0.96);
+  box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.6);
+  color: #aab6bf;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.35;
+  pointer-events: none;
+  animation: mcal-tip-in 0.12s ease;
+}
+.mcal-tip--below {
+  transform: translate(-50%, 0);
+}
+@keyframes mcal-tip-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.mcal-tip__date {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #707b86;
+}
+.mcal-tip__list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.mcal-tip__list li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: baseline;
+}
+.mcal-tip__time {
+  font-weight: 700;
+  color: #e7eef2;
+  font-variant-numeric: tabular-nums;
+}
+.mcal-tip__body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.mcal-tip__client {
+  font-weight: 600;
+  color: #e7eef2;
+  overflow-wrap: anywhere;
+}
+.mcal-tip__detail {
+  font-size: 12px;
+  color: #707b86;
+  overflow-wrap: anywhere;
+}
+.mcal-tip__more {
+  margin: 8px 0 0;
+  font-size: 12px;
+}
+.mcal-tip__hint {
+  margin: 10px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid #23272e;
+  font-size: 11px;
+  color: #e0766c;
+}
+
 /* ============================================================
    Modo claro "washi" — el .panelbox ya lo cubre Dashboard.css.
    ============================================================ */
+[data-theme="light"] .mcal-tip {
+  border-color: #d3cec3;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.25);
+  color: #3f434a;
+}
+[data-theme="light"] .mcal-tip__time,
+[data-theme="light"] .mcal-tip__client {
+  color: #1b1d21;
+}
+[data-theme="light"] .mcal-tip__date,
+[data-theme="light"] .mcal-tip__detail {
+  color: #6b6f76;
+}
+[data-theme="light"] .mcal-tip__hint {
+  border-top-color: #d3cec3;
+  color: #b23b30;
+}
 [data-theme="light"] .mcal__navbtn {
   color: #4a4e55;
   border-color: #d3cec3;

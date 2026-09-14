@@ -26,6 +26,23 @@ export const isSameDay = (a: Date, b: Date) =>
   a.getMonth() === b.getMonth() &&
   a.getDate() === b.getDate()
 
+/** ¿Es una fecha 'YYYY-MM-DD' válida? (p. ej. un `?dia=` de la URL) */
+export const isIsoDay = (value: string | null): value is string =>
+  !!value &&
+  /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+  isoLocal(new Date(`${value}T00:00:00`)) === value
+
+/** 'HH:MM' en hora local. */
+export const timeLocal = (d: Date) =>
+  `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+
+/**
+ * Fecha 'YYYY-MM-DD' + hora 'HH:MM' de un formulario (hora local del
+ * navegador) → instante ISO en UTC, que es lo que guarda el backend.
+ */
+export const localInputsToIso = (date: string, time: string) =>
+  new Date(`${date}T${time}:00`).toISOString()
+
 /** 42 celdas (6×7), lunes primero, con los días de los meses vecinos. */
 export function buildMonthGrid(year: number, month: number): Date[] {
   const lead = mondayIndex(startOfMonth(year, month))

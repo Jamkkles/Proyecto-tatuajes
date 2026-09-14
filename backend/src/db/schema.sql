@@ -82,3 +82,95 @@ CREATE TABLE IF NOT EXISTS previews (
 
 CREATE INDEX IF NOT EXISTS previews_user_created_idx
   ON previews (user_id, created_at DESC);
+
+-- ============================================================
+-- Agenda: clientes, proyectos y sesiones (HU17, HU19, HU20, HU21, HU24)
+--
+--   cliente 1─N proyecto 1─N sesión 1─N foto de avance
+--
+-- Cada sesión ES una cita: tiene fecha, hora y lo que se cobra en ella. Así una
+-- pieza grande (un brazo completo) es un proyecto con varias citas, y una pieza
+-- chica es un proyecto de una sola sesión.
+--
+-- Los montos son pesos chilenos enteros (el CLP no usa decimales).
+-- ============================================================
+CREATE TABLE IF NOT EXISTS clients (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name       TEXT NOT NULL,
+  phone      TEXT,
+  email      TEXT,
+  instagram  TEXT,
+  notes      TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS clients_user_name_idx ON clients (user_id, lower(name));
+
+-- sketch_id / preview_id enlazan el diseño de la galería y la escena 3D donde
+-- se probó sobre el cuerpo. Si se borra el boceto o la escena, el proyecto
+-- sigue existiendo sin ese enlace.
+CREATE TABLE IF NOT EXISTS projects (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  client_id   UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+  title       TEXT NOT NULL,
+  description TEXT,
+  body_zone   TEXT,
+  total_price INTEGER NOT NULL DEFAULT 0 CHECK (total_price >= 0),
+  status      TEXT NOT NULL DEFAULT 'activo'
+                CHECK (status IN ('activo', 'terminado', 'cancelado')),
+  sketch_id   UUID REFERENCES sketches(id) ON DELETE SET NULL,
+  preview_id  UUID REFERENCES previews(id) ON DELETE SET NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS projects_user_created_idx ON projects (user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS projects_client_idx ON projects (client_id);
+
+-- `project_sessions` y no `sessions`: ese nombre suele reclamarlo el middleware
+-- de sesiones HTTP y se confundiría con la sesión de login.
+--   price → lo que el cliente paga en esa sesión; `paid` marca si ya lo pagó
+CREATE TABLE IF NOT EXISTS project_sessions (
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id          UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  project_id       UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  starts_at        TIMESTAMPTZ NOT NULL,
+  duration_minutes INTEGER NOT NULL DEFAULT 120
+                     CHECK (duration_minutes BETWEEN 15 AND 1440),
+  price            INTEGER NOT NULL DEFAULT 0 CHECK (price >= 0),
+  paid             BOOLEAN NOT NULL DEFAULT false,
+  status           TEXT NOT NULL DEFAULT 'agendada'
+                     CHECK (status IN ('agendada', 'completada', 'cancelada', 'no_asistio')),
+  notes            TEXT,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- El calendario consulta por rango de fechas del artista.
+CREATE INDEX IF NOT EXISTS project_sessions_user_starts_idx
+  ON project_sessions (user_id, starts_at);
+CREATE INDEX IF NOT EXISTS project_sessions_project_idx
+  ON project_sessions (project_id, starts_at);
+
+-- Fotos del avance de cada sesión. Igual que los bocetos: la imagen vive en el
+-- almacenamiento (services/storage) y aquí solo la referencia.
+CREATE TABLE IF NOT EXISTS session_photos (
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id        UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  session_id     UUID NOT NULL REFERENCES project_sessions(id) ON DELETE CASCADE,
+  caption        TEXT,
+  storage_driver TEXT NOT NULL,
+  storage_key    TEXT NOT NULL,
+  url            TEXT NOT NULL,
+  mime_type      TEXT NOT NULL,
+  size_bytes     INTEGER NOT NULL,
+  width          INTEGER,
+  height         INTEGER,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS session_photos_session_idx
+  ON session_photos (session_id, created_at);

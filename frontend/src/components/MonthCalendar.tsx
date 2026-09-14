@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
-import type { KeyboardEvent } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
+import type { KeyboardEvent, ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { buildMonthGrid, daysInMonth, isoLocal, isSameDay } from '../lib/dates'
 import './MonthCalendar.css'
 
 /**
- * Calendario del mes del panel. Por ahora es solo front: recibe un mapa de
- * conteos de citas por día y su única interacción es marcar visualmente el día
- * seleccionado. Cuando exista el módulo de Citas, `appointmentsByDay` se
- * derivará de la lista real y `onSelectDay` conectará la vista del día.
+ * Calendario del mes (panel y agenda). Recibe un mapa de conteos de citas por
+ * día; avisa el mes visible con `onMonthChange` para que la página cargue esas
+ * citas, y el día elegido con `onSelectDay`.
  *
  * Depende de que la página que lo monte cargue `Dashboard.css` (reutiliza el
  * chrome de `.panelbox`) y viva dentro de `.dash` (token `--accent`).
@@ -38,9 +38,22 @@ export interface MonthCalendarProps {
   appointmentsByDay?: Record<string, number>
   /** Día seleccionado inicial (ISO local). Por defecto: hoy. */
   initialSelected?: string
-  /** Se llama al seleccionar un día (ISO local). Solo estado local por ahora. */
+  /** Se llama al seleccionar un día (ISO local). */
   onSelectDay?: (isoDate: string) => void
+  /**
+   * Se llama con el mes visible (0 = enero) al montar y cada vez que cambia,
+   * para que la página cargue las citas de ese mes.
+   */
+  onMonthChange?: (year: number, month: number) => void
+  /**
+   * Contenido de la vista previa al pasar el mouse (o con foco) sobre un día.
+   * Devolver null para no mostrar nada ese día.
+   */
+  renderDayPreview?: (isoDate: string) => ReactNode
 }
+
+/** Ancho máximo de la vista previa (px); coincide con .mcal-tip en el CSS. */
+const TIP_WIDTH = 260
 
 const ARROW_DELTA: Record<string, number> = {
   ArrowRight: 1,
@@ -53,17 +66,56 @@ export default function MonthCalendar({
   appointmentsByDay,
   initialSelected,
   onSelectDay,
+  onMonthChange,
+  renderDayPreview,
 }: MonthCalendarProps) {
   // Estable durante la vida del componente. Si el panel queda abierto pasada la
   // medianoche, "hoy" queda algo desfasado — aceptable para v1.
   const [todayDate] = useState(() => new Date())
-  const [view, setView] = useState(() => ({
-    year: todayDate.getFullYear(),
-    month: todayDate.getMonth(),
-  }))
+  // Arranca en el mes del día seleccionado (por defecto, el de hoy).
+  const [view, setView] = useState(() => {
+    const base = initialSelected ? new Date(`${initialSelected}T00:00:00`) : todayDate
+    return { year: base.getFullYear(), month: base.getMonth() }
+  })
   const [selected, setSelected] = useState(() => initialSelected ?? isoLocal(todayDate))
   const [focusIso, setFocusIso] = useState<string | null>(null)
   const gridRef = useRef<HTMLDivElement>(null)
+
+  // El callback se lee de un ref: así una función nueva en cada render del
+  // padre no vuelve a disparar la carga del mes.
+  const onMonthChangeRef = useRef(onMonthChange)
+  useEffect(() => {
+    onMonthChangeRef.current = onMonthChange
+  })
+  useEffect(() => {
+    onMonthChangeRef.current?.(view.year, view.month)
+  }, [view.year, view.month])
+
+  // Vista previa del día. Va en un portal con position: fixed: .panelbox
+  // recorta con overflow y su backdrop-filter atraparía un fixed interior.
+  const tipId = useId()
+  const [preview, setPreview] = useState<{ iso: string; x: number; y: number; below: boolean } | null>(null)
+  const previewContent = preview && renderDayPreview ? renderDayPreview(preview.iso) : null
+
+  function showPreview(iso: string, el: HTMLElement) {
+    if (!renderDayPreview) return
+    const r = el.getBoundingClientRect()
+    const half = TIP_WIDTH / 2 + 8
+    const x = Math.min(Math.max(r.left + r.width / 2, half), window.innerWidth - half)
+    // Encima del día; si queda muy arriba en la pantalla, debajo.
+    const below = r.top < 180
+    setPreview({ iso, x, y: below ? r.bottom + 8 : r.top - 8, below })
+  }
+  const hidePreview = () => setPreview(null)
+
+  // Al hacer scroll la posición guardada deja de valer: se cierra.
+  const previewOpen = preview !== null
+  useEffect(() => {
+    if (!previewOpen) return
+    const close = () => setPreview(null)
+    window.addEventListener('scroll', close, { passive: true, capture: true })
+    return () => window.removeEventListener('scroll', close, { capture: true })
+  }, [previewOpen])
 
   useEffect(() => {
     if (!focusIso) return
@@ -182,7 +234,12 @@ export default function MonthCalendar({
                 aria-pressed={isSelected}
                 aria-label={`${fullFmt.format(d)}, ${countLabel(count)}`}
                 tabIndex={iso === tabbableIso ? 0 : -1}
+                aria-describedby={preview?.iso === iso && previewContent ? tipId : undefined}
                 onClick={() => pickDay(iso)}
+                onMouseEnter={(e) => showPreview(iso, e.currentTarget)}
+                onMouseLeave={hidePreview}
+                onFocus={(e) => showPreview(iso, e.currentTarget)}
+                onBlur={hidePreview}
               >
                 <span className="mcal__daynum">{d.getDate()}</span>
                 {count > 0 && (
@@ -193,6 +250,20 @@ export default function MonthCalendar({
           })}
         </div>
       </div>
+
+      {preview &&
+        previewContent &&
+        createPortal(
+          <div
+            id={tipId}
+            role="tooltip"
+            className={`mcal-tip${preview.below ? ' mcal-tip--below' : ''}`}
+            style={{ left: preview.x, top: preview.y }}
+          >
+            {previewContent}
+          </div>,
+          document.body,
+        )}
     </section>
   )
 }

@@ -20,10 +20,11 @@ const EXTENSIONS = {
 /**
  * Escribe el archivo y devuelve cómo encontrarlo después.
  * La clave incluye el userId para que los archivos queden separados por artista.
+ * `folder` separa bocetos ('sketches') de fotos de sesión ('sessions').
  */
-async function save({ buffer, mimeType, userId }) {
+async function save({ buffer, mimeType, userId, folder = 'sketches' }) {
   const ext = EXTENSIONS[mimeType] || 'bin';
-  const key = `sketches/${userId}/${crypto.randomUUID()}.${ext}`;
+  const key = `${folder}/${userId}/${crypto.randomUUID()}.${ext}`;
   const fullPath = path.join(UPLOAD_DIR, key);
 
   await fs.mkdir(path.dirname(fullPath), { recursive: true });

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ApiError } from '../lib/api'
+import { getProject, updateProject, type Project } from '../lib/agenda'
 import { useAppShellHeader } from '../lib/useAppShellHeader'
 import {
   ALLOWED_MIME,
@@ -153,6 +155,14 @@ export default function Preview3D() {
   const [opening, setOpening] = useState(false)
   const [notice, setNotice] = useState('')
 
+  // Proyecto de la agenda desde el que se abrió el visor (`?proyecto=<id>`): se
+  // abre su escena enlazada y, al guardar, la escena queda enlazada a él.
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const projectId = searchParams.get('proyecto')
+  const [project, setProject] = useState<Project | null>(null)
+  const projectOpenedRef = useRef(false)
+
   // El sexo y la parte se leen del modelo, no de un estado aparte: así abrir
   // una escena guardada deja los botones sincronizados sin trabajo extra.
   const model = resolveBodyModel(modelId)
@@ -161,7 +171,9 @@ export default function Preview3D() {
 
   useAppShellHeader({
     title: 'Previsualización 3D',
-    subtitle: sceneName.trim() || `${placed.length} ${placed.length === 1 ? 'tatuaje' : 'tatuajes'}`,
+    subtitle: project
+      ? `${project.title} · ${project.client_name}`
+      : sceneName.trim() || `${placed.length} ${placed.length === 1 ? 'tatuaje' : 'tatuajes'}`,
   })
 
   /* --------- Datos: bocetos y escenas guardadas --------- */
@@ -423,8 +435,14 @@ export default function Preview3D() {
         ? await updatePreview(sceneId, payload)
         : await createPreview(payload)
       setSceneId(saved.id)
+      let message = 'Previsualización guardada.'
+      if (project && project.preview_id !== saved.id) {
+        const linked = await updateProject(project.id, { previewId: saved.id })
+        setProject(linked)
+        message = `Previsualización guardada y enlazada a «${linked.title}».`
+      }
       setScenes(await listPreviews())
-      setNotice('Previsualización guardada.')
+      setNotice(message)
     } catch (err) {
       setNotice(err instanceof ApiError ? err.message : 'No pudimos guardar la previsualización.')
     } finally {
@@ -534,6 +552,35 @@ export default function Preview3D() {
     setNotice('')
   }
 
+  /* --------- Abrir desde un proyecto ---------
+     El proyecto se pide cuando el visor ya está listo, así se puede abrir en
+     cuanto llega: si tiene escena, se abre; si no, se propone un nombre y se
+     deja su boceto listo para colocar. Una sola vez. */
+  useEffect(() => {
+    if (!projectId || !ready) return
+    let cancelled = false
+    getProject(projectId)
+      .then(({ project: p }) => {
+        if (cancelled) return
+        setProject(p)
+        if (projectOpenedRef.current) return
+        projectOpenedRef.current = true
+        if (p.preview_id) {
+          openScene(p.preview_id)
+          return
+        }
+        setSceneName(`${p.title} · ${p.client_name}`)
+        if (p.sketch_id && p.sketch_url) armSketch(p.sketch_id, p.title, p.sketch_url)
+      })
+      .catch(() => {
+        if (!cancelled) setNotice('No encontramos el proyecto; la escena no quedará enlazada.')
+      })
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, ready])
+
   async function downloadPng() {
     const blob = await viewerRef.current?.snapshot()
     if (!blob) return
@@ -599,6 +646,27 @@ export default function Preview3D() {
           <p className="prev3d__notice" role="status" onAnimationEnd={() => setNotice('')}>
             {notice}
           </p>
+        )}
+
+        {project && (
+          <section className="prev3d__block">
+            <h2 className="prev3d__h">Proyecto</h2>
+            <p className="prev3d__hintline">
+              «{project.title}» de {project.client_name}.{' '}
+              {project.preview_name
+                ? `Escena enlazada: «${project.preview_name}».`
+                : 'Aún sin escena: al guardar quedará enlazada.'}
+            </p>
+            <div className="prev3d__actions">
+              <button
+                type="button"
+                className="prev3d__btn"
+                onClick={() => navigate(`/proyectos/${project.id}`)}
+              >
+                Volver al proyecto
+              </button>
+            </div>
+          </section>
         )}
 
         {/* Modelo y zona */}

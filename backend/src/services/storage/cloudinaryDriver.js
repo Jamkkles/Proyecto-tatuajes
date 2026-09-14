@@ -29,15 +29,25 @@ function configure() {
 }
 
 /**
+ * CLOUDINARY_FOLDER apunta a la carpeta de bocetos ('tatuajes/sketches'). Las
+ * demás carpetas quedan como hermanas: 'sessions' → 'tatuajes/sessions'.
+ */
+function folderFor(folder) {
+  if (folder === 'sketches') return FOLDER;
+  const slash = FOLDER.lastIndexOf('/');
+  return slash === -1 ? folder : `${FOLDER.slice(0, slash)}/${folder}`;
+}
+
+/**
  * Sube el buffer a Cloudinary dentro de una carpeta por usuario.
  * Devuelve el public_id como clave (es lo que necesita destroy()).
  */
-function save({ buffer, userId }) {
+function save({ buffer, userId, folder = 'sketches' }) {
   configure();
 
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder: `${FOLDER}/${userId}`, resource_type: 'image' },
+      { folder: `${folderFor(folder)}/${userId}`, resource_type: 'image' },
       (err, result) => {
         if (err) return reject(err);
         resolve({ key: result.public_id, url: result.secure_url });

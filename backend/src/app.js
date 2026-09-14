@@ -4,6 +4,9 @@ const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
 const sketchRoutes = require('./routes/sketchRoutes');
 const previewRoutes = require('./routes/previewRoutes');
+const clientRoutes = require('./routes/clientRoutes');
+const projectRoutes = require('./routes/projectRoutes');
+const sessionRoutes = require('./routes/sessionRoutes');
 const { requireAuth } = require('./middleware/auth');
 const localDriver = require('./services/storage/localDriver');
 
@@ -35,6 +38,9 @@ app.use(
 app.use('/api/auth', authRoutes);
 app.use('/api/sketches', sketchRoutes);
 app.use('/api/previews', previewRoutes);
+app.use('/api/clients', clientRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/sessions', sessionRoutes);
 
 // Ruta protegida de ejemplo: devuelve el usuario del token.
 app.get('/api/me', requireAuth, (req, res) => {

@@ -11,6 +11,10 @@ const AppShell = lazy(() => import('./components/AppShell'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Gallery = lazy(() => import('./pages/Gallery'))
 const Preview3D = lazy(() => import('./pages/Preview3D'))
+const Citas = lazy(() => import('./pages/Citas'))
+const Clientes = lazy(() => import('./pages/Clientes'))
+const Cliente = lazy(() => import('./pages/Cliente'))
+const Proyecto = lazy(() => import('./pages/Proyecto'))
 
 function App() {
   return (
@@ -34,6 +38,10 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/bocetos" element={<Gallery />} />
               <Route path="/previsualizacion" element={<Preview3D />} />
+              <Route path="/citas" element={<Citas />} />
+              <Route path="/clientes" element={<Clientes />} />
+              <Route path="/clientes/:id" element={<Cliente />} />
+              <Route path="/proyectos/:id" element={<Proyecto />} />
             </Route>
           </Routes>
         </Suspense>

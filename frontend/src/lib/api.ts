@@ -11,6 +11,10 @@ export class ApiError extends Error {
   }
 }
 
+/** Texto para mostrar de un error: el del backend si es ApiError, si no `fallback`. */
+export const apiErrorMessage = (err: unknown, fallback: string) =>
+  err instanceof ApiError ? err.message : fallback
+
 /**
  * Wrapper de fetch contra el backend. Resuelve con el JSON tipado o lanza
  * ApiError con un mensaje listo para mostrar al usuario.

@@ -1,42 +1,10 @@
-const multer = require('multer');
-const { imageSize } = require('image-size');
 const sketchModel = require('../models/sketchModel');
 const storage = require('../services/storage');
-const { optimizeImage } = require('../services/imageOptimizer');
+const { optimizeImage, readDimensions } = require('../services/imageOptimizer');
+const { imageUpload: uploadMiddleware } = require('../middleware/imageUpload');
 
-const MAX_FILE_BYTES = Number(process.env.MAX_UPLOAD_BYTES) || 5 * 1024 * 1024; // 5 MB
-const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const VALID_STATUS = ['disponible', 'reservado', 'tatuado'];
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-// El archivo se recibe en memoria: nunca toca el disco antes de que el driver
-// decida dónde guardarlo (disco local o nube).
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: MAX_FILE_BYTES, files: 1 },
-  fileFilter: (req, file, cb) => {
-    if (!ALLOWED_MIME.includes(file.mimetype)) {
-      return cb(new Error('Formato no permitido. Usa JPG, PNG, WEBP o GIF.'));
-    }
-    cb(null, true);
-  },
-});
-
-/**
- * Middleware de subida. Traduce los errores de multer a respuestas JSON
- * con el mismo formato `{ message }` que usa el resto de la API.
- */
-function uploadMiddleware(req, res, next) {
-  upload.single('image')(req, res, (err) => {
-    if (!err) return next();
-
-    if (err.code === 'LIMIT_FILE_SIZE') {
-      const mb = (MAX_FILE_BYTES / (1024 * 1024)).toFixed(0);
-      return res.status(413).json({ message: `La imagen supera el límite de ${mb} MB.` });
-    }
-    return res.status(400).json({ message: err.message });
-  });
-}
 
 /** Acepta tags como array JSON o como texto separado por comas. */
 function parseTags(raw) {
@@ -53,16 +21,6 @@ function parseTags(raw) {
     }
   }
   return text.split(',').map((t) => t.trim()).filter(Boolean);
-}
-
-/** Lee ancho y alto del buffer. Si el formato no se reconoce, devuelve nulos. */
-function readDimensions(buffer) {
-  try {
-    const { width, height } = imageSize(buffer);
-    return { width, height };
-  } catch {
-    return { width: null, height: null };
-  }
 }
 
 // GET /api/sketches

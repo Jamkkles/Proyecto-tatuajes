@@ -58,12 +58,19 @@ Frontend lee `VITE_API_URL` (default en docker-compose: `http://localhost:3000`)
 - `db/schema.sql` + `db/init.js` — esquema y seed (no hay ORM ni migraciones versionadas)
 - `models/` — queries SQL crudas vía el pool (p. ej. `userModel.js`)
 - `controllers/` — lógica de cada recurso (`authController.js`: login + register)
-- `routes/` — Express Router montado en `app.js` (`/api/auth`, `/api/sketches`)
+- `routes/` — Express Router montado en `app.js` (`/api/auth`, `/api/sketches`,
+  `/api/previews`, `/api/clients`, `/api/projects`, `/api/sessions`)
 - `middleware/auth.js` — `requireAuth`: valida `Authorization: Bearer <token>` y deja el payload en `req.user`
+- `middleware/imageUpload.js` — multer en memoria para el campo `image` (5 MB,
+  JPG/PNG/WEBP/GIF), compartido por bocetos y fotos de sesión
+- `utils/fields.js` — validadores de campos de la agenda; lanzan `FieldError`
+  y `sendError` lo traduce a 400 (o 500 con log)
 - `services/storage/` — capa de almacenamiento de archivos con drivers
   intercambiables. **Nunca escribir a disco ni llamar a un SDK de nube fuera de
-  aquí**: los controladores solo usan `save({ buffer, mimeType, userId })` y
-  `remove(key)`. El driver activo lo elige `STORAGE_DRIVER`
+  aquí**: los controladores solo usan `save({ buffer, mimeType, userId, folder })`
+  (`folder`: `'sketches'` por defecto o `'sessions'`) y `remove(key)`. El driver
+  activo lo elige `STORAGE_DRIVER`. `removeFiles(rows)` borra varios archivos
+  con el driver con que se subió cada uno
 
 #### Contrato de autenticación (consumido por el frontend)
 - `POST /api/auth/login` → `{ token, user: { id, name, email } }`; 401 con `{ message }` si falla
@@ -82,13 +89,43 @@ devuelve 404, no 403, para no revelar que existe).
 - `DELETE /api/sketches/:id` → `204`; borra la fila y el archivo
 - `GET /uploads/...` — estáticos del driver local
 
+#### Contrato de la agenda (HU17–HU21, HU24)
+Modelo: cliente 1─N proyecto 1─N sesión 1─N foto. **Cada sesión es una cita**
+(fecha, hora, duración y lo que se cobra en ella). Montos en CLP enteros. Mismas
+reglas de propiedad que los bocetos: todo filtra por `user_id`, un id ajeno en la
+URL da 404 y una referencia ajena en el cuerpo (`clientId`, `projectId`,
+`sketchId`, `previewId`) da 400. Los INSERT hijos usan `INSERT … SELECT` desde el
+padre filtrado por usuario, así que no hay forma de colgar filas de otro artista.
+- `GET /api/clients?q=` → `{ clients }` (con `projects_count`, `next_session_at`);
+  `GET /api/clients/:id` → `{ client, projects }`; `POST`, `PATCH`, `DELETE`
+- `GET /api/projects?clientId=&status=` → `{ projects }` con resumen
+  (`client_name`, `sketch_url`, `preview_name`, `planned_amount`,
+  `paid_amount`, `sessions_count`); `GET /api/projects/:id` → `{ project, sessions }`
+  (cada sesión con `photos`); `POST` (`clientId`, `title`, `totalPrice`, …), `PATCH`, `DELETE`
+- `GET /api/sessions?from=&to=` (ISO, rango máx. 400 días) → `{ sessions }` con
+  proyecto y cliente, para el calendario; `POST` (`projectId`, `startsAt`,
+  `durationMinutes`, `price`, `paid`, `status`, `notes`), `PATCH`, `DELETE`
+- `POST /api/sessions/:id/photos` — multipart `image` + `caption` → `201 { photo }`;
+  `DELETE /api/sessions/:id/photos/:photoId` → `204`
+- Borrar un cliente, proyecto o sesión borra en cascada las filas; el
+  controlador consulta antes los archivos de las fotos (`filesFor`) y los
+  elimina del almacenamiento después
+
 ### Frontend (`frontend/src/`)
 - ESM, React 19 + TypeScript + Vite 8
 - `lib/token.ts` — sesión en localStorage. Vive aparte de `auth.ts` porque
   `api.ts` lo necesita y así se evita el import circular
 - `lib/api.ts` — `apiFetch`: adjunta el `Authorization` solo, detecta `FormData`
   para no pisar el `Content-Type`, y ante un 401 con token cierra la sesión
-- `lib/auth.ts`, `lib/sketches.ts` — un módulo por recurso de la API
+- `lib/auth.ts`, `lib/sketches.ts`, `lib/previews.ts`, `lib/agenda.ts` — un
+  módulo por recurso de la API. `lib/agenda.ts` también formatea CLP y
+  duraciones; `lib/agendaForms.ts` convierte formularios ↔ API
+- Agenda: `/citas` (calendario + nueva cita, crea cliente/proyecto en el mismo
+  paso), `/clientes`, `/clientes/:id`, `/proyectos/:id` (pagos, sesiones, fotos,
+  enlace a boceto y escena 3D). Comparten `pages/Studio.css` (clases `st-*`) y
+  `components/AgendaFields.tsx`
+- `/previsualizacion?proyecto=<id>` abre la escena enlazada al proyecto (o deja
+  su boceto listo para colocar) y al guardar enlaza la escena al proyecto
 - `lib/theme.tsx` — tema claro/oscuro global. `<ThemeProvider>` (en `App.tsx`,
   dentro de `BrowserRouter`) + hook `useTheme()` → `{ light, toggle }`. Persiste
   en `localStorage['dash-theme']` y sincroniza entre pestañas. Pone

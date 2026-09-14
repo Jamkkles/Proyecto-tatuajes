@@ -203,14 +203,8 @@
 }
 .statcard__sub { margin: 0; font-size: 12.5px; color: var(--ash); }
 
-/* ============ Vista dividida ============ */
-/* .split apila en vertical: la fila (citas + calendario) y, debajo, el visor 3D
-   a ancho completo. .split__row es la fila de dos columnas en escritorio. */
-.split {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: clamp(18px, 3vw, 24px);
-}
+/* ============ Agenda: próximas citas + calendario ============ */
+/* Una columna en móvil; dos en escritorio (ver media query más abajo). */
 .split__row {
   display: grid;
   grid-template-columns: 1fr;
@@ -224,9 +218,9 @@
   backdrop-filter: blur(8px);
   overflow: hidden;
 }
-/* "Citas hoy" y el calendario comparten la superficie de las tarjetas de
+/* "Próximas citas" y el calendario comparten la superficie de las tarjetas de
    estadística: el mismo gris translúcido con un reflejo neutro arriba a la
-   derecha. El visor 3D conserva su lienzo oscuro. */
+   derecha. */
 .split__side,
 .mcal {
   background:
@@ -310,74 +304,20 @@
   background: rgba(84, 196, 138, 0.16);
 }
 
-/* ---- Visor 3D ---- */
-.viewer {
-  position: relative;
-  min-height: clamp(360px, 52vh, 560px);
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  /* Lienzo oscuro del taller 3D: un foco tenue tras el modelo. */
-  background:
-    radial-gradient(60% 70% at 50% 42%, rgba(120, 138, 150, 0.16) 0%, transparent 70%),
-    #0a0b0d;
-}
-.viewer__model {
-  max-height: 88%;
-  max-width: 62%;
-  object-fit: contain;
-  filter: drop-shadow(0 30px 50px rgba(0, 0, 0, 0.6));
-  animation: viewer-float 7s ease-in-out infinite;
-}
-@keyframes viewer-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-.viewer__toolbar {
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 8px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: rgba(10, 11, 13, 0.82);
-  backdrop-filter: blur(6px);
-}
-.viewer__tool {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
+/* Cada cita abre su proyecto: el <li> lleva un botón con el aspecto de .appt. */
+.appt--link {
+  width: 100%;
   border: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--fog);
-  transition: color 0.16s, background 0.16s, transform 0.12s;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
 }
-.viewer__tool:hover { color: var(--steel-hi); background: rgba(195, 210, 219, 0.12); }
-.viewer__tool:active { transform: scale(0.92); }
-.viewer__tool:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(195, 210, 219, 0.3); }
-.viewer__tool svg { width: 20px; height: 20px; }
-.viewer__tool-sep {
-  height: 1px;
-  margin: 2px 8px;
-  background: var(--line);
-}
-.viewer__hint {
-  position: absolute;
-  bottom: 14px;
-  right: 16px;
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  color: var(--ash);
-}
+.appt--link:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(195, 210, 219, 0.35); }
+
+.appt-empty { margin: 0; padding: 22px 20px 12px; font-size: 13.5px; color: var(--ash); }
+.appt-foot { padding: 4px 20px 16px; }
 
 @keyframes dash-in {
   from { opacity: 0; transform: translateY(10px); }
@@ -396,11 +336,6 @@
     grid-template-columns: minmax(250px, 300px) minmax(0, 1fr);
     align-items: start;
   }
-}
-
-/* Sin movimiento: el modelo deja de flotar (la atmósfera se retira en Atmos.css). */
-@media (prefers-reduced-motion: reduce) {
-  .viewer__model { animation: none; }
 }
 
 /* ============================================================
@@ -464,10 +399,4 @@
 [data-theme="light"] .appt__detail { color: #6b6f76; }
 [data-theme="light"] .appt__badge { color: #3f434a; border-color: #d3cec3; }
 [data-theme="light"] .appt__badge--live { color: #1f6b45; border-color: rgba(84, 196, 138, 0.5); background: rgba(84, 196, 138, 0.18); }
-
-/* ---- Visor 3D (mantiene su lienzo oscuro incluso en modo claro) ---- */
-[data-theme="light"] .viewer {
-  background:
-    radial-gradient(60% 70% at 50% 42%, rgba(120, 138, 150, 0.14) 0%, transparent 70%),
-    #14161a;
-}
+[data-theme="light"] .appt-empty { color: #6b6f76; }

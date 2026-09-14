@@ -1,10 +1,17 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getUser } from '../lib/auth'
 import { listSketches, type Sketch } from '../lib/sketches'
+import {
+  countSessionsByDay,
+  formatTime,
+  groupSessionsByDay,
+  listSessions,
+  sessionStatusLabel,
+  type CalendarSession,
+} from '../lib/agenda'
 import MonthCalendar from '../components/MonthCalendar'
-import { viewerIcons } from '../components/icons'
-import { isoLocal } from '../lib/dates'
+import { buildMonthGrid, isSameDay } from '../lib/dates'
 import { useAppShellHeader } from '../lib/useAppShellHeader'
 import './Dashboard.css'
 
@@ -53,25 +60,28 @@ const STATS = [
   { key: 'bocetos', label: 'Bocetos creados', value: '3', sub: 'en total', icon: 'statBocetos' },
 ] as const
 
-const APPOINTMENTS = [
-  { time: '11:00', client: 'Camila Rojas', detail: 'Irezumi · antebrazo', dur: '2 h', live: true },
-  { time: '13:30', client: 'Diego Fuentes', detail: 'Línea fina · costado', dur: '1 h', live: true },
-  { time: '16:00', client: 'Valentina Soto', detail: 'Retoque · hombro', dur: '45 min', live: false },
-  { time: '18:00', client: 'Matías Herrera', detail: 'Black & grey · pierna', dur: '3 h', live: false },
-]
+// "Próximas citas": las siguientes sesiones agendadas dentro de este plazo.
+const UPCOMING_DAYS = 60
+const UPCOMING_MAX = 5
 
-// Datos de ejemplo para el calendario mientras no existe el módulo de Citas.
-// Relativos al mes en curso: el marcador de "hoy" cuadra con APPOINTMENTS y
-// nunca queda obsoleto. Al implementar citas, esto saldrá de la lista real.
-function mockApptsByDay(ref = new Date()): Record<string, number> {
-  const key = (day: number) => isoLocal(new Date(ref.getFullYear(), ref.getMonth(), day))
-  return {
-    [key(ref.getDate())]: APPOINTMENTS.length,
-    [key(3)]: 2,
-    [key(12)]: 1,
-    [key(18)]: 3,
-    [key(26)]: 1,
-  }
+const shortDayFmt = new Intl.DateTimeFormat('es-CL', {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+})
+
+const longDayFmt = new Intl.DateTimeFormat('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
+
+// Citas que se listan en la vista previa de un día del calendario.
+const PREVIEW_MAX = 4
+
+/** "Hoy", "Mañana" o "mar, 22 sept". */
+function dayLabel(iso: string, today: Date) {
+  const date = new Date(iso)
+  if (isSameDay(date, today)) return 'Hoy'
+  const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+  if (isSameDay(date, tomorrow)) return 'Mañana'
+  return shortDayFmt.format(date)
 }
 
 // Imágenes de reserva para el carrusel cuando aún no hay bocetos importados.
@@ -100,6 +110,14 @@ export default function Dashboard() {
 
   const [flash, setFlash] = useState<Sketch[]>([])
   const [sketchCount, setSketchCount] = useState<number | null>(null)
+
+  // Agenda real: próximas sesiones agendadas (null = cargando) y las citas del
+  // mes que muestra el calendario.
+  const [upcoming, setUpcoming] = useState<CalendarSession[] | null>(null)
+  const [upcomingError, setUpcomingError] = useState(false)
+  const [monthSessions, setMonthSessions] = useState<CalendarSession[]>([])
+  /** Descarta la respuesta de un mes si ya se navegó a otro. */
+  const monthReqRef = useRef(0)
 
   // Carrusel "Últimos bocetos": auto-avance por pasos. Las tarjetas se
   // renderizan dos veces; cada movimiento anima `scrollLeft` y lo mantiene
@@ -182,17 +200,73 @@ export default function Dashboard() {
       })
   }, [])
 
+  useEffect(() => {
+    const now = new Date()
+    const until = new Date(now.getFullYear(), now.getMonth(), now.getDate() + UPCOMING_DAYS)
+    listSessions(now, until)
+      .then((list) => setUpcoming(list.filter((s) => s.status === 'agendada').slice(0, UPCOMING_MAX)))
+      .catch(() => setUpcomingError(true))
+  }, [])
+
+  // El calendario avisa el mes visible (al montar y al cambiar de mes); se
+  // piden también los días de los meses vecinos que asoman en la grilla.
+  const loadMonth = useCallback((year: number, month: number) => {
+    const grid = buildMonthGrid(year, month)
+    const last = grid[grid.length - 1]
+    const req = ++monthReqRef.current
+    listSessions(grid[0], new Date(last.getFullYear(), last.getMonth(), last.getDate() + 1))
+      .then((list) => {
+        if (req === monthReqRef.current) setMonthSessions(list)
+      })
+      .catch(() => {
+        if (req === monthReqRef.current) setMonthSessions([])
+      })
+  }, [])
+
+  const apptsByDay = useMemo(() => countSessionsByDay(monthSessions), [monthSessions])
+  const sessionsByDay = useMemo(() => groupSessionsByDay(monthSessions), [monthSessions])
+
+  /** Vista previa al pasar el mouse por un día con citas. */
+  function renderDayPreview(iso: string) {
+    const list = sessionsByDay[iso]
+    if (!list?.length) return null
+    return (
+      <>
+        <p className="mcal-tip__date">{longDayFmt.format(new Date(`${iso}T00:00:00`))}</p>
+        <ul className="mcal-tip__list">
+          {list.slice(0, PREVIEW_MAX).map((s) => (
+            <li key={s.id}>
+              <span className="mcal-tip__time">{formatTime(s.starts_at)}</span>
+              <span className="mcal-tip__body">
+                <span className="mcal-tip__client">{s.client_name}</span>
+                <span className="mcal-tip__detail">
+                  {s.project_title}
+                  {s.status !== 'agendada' ? ` · ${sessionStatusLabel(s.status)}` : ''}
+                </span>
+              </span>
+            </li>
+          ))}
+        </ul>
+        {list.length > PREVIEW_MAX && (
+          <p className="mcal-tip__more">y {list.length - PREVIEW_MAX} más</p>
+        )}
+        <p className="mcal-tip__hint">Clic para ver el día en Citas</p>
+      </>
+    )
+  }
+
   // El carrusel muestra bocetos reales; si no hay, cae a imágenes de reserva.
   const carousel = flash.length
     ? flash.map((f) => ({ id: String(f.id), url: f.url, title: f.title, zone: f.body_zone ?? f.status }))
     : CAROUSEL_FALLBACK.map((url, i) => ({ id: `ph-${i}`, url, title: 'Boceto de ejemplo', zone: 'Importa el primero' }))
 
   const firstName = user?.name?.trim().split(/\s+/)[0] ?? 'artista'
+  const now = new Date()
   const today = new Intl.DateTimeFormat('es-CL', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
-  }).format(new Date())
+  }).format(now)
 
   return (
     <div className="dash__scroll">
@@ -279,69 +353,62 @@ export default function Dashboard() {
         })}
       </section>
 
-      {/* ---- Vista dividida: (citas de hoy + calendario) y visor 3D debajo ---- */}
-      <div className="split">
-        <div className="split__row">
-          <section className="panelbox split__side" aria-labelledby="appt-h">
-            <div className="panelbox__head">
-              <h3 className="panelbox__title" id="appt-h">Citas hoy</h3>
-              <span className="panelbox__count">{APPOINTMENTS.length}</span>
-            </div>
-            <ul className="appt-list">
-              {APPOINTMENTS.map((a) => (
-                <li className="appt" key={a.time}>
-                  <span className="appt__time">{a.time}</span>
-                  <span className="appt__body">
-                    <span className="appt__client">{a.client}</span>
-                    <span className="appt__detail">{a.detail}</span>
-                  </span>
-                  <span className={`appt__badge${a.live ? ' appt__badge--live' : ''}`}>
-                    {a.live ? 'Activa' : a.dur}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <MonthCalendar appointmentsByDay={mockApptsByDay()} />
-        </div>
-
-        <section className="panelbox split__main" aria-labelledby="viewer-h">
+      {/* ---- Agenda: próximas citas + calendario del mes ---- */}
+      <div className="split__row">
+        <section className="panelbox split__side" aria-labelledby="appt-h">
           <div className="panelbox__head">
-            <h3 className="panelbox__title" id="viewer-h">
-              Visualización 3D del cuerpo humano tatuado
-            </h3>
-            <button
-              type="button"
-              className="panelbox__link"
-              onClick={() => navigate('/previsualizacion')}
-            >
-              Abrir editor
+            <h3 className="panelbox__title" id="appt-h">Próximas citas</h3>
+            {upcoming && <span className="panelbox__count">{upcoming.length}</span>}
+          </div>
+
+          {!upcoming ? (
+            <p className="appt-empty">
+              {upcomingError ? 'No pudimos cargar las citas.' : 'Cargando citas…'}
+            </p>
+          ) : upcoming.length === 0 ? (
+            <p className="appt-empty">No tienes citas agendadas.</p>
+          ) : (
+            <ul className="appt-list">
+              {upcoming.map((a) => {
+                const label = dayLabel(a.starts_at, now)
+                return (
+                  <li key={a.id}>
+                    <button
+                      type="button"
+                      className="appt appt--link"
+                      onClick={() => navigate(`/proyectos/${a.project_id}`)}
+                    >
+                      <span className="appt__time">{formatTime(a.starts_at)}</span>
+                      <span className="appt__body">
+                        <span className="appt__client">{a.client_name}</span>
+                        <span className="appt__detail">
+                          {a.project_title}
+                          {a.body_zone ? ` · ${a.body_zone}` : ''}
+                        </span>
+                      </span>
+                      <span className={`appt__badge${label === 'Hoy' ? ' appt__badge--live' : ''}`}>
+                        {label}
+                      </span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+
+          <div className="appt-foot">
+            <button type="button" className="panelbox__link" onClick={() => navigate('/citas')}>
+              {upcoming?.length === 0 ? 'Agendar una cita' : 'Ver agenda completa'}
             </button>
           </div>
-          <div className="viewer">
-            <div className="viewer__toolbar" role="toolbar" aria-label="Navegación 3D">
-              <button type="button" className="viewer__tool" aria-label="Acercar">
-                <span className="navitem__icon">{viewerIcons.zoomIn}</span>
-              </button>
-              <button type="button" className="viewer__tool" aria-label="Alejar">
-                <span className="navitem__icon">{viewerIcons.zoomOut}</span>
-              </button>
-              <button type="button" className="viewer__tool" aria-label="Rotar 360°">
-                <span className="navitem__icon">{viewerIcons.rotate}</span>
-              </button>
-              <span className="viewer__tool-sep" aria-hidden="true" />
-              <button type="button" className="viewer__tool" aria-label="Desplazar arriba">
-                <span className="navitem__icon">{viewerIcons.panUp}</span>
-              </button>
-              <button type="button" className="viewer__tool" aria-label="Desplazar abajo">
-                <span className="navitem__icon">{viewerIcons.panDown}</span>
-              </button>
-            </div>
-            <img className="viewer__model" src="/espalda.webp" alt="Torso masculino tatuado" width={800} height={1132} />
-            <span className="viewer__hint">Arrastra para rotar · rueda para acercar</span>
-          </div>
         </section>
+
+        <MonthCalendar
+          appointmentsByDay={apptsByDay}
+          onMonthChange={loadMonth}
+          renderDayPreview={renderDayPreview}
+          onSelectDay={(iso) => navigate(`/citas?dia=${iso}`)}
+        />
       </div>
     </div>
   )
