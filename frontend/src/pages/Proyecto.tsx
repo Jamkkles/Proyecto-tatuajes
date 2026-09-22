@@ -11,13 +11,10 @@ import {
   deleteProject,
   deleteSession,
   deleteSessionPhoto,
-  formatAmountInput,
-  formatCLP,
   formatDate,
   formatDuration,
   formatTime,
   getProject,
-  parseCLP,
   projectStatusLabel,
   sessionStatusLabel,
   updateProject,
@@ -37,6 +34,7 @@ import {
   sessionToForm,
   type SessionFormValue,
 } from '../lib/agendaForms'
+import { formatAmountInput, formatCLP, parseCLP } from '../lib/money'
 import { listPreviews, type Preview } from '../lib/previews'
 import { ALLOWED_MIME, MAX_FILE_BYTES, formatSize, listSketches, type Sketch } from '../lib/sketches'
 import { useAppShellHeader } from '../lib/useAppShellHeader'
@@ -339,7 +337,7 @@ export default function Proyecto() {
                     aria-valuemax={100}
                     aria-valuenow={paidPct}
                   >
-                    <span style={{ width: `${paidPct}%` }} />
+                    <span style={{ transform: `scaleX(${paidPct / 100})` }} />
                   </div>
                   <p className="st-hint">{assignmentHint()}</p>
                 </section>

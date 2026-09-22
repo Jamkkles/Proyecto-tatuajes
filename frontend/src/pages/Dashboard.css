@@ -41,9 +41,14 @@
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.14em;
-  text-transform: capitalize;
   color: var(--ash);
   text-shadow: 0 1px 10px rgba(7, 8, 10, 0.9);
+}
+/* Intl.DateTimeFormat ya entrega "lunes, 14 de septiembre" en minúsculas
+   (correcto en español); solo se mayuscula la primera letra de la frase,
+   no cada palabra (evita "14 De Septiembre"). */
+.greet__date::first-letter {
+  text-transform: uppercase;
 }
 
 /* ============ Carrusel: últimos bocetos ============ */
@@ -192,6 +197,10 @@
   font-weight: 700;
   line-height: 1;
   color: var(--steel-hi);
+  /* Cormorant Garamond usa cifras old-style por defecto: a este tamaño el
+     "1" se confunde con una letra. Cifras alineadas para el número más
+     importante de la tarjeta. */
+  font-variant-numeric: lining-nums tabular-nums;
 }
 .statcard__label {
   margin: 0 0 2px;
@@ -266,6 +275,11 @@
   transition: color 0.18s;
 }
 .panelbox__link:hover { color: var(--steel-hi); text-decoration: underline; text-underline-offset: 3px; }
+.panelbox__link:focus-visible {
+  outline: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 3px rgba(195, 210, 219, 0.3);
+}
 
 /* ---- Lista de citas ---- */
 .appt-list { list-style: none; margin: 0; padding: 6px; }

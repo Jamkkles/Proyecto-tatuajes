@@ -1,4 +1,5 @@
-import { DURATION_OPTIONS, formatAmountInput, formatDuration, parseCLP } from '../lib/agenda'
+import { DURATION_OPTIONS, formatDuration } from '../lib/agenda'
+import { formatAmountInput, parseCLP } from '../lib/money'
 import type { ClientFormValue, SessionFormValue } from '../lib/agendaForms'
 
 /**

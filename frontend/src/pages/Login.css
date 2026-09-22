@@ -149,8 +149,8 @@
   color: var(--steel-hi);
 }
 .card__title-em {
-  font-style: italic;
-  color: var(--steel);
+  font-style: normal;
+  color: inherit;
 }
 
 .card__sub {

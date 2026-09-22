@@ -1,6 +1,5 @@
+import { formatAmountInput, parseCLP } from './money'
 import {
-  formatAmountInput,
-  parseCLP,
   type Client,
   type ClientInput,
   type ProjectSession,

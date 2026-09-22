@@ -111,15 +111,32 @@ padre filtrado por usuario, así que no hay forma de colgar filas de otro artist
   controlador consulta antes los archivos de las fotos (`filesFor`) y los
   elimina del almacenamiento después
 
+#### Contrato del inventario (HU11–HU13)
+Un insumo es lo que se consume tatuando. `unit` dice en qué se cuenta y
+`quantity`/`min_quantity` van en enteros de esa unidad; `unit_cost` en pesos
+enteros (base del cálculo de cotizaciones, HU14). Nivel crítico =
+`quantity <= min_quantity`; el listado devuelve esos insumos primero.
+- `GET /api/materials?category=&q=&low=true` → `{ materials }`
+- `POST /api/materials` (`name` obligatorio, `category`, `unit`, `quantity`,
+  `minQuantity`, `unitCost`, `supplier`, `notes`) → `201 { material }`
+- `PATCH /api/materials/:id`, `DELETE /api/materials/:id` → `204`
+- `POST /api/materials/:id/stock` con `{ delta }` (negativo para descontar) →
+  el stock se suma en la base con `GREATEST(0, …)`, así dos ajustes seguidos no
+  se pisan ni queda negativo
+
 ### Frontend (`frontend/src/`)
 - ESM, React 19 + TypeScript + Vite 8
 - `lib/token.ts` — sesión en localStorage. Vive aparte de `auth.ts` porque
   `api.ts` lo necesita y así se evita el import circular
 - `lib/api.ts` — `apiFetch`: adjunta el `Authorization` solo, detecta `FormData`
   para no pisar el `Content-Type`, y ante un 401 con token cierra la sesión
-- `lib/auth.ts`, `lib/sketches.ts`, `lib/previews.ts`, `lib/agenda.ts` — un
-  módulo por recurso de la API. `lib/agenda.ts` también formatea CLP y
-  duraciones; `lib/agendaForms.ts` convierte formularios ↔ API
+- `lib/auth.ts`, `lib/sketches.ts`, `lib/previews.ts`, `lib/agenda.ts`,
+  `lib/materials.ts` — un módulo por recurso de la API.
+  `lib/money.ts` formatea y lee pesos (lo usan agenda e inventario);
+  `lib/agendaForms.ts` convierte formularios ↔ API
+- `/inventario` — insumos con stock, nivel crítico y costo unitario.
+  `MATERIAL_PRESETS` (en `lib/materials.ts`) es el catálogo de insumos típicos
+  de tatuaje que se ofrece para cargarlos sin escribirlos
 - Agenda: `/citas` (calendario + nueva cita, crea cliente/proyecto en el mismo
   paso), `/clientes`, `/clientes/:id`, `/proyectos/:id` (pagos, sesiones, fotos,
   enlace a boceto y escena 3D). Comparten `pages/Studio.css` (clases `st-*`) y

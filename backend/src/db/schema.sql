@@ -174,3 +174,36 @@ CREATE TABLE IF NOT EXISTS session_photos (
 
 CREATE INDEX IF NOT EXISTS session_photos_session_idx
   ON session_photos (session_id, created_at);
+
+-- ============================================================
+-- Inventario de insumos (HU11, HU12, HU13)
+--
+-- Un insumo es lo que se consume trabajando: cartuchos, tintas, guantes,
+-- film, papel transfer… `unit` dice en qué se cuenta (unidad, caja, ml…) y
+-- `quantity` va en enteros de esa unidad (una tinta de 30 ml se lleva como
+-- 30 ml o como 1 unidad, según prefiera el artista).
+--
+--   min_quantity → nivel crítico: al llegar o bajar de ahí, se avisa
+--   unit_cost    → costo por unidad en pesos enteros; la base del cálculo
+--                  de cotizaciones (HU14)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS materials (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name         TEXT NOT NULL,
+  category     TEXT NOT NULL DEFAULT 'otros'
+                 CHECK (category IN ('agujas', 'tintas', 'proteccion', 'higiene',
+                                     'papeleria', 'cuidado', 'maquinas', 'otros')),
+  unit         TEXT NOT NULL DEFAULT 'unidad'
+                 CHECK (unit IN ('unidad', 'caja', 'par', 'ml', 'rollo', 'hoja',
+                                 'metro', 'set')),
+  quantity     INTEGER NOT NULL DEFAULT 0 CHECK (quantity >= 0),
+  min_quantity INTEGER NOT NULL DEFAULT 0 CHECK (min_quantity >= 0),
+  unit_cost    INTEGER NOT NULL DEFAULT 0 CHECK (unit_cost >= 0),
+  supplier     TEXT,
+  notes        TEXT,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS materials_user_name_idx ON materials (user_id, lower(name));

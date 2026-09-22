@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/pages/Studio.css"
+        ],
+        "createdAt": "2026-09-15T02:23:55.781Z",
+        "reason": "Estilo de mensaje de error ya existente en el proyecto: .st-alert replica .alert de Gallery.css (anterior a esta sesion), no es un tab de acento en tarjeta"
+      }
+    ]
+  }
+}

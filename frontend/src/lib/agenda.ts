@@ -1,5 +1,7 @@
 import { apiFetch } from './api'
 import { isoLocal } from './dates'
+// Los montos se formatean en `money.ts`, compartido con el inventario.
+export { formatCLP, parseCLP, formatAmountInput } from './money'
 
 /**
  * Agenda del estudio: clientes, proyectos y sesiones (HU17–HU21, HU24).
@@ -272,28 +274,6 @@ export function deleteSessionPhoto(sessionId: string, photoId: string): Promise<
 }
 
 /* ---------------- Formato ---------------- */
-
-const clp = new Intl.NumberFormat('es-CL', {
-  style: 'currency',
-  currency: 'CLP',
-  maximumFractionDigits: 0,
-})
-
-/** 150000 → "$150.000" */
-export const formatCLP = (amount: number) => clp.format(amount)
-
-/**
- * Lee un monto escrito a mano: "150.000", "$150.000" o "150000" → 150000.
- * El CLP no usa decimales, así que todo lo que no es dígito se ignora.
- */
-export function parseCLP(text: string): number {
-  const digits = text.replace(/\D/g, '')
-  return digits ? Number(digits) : 0
-}
-
-/** 150000 → "150.000", para rellenar un input de monto. */
-export const formatAmountInput = (amount: number) =>
-  amount ? new Intl.NumberFormat('es-CL').format(amount) : ''
 
 /** 90 → "1 h 30 min" */
 export function formatDuration(minutes: number) {

@@ -356,6 +356,60 @@ textarea.st-input {
   border-color: var(--danger);
 }
 
+/* Aviso de stock en nivel crítico (HU13). */
+.st-warn {
+  margin: 0;
+  padding: 12px 16px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #f0e2c8;
+  background: rgba(148, 111, 42, 0.16);
+  border: 1px solid rgba(200, 150, 55, 0.45);
+  border-radius: 12px;
+}
+.st-warn strong { color: #f7ecd8; }
+.st-warn .st-link { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+
+/* ============ Filtros ============ */
+.st-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.st-chip {
+  padding: 6px 13px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ash);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+.st-chip:hover {
+  color: var(--steel);
+  border-color: var(--ash);
+}
+.st-chip--on {
+  color: var(--ink);
+  background: var(--steel-hi);
+  border-color: var(--steel-hi);
+}
+.st-chip--alert {
+  color: #e0b473;
+  border-color: rgba(200, 150, 55, 0.45);
+}
+.st-chip--alert.st-chip--on {
+  color: #2a1f08;
+  background: #e0b473;
+  border-color: #e0b473;
+}
+
 /* ============ Insignias de estado ============ */
 .st-badge {
   display: inline-block;
@@ -504,10 +558,12 @@ textarea.st-input {
 }
 
 /* ============ Cuentas ============ */
+/* Tres columnas cuando caben; si el panel se angosta, bajan a dos o una. Con
+   ancho fijo los montos se partían a mitad de cifra ("$800.00 / 0"). */
 .st-money {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  gap: 10px 14px;
   margin: 0 0 14px;
 }
 .st-money > div {
@@ -533,11 +589,6 @@ textarea.st-input {
 .st-money dd.is-due {
   color: #e8b4ad;
 }
-@media (max-width: 380px) {
-  .st-money {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
 
 .st-progress {
   height: 6px;
@@ -545,12 +596,15 @@ textarea.st-input {
   border-radius: 999px;
   background: var(--line);
 }
+/* El relleno ocupa todo el ancho y se escala: animar `width` provoca reflujo
+   en cada fotograma. El redondeo lo da el contenedor con overflow: hidden. */
 .st-progress > span {
   display: block;
+  width: 100%;
   height: 100%;
-  border-radius: inherit;
+  transform-origin: left center;
   background: var(--accent);
-  transition: width 0.3s ease;
+  transition: transform 0.3s ease;
 }
 
 /* ============ Diseño del proyecto ============ */
@@ -674,6 +728,131 @@ textarea.st-input {
   color: #d9efe0;
   background: rgba(84, 196, 138, 0.16);
   border-color: rgba(84, 196, 138, 0.4);
+}
+
+/* ============ Inventario ============ */
+.st-mats {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.st-mat {
+  min-width: 0;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+/* Nivel crítico: el borde ámbar lo hace saltar en la lista. */
+.st-mat--low {
+  border-color: rgba(200, 150, 55, 0.5);
+  background: rgba(148, 111, 42, 0.08);
+}
+.st-mat__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px 16px;
+}
+.st-mat__main {
+  min-width: 0;
+}
+.st-mat__name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--steel-hi);
+  overflow-wrap: anywhere;
+}
+.st-mat__meta {
+  margin: 3px 0 0;
+  font-size: 12.5px;
+  color: var(--ash);
+  overflow-wrap: anywhere;
+}
+.st-mat__stock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  text-align: right;
+}
+.st-mat__qty {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--steel-hi);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.st-mat__qty span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ash);
+}
+.st-mat__min {
+  font-size: 11px;
+  color: var(--ash);
+}
+.st-mat__adjust {
+  display: flex;
+  gap: 6px;
+}
+.st-qty {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  font: inherit;
+  font-size: 17px;
+  line-height: 1;
+  color: var(--steel-hi);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.st-qty:hover:not(:disabled) {
+  border-color: var(--ash);
+  background: rgba(195, 210, 219, 0.06);
+}
+.st-qty:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.st-mat__notes {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  color: var(--fog);
+}
+.st-mat__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.st-badge--low {
+  color: #f0e2c8;
+  border-color: rgba(200, 150, 55, 0.5);
+  background: rgba(148, 111, 42, 0.22);
+}
+
+@media (max-width: 560px) {
+  .st-mat__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .st-mat__adjust {
+    grid-column: 1 / -1;
+  }
 }
 
 /* ============ Fotos de avance ============ */
@@ -886,6 +1065,30 @@ textarea.st-input {
 
 [data-theme='light'] .studio .st-money dd.is-due {
   color: #9a3a2f;
+}
+
+[data-theme='light'] .studio .st-warn {
+  color: #6b4a0f;
+  background: rgba(200, 150, 55, 0.16);
+}
+[data-theme='light'] .studio .st-warn strong {
+  color: #4a3208;
+}
+[data-theme='light'] .studio .st-chip--alert {
+  color: #7a5310;
+}
+[data-theme='light'] .studio .st-chip--alert.st-chip--on {
+  color: #fff;
+  background: #9a6c14;
+  border-color: #9a6c14;
+}
+[data-theme='light'] .studio .st-mat--low {
+  border-color: rgba(200, 150, 55, 0.55);
+  background: rgba(200, 150, 55, 0.12);
+}
+[data-theme='light'] .studio .st-badge--low {
+  color: #7a5310;
+  background: rgba(200, 150, 55, 0.22);
 }
 [data-theme='light'] .studio .st-pill {
   color: #7a5310;

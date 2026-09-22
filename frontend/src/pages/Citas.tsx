@@ -8,19 +8,18 @@ import {
   createClient,
   createProject,
   createSession,
-  formatCLP,
   formatDuration,
   formatTime,
   listClients,
   listProjects,
   listSessions,
-  parseCLP,
   sessionStatusLabel,
   type CalendarSession,
   type Client,
   type Project,
 } from '../lib/agenda'
 import { formToSessionInput, newSessionForm, type SessionFormValue } from '../lib/agendaForms'
+import { formatCLP, parseCLP } from '../lib/money'
 import { buildMonthGrid, isIsoDay, isoLocal } from '../lib/dates'
 import { useAppShellHeader } from '../lib/useAppShellHeader'
 // MonthCalendar reutiliza el chrome de `.panelbox` del panel.

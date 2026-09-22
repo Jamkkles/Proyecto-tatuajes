@@ -7,6 +7,7 @@ const previewRoutes = require('./routes/previewRoutes');
 const clientRoutes = require('./routes/clientRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const sessionRoutes = require('./routes/sessionRoutes');
+const materialRoutes = require('./routes/materialRoutes');
 const { requireAuth } = require('./middleware/auth');
 const localDriver = require('./services/storage/localDriver');
 
@@ -41,6 +42,7 @@ app.use('/api/previews', previewRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/sessions', sessionRoutes);
+app.use('/api/materials', materialRoutes);
 
 // Ruta protegida de ejemplo: devuelve el usuario del token.
 app.get('/api/me', requireAuth, (req, res) => {

@@ -61,9 +61,11 @@ export default function Login() {
       <main className="auth__panel">
         <section className="card" aria-labelledby="auth-title">
           <p className="card__eyebrow">Panel del artista</p>
+
           <h1 className="card__title" id="auth-title">
             Bienvenido <span className="card__title-em">de vuelta</span>
           </h1>
+
           <p className="card__sub">
             Entra a tu estudio para gestionar bocetos, citas y cotizaciones.
           </p>

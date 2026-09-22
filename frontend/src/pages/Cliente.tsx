@@ -5,10 +5,8 @@ import { apiErrorMessage } from '../lib/api'
 import {
   createProject,
   deleteClient,
-  formatCLP,
   formatDate,
   getClient,
-  parseCLP,
   projectStatusLabel,
   updateClient,
   whatsappLink,
@@ -16,6 +14,7 @@ import {
   type Project,
 } from '../lib/agenda'
 import { EMPTY_CLIENT_FORM, clientToForm, formToClientInput } from '../lib/agendaForms'
+import { formatCLP, parseCLP } from '../lib/money'
 import { useAppShellHeader } from '../lib/useAppShellHeader'
 import './Studio.css'
 

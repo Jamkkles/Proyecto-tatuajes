@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-14T00:00:00Z",
+  "title": "Design System: Ink & Honor",
+  "extensions": {
+    "colorMeta": {
+      "ink-deep": { "role": "neutral", "displayName": "Ink Deep", "canonical": "#07080a", "tonalRamp": ["#05060a", "#0e1013", "#15181d", "#23272e", "#4a525b", "#707b86", "#aab6bf", "#e7eef2"] },
+      "ink-panel": { "role": "neutral", "displayName": "Ink Panel", "canonical": "#0e1013" },
+      "ink-sunken": { "role": "neutral", "displayName": "Ink Sunken", "canonical": "#15181d" },
+      "line": { "role": "neutral", "displayName": "Line", "canonical": "#23272e" },
+      "line-soft": { "role": "neutral", "displayName": "Line Soft", "canonical": "#1a1d22" },
+      "fog": { "role": "neutral", "displayName": "Fog", "canonical": "#aab6bf" },
+      "ash": { "role": "neutral", "displayName": "Ash", "canonical": "#707b86" },
+      "steel": { "role": "neutral", "displayName": "Steel", "canonical": "#c3d2db" },
+      "steel-hi": { "role": "neutral", "displayName": "Steel Hi", "canonical": "#e7eef2" },
+      "vermillion": { "role": "primary", "displayName": "Vermillion (irezumi red)", "canonical": "#c0392f", "tonalRamp": ["#3d0f0a", "#5c160f", "#7d1f15", "#9e2a1e", "#c0392f", "#d4574c", "#e37f74", "#f3b7ae"] },
+      "danger": { "role": "danger", "displayName": "Muted Rose (errors only)", "canonical": "#c2685f", "tonalRamp": ["#3a1512", "#5a211c", "#7d2f27", "#9f4238", "#c2685f", "#d18c84", "#e0b0aa", "#efd6d2"] },
+      "status-info": { "role": "info", "displayName": "Scheduled Slate-Blue", "canonical": "#78a0be", "tonalRamp": ["#16232d", "#223648", "#2f4a61", "#4c6c85", "#78a0be", "#96b7cd", "#b8cfdd", "#dce8ee"] },
+      "status-success": { "role": "success", "displayName": "Paid/Complete Jade", "canonical": "#54c48a", "tonalRamp": ["#0e2b1c", "#17462c", "#21623d", "#398254", "#54c48a", "#7bd3a5", "#a4e3c1", "#cdf1de"] },
+      "status-warning": { "role": "warning", "displayName": "Reserved/Unpaid Ochre", "canonical": "#c89637", "tonalRamp": ["#3a2a0d", "#5c4212", "#7d5a18", "#a1791f", "#c89637", "#d7b15e", "#e6cc8c", "#f3e4bf"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display (Cormorant Garamond)", "purpose": "Page greetings, hero titles, project/session titles, panel headlines." },
+      "body": { "displayName": "Body (Manrope)", "purpose": "Descriptions, notes, form hints, default running text." },
+      "label": { "displayName": "Eyebrow Label (Manrope, uppercase)", "purpose": "Section headers, field labels, badges/chips, filter tabs — the system's connective tissue." },
+      "mark": { "displayName": "Wordmark (Pirata One)", "purpose": "Sidebar brand wordmark only. Never used for body headings or buttons." }
+    },
+    "shadows": [
+      { "name": "card-inset-sheen", "value": "0 1px 0 rgba(255,255,255,0.03) inset", "purpose": "Simulated top-edge light catch on the login card; not a real shadow." },
+      { "name": "entrance-pool", "value": "0 30px 80px -40px rgba(0,0,0,0.9)", "purpose": "Deep, soft shadow under the login card on mount." },
+      { "name": "hover-lift", "value": "0 18px 40px -24px rgba(0,0,0,0.75)", "purpose": "Stat cards on hover, paired with a 3px translateY lift." },
+      { "name": "modal-pool", "value": "0 24px 80px rgba(0,0,0,0.55)", "purpose": "Enlarged image in sketch/photo lightboxes." },
+      { "name": "sticky-bar-separation", "value": "0 10px 26px -18px rgba(0,0,0,0.95)", "purpose": "Top bar separating from scrolling content beneath it." }
+    ],
+    "motion": [
+      { "name": "micro", "value": "0.12s ease", "purpose": "Button/control press feedback (active-state transform)." },
+      { "name": "fast", "value": "0.18s ease", "purpose": "Hover color/border transitions on buttons, links, inputs." },
+      { "name": "standard", "value": "0.28s-0.32s ease", "purpose": "Sidebar drawer slide, top-bar hide/show, ink-sweep button hover." },
+      { "name": "entrance", "value": "0.5s-0.55s ease", "purpose": "Card and section entrance animations (opacity + translateY)." }
+    ],
+    "breakpoints": [
+      { "name": "xs", "value": "380px" },
+      { "name": "sm", "value": "420px" },
+      { "name": "sm-2", "value": "560px" },
+      { "name": "md", "value": "700px" },
+      { "name": "lg", "value": "900px" },
+      { "name": "lg-2", "value": "1000px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Filled steel-on-ink action button; glass-round 8px radius (st-btn, canonical for new work).",
+      "html": "<button class=\"ds-btn-primary\">Guardar cambios</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px; font-family: 'Manrope', system-ui, sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #07080a; background: #e7eef2; border: 1px solid #e7eef2; border-radius: 8px; cursor: pointer; transition: color 0.18s ease, background 0.18s ease, border-color 0.18s ease; } .ds-btn-primary:hover { background: #ffffff; border-color: #ffffff; } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(195,210,219,0.3); } .ds-btn-primary:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Outlined/ghost action button used for lower-emphasis actions.",
+      "html": "<button class=\"ds-btn-secondary\">Cancelar</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px; font-family: 'Manrope', system-ui, sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #aab6bf; background: transparent; border: 1px solid #23272e; border-radius: 8px; cursor: pointer; transition: color 0.2s ease, border-color 0.2s ease; } .ds-btn-secondary:hover { color: #e7eef2; border-color: #707b86; } .ds-btn-secondary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(195,210,219,0.3); }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Fully-rounded status pill; hue swaps by status family (info/success/warning/danger).",
+      "html": "<span class=\"ds-badge ds-badge--success\">Completada</span>",
+      "css": ".ds-badge { display: inline-block; padding: 3px 9px; font-family: 'Manrope', system-ui, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; border-radius: 999px; border: 1px solid transparent; } .ds-badge--info { color: #d6e4ee; border-color: rgba(120,160,190,0.45); background: rgba(120,160,190,0.14); } .ds-badge--success { color: #d9efe0; border-color: rgba(84,196,138,0.4); background: rgba(84,196,138,0.16); } .ds-badge--warning { color: #f0e2c8; border-color: rgba(200,150,55,0.45); background: rgba(148,111,42,0.22); } .ds-badge--danger { color: #f2d6d2; border-color: rgba(192,57,47,0.5); background: rgba(192,57,47,0.18); }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Sunken-surface text field with an eyebrow label above it (agenda variant, 8px radius).",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field__label\">Nombre</span><input class=\"ds-input\" type=\"text\" placeholder=\"Nombre del cliente\" /></label>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 6px; font-family: 'Manrope', system-ui, sans-serif; } .ds-field__label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #707b86; } .ds-input { width: 100%; padding: 10px 12px; font: inherit; font-size: 14px; color: #e7eef2; background: #15181d; border: 1px solid #23272e; border-radius: 8px; outline: none; transition: border-color 0.2s ease; } .ds-input::placeholder { color: #4a525b; } .ds-input:focus { border-color: #707b86; } .ds-input[aria-invalid='true'] { border-color: #c2685f; }"
+    },
+    {
+      "name": "Glass Panel",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Resting-elevation surface: translucent ink + blur + faint top-edge highlight, no shadow at rest.",
+      "html": "<section class=\"ds-panel\"><h3 class=\"ds-panel__title\">Próximas citas</h3><p class=\"ds-panel__body\">Sin citas para hoy.</p></section>",
+      "css": ".ds-panel { padding: 20px; border: 1px solid #23272e; border-radius: 16px; background: radial-gradient(130% 100% at 100% 0%, rgba(255,255,255,0.07), transparent 58%), rgba(14,16,19,0.74); backdrop-filter: blur(8px); } .ds-panel__title { margin: 0 0 8px; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 20px; font-weight: 600; color: #e7eef2; } .ds-panel__body { margin: 0; font-family: 'Manrope', system-ui, sans-serif; font-size: 13.5px; color: #707b86; }"
+    },
+    {
+      "name": "Nav Item",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Sidebar navigation row; active state adds a vermillion inset edge — the only navigational use of the accent.",
+      "html": "<button class=\"ds-navitem ds-navitem--active\"><span class=\"ds-navitem__icon\">&#9679;</span>Agenda</button>",
+      "css": ".ds-navitem { display: flex; align-items: center; gap: 11px; width: 100%; padding: 11px 13px; border: 0; border-radius: 8px; background: transparent; font-family: 'Manrope', system-ui, sans-serif; font-size: 14px; font-weight: 500; color: #707b86; cursor: pointer; transition: color 0.18s ease, background 0.18s ease; } .ds-navitem:hover { color: #c3d2db; background: rgba(195,210,219,0.05); } .ds-navitem--active { color: #e7eef2; background: rgba(195,210,219,0.07); box-shadow: inset 2px 0 0 #c0392f; } .ds-navitem:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(195,210,219,0.3); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Ink & Honor",
+    "overview": "This name and its light-mode counterpart, \"Washi,\" already exist verbatim in the project's own CSS comments — this design system makes that incumbent identity explicit rather than inventing a new one. The system reads as a tattoo studio's stencil-and-ink workshop translated into a dark, glass-paneled app: deep near-black ink canvases, cool steel-gray text, hairline borders, and exactly one warm color — a vermillion red the codebase's own comments call \"the red of irezumi\" — used with real restraint. Corners split into two deliberate dialects: flat 3px edges on stencil-like elements and soft 8-18px \"glass\" rounding on the app-shell surfaces that hold content. A gothic blackletter mark (Pirata One) is reserved for the sidebar wordmark only. Light mode (\"Washi\", rice paper) is described in the source as \"the reverse of the irezumi\" — the same structure rebuilt on warm paper tones with ink-dark text, keeping vermillion as the one constant between both modes.",
+    "keyCharacteristics": [
+      "Dark-first, near-black ink canvas with a warm-paper Washi light mode that mirrors the same structure.",
+      "Exactly one accent hue (vermillion), spent sparingly, never as a UI-wide primary.",
+      "Glass panels carry elevation instead of drop shadows; shadows are reserved for hover lifts and floating layers.",
+      "Two coexisting corner languages: stencil-flat (3px) vs. glass-round (8-18px), plus full-pill badges/chips.",
+      "An uppercase, heavily letter-spaced eyebrow label treatment is the connective tissue across every view.",
+      "Literal stencil-alignment corner marks decorate key cards as a signature motif."
+    ],
+    "rules": [
+      { "name": "The One Red Rule", "body": "Vermillion is spent on fewer than a handful of small elements per screen. If a new component wants a second saturated color, route it through the status palette or drop the color.", "section": "colors" },
+      { "name": "The Danger-Is-Not-Vermillion Rule", "body": "--danger (a muted rose) and the vermillion accent are deliberately different reds: danger means a form error, vermillion means the brand. Don't reach for one when you mean the other.", "section": "colors" },
+      { "name": "The Eyebrow Rule", "body": "Every section, panel, and form group is preceded by an uppercase, heavily tracked micro-label in --ash. Never skip it to save vertical space.", "section": "typography" },
+      { "name": "The Mark-Is-Sacred Rule", "body": "Pirata One appears in exactly one place: the sidebar wordmark. Do not use it for body headings, buttons, or emphasis.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Surfaces are flat (glass) at rest. A shadow only appears as a response to hover, entrance, or a floating/modal layer.", "section": "elevation" },
+      { "name": "The Stencil Marks Rule", "body": "Corner registration marks are reserved for the most 'arrival' moment in the app (login). Don't scatter them onto every card.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep vermillion to small marks — never a fill for a large surface.",
+      "Do precede every section/group with an uppercase, tracked eyebrow label in --ash.",
+      "Do use glass panels for resting elevation; reserve real shadows for hover/entrance/modal motion.",
+      "Do make every badge/chip/pill fully rounded (999px) — no exception exists in the current system.",
+      "Do keep light mode (\"Washi\") token-driven via the page-scoped [data-theme=\"light\"] .page-class pattern.",
+      "Do show not-yet-built nav items as visible-but-disabled (0.45 opacity) rather than hiding them."
+    ],
+    "donts": [
+      "Don't use the Pirata One mark font anywhere but the sidebar wordmark.",
+      "Don't confuse --danger (muted rose, form errors only) with the vermillion --accent (brand/status only).",
+      "Don't add a third button system alongside .btn and .st-btn; consolidate toward .st-btn's glass-round 8px radius.",
+      "Don't scatter the stencil corner-marks motif onto ordinary cards — it's reserved for arrival moments like login.",
+      "Don't extend the hardcoded \"Hector Tattoos\" / \"by Héctor\" wordmark text into new surfaces — it's placeholder demo branding, not a confirmed product name."
+    ]
+  }
+}
