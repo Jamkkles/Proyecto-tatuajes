@@ -6,12 +6,13 @@ import {
   countSessionsByDay,
   formatTime,
   groupSessionsByDay,
+  listClients,
   listSessions,
   sessionStatusLabel,
   type CalendarSession,
 } from '../lib/agenda'
 import MonthCalendar from '../components/MonthCalendar'
-import { buildMonthGrid, isSameDay } from '../lib/dates'
+import { buildMonthGrid, isSameDay, startOfMonth } from '../lib/dates'
 import { useAppShellHeader } from '../lib/useAppShellHeader'
 import './Dashboard.css'
 
@@ -52,12 +53,13 @@ const icons: Record<string, ReactNode> = {
 }
 
 // Tarjetas de estadística: todas con el mismo aspecto neutro (sin tintes).
-// "Bocetos" se rellena con el total real.
+// "Citas", "Clientes" y "Bocetos" se rellenan con el total real; "Ingresos"
+// sigue siendo maqueta hasta que se implemente su módulo.
 const STATS = [
-  { key: 'citas', label: 'Citas este mes', value: '4', sub: '2 confirmadas', icon: 'statCitas' },
-  { key: 'clientes', label: 'Nuevos clientes', value: '0', sub: 'este mes', icon: 'statClientes' },
+  { key: 'citas', label: 'Citas este mes', value: '—', sub: 'cargando…', icon: 'statCitas' },
+  { key: 'clientes', label: 'Nuevos clientes', value: '—', sub: 'cargando…', icon: 'statClientes' },
   { key: 'ingresos', label: 'Ingresos mensuales', value: '$1,24M', sub: 'CLP', icon: 'statIngresos' },
-  { key: 'bocetos', label: 'Bocetos creados', value: '3', sub: 'en total', icon: 'statBocetos' },
+  { key: 'bocetos', label: 'Bocetos creados', value: '—', sub: 'cargando…', icon: 'statBocetos' },
 ] as const
 
 // "Próximas citas": las siguientes sesiones agendadas dentro de este plazo.
@@ -110,6 +112,11 @@ export default function Dashboard() {
 
   const [flash, setFlash] = useState<Sketch[]>([])
   const [sketchCount, setSketchCount] = useState<number | null>(null)
+
+  // Tarjetas "Citas este mes" y "Nuevos clientes": conteos reales del mes en
+  // curso (no del mes que esté mirando el calendario de abajo).
+  const [monthStats, setMonthStats] = useState<{ total: number; confirmadas: number } | null>(null)
+  const [newClients, setNewClients] = useState<number | null>(null)
 
   // Agenda real: próximas sesiones agendadas (null = cargando) y las citas del
   // mes que muestra el calendario.
@@ -206,6 +213,31 @@ export default function Dashboard() {
     listSessions(now, until)
       .then((list) => setUpcoming(list.filter((s) => s.status === 'agendada').slice(0, UPCOMING_MAX)))
       .catch(() => setUpcomingError(true))
+  }, [])
+
+  useEffect(() => {
+    const now = new Date()
+    const from = startOfMonth(now.getFullYear(), now.getMonth())
+    const to = startOfMonth(now.getFullYear(), now.getMonth() + 1)
+    listSessions(from, to)
+      .then((list) =>
+        setMonthStats({
+          total: list.length,
+          confirmadas: list.filter((s) => s.status === 'agendada').length,
+        }),
+      )
+      .catch(() => setMonthStats(null))
+
+    listClients()
+      .then((clients) =>
+        setNewClients(
+          clients.filter((c) => {
+            const created = new Date(c.created_at)
+            return created.getFullYear() === now.getFullYear() && created.getMonth() === now.getMonth()
+          }).length,
+        ),
+      )
+      .catch(() => setNewClients(null))
   }, [])
 
   // El calendario avisa el mes visible (al montar y al cambiar de mes); se
@@ -339,15 +371,29 @@ export default function Dashboard() {
       {/* ---- Estadísticas (tarjetas pastel) ---- */}
       <section className="stats" aria-label="Resumen de actividad">
         {STATS.map((s) => {
-          // "Bocetos creados" ya sale de la base de datos; el resto sigue
-          // siendo maqueta hasta que se implementen sus módulos.
-          const real = s.key === 'bocetos' && sketchCount !== null
+          // "Citas", "Clientes" y "Bocetos" ya salen de la base de datos;
+          // "Ingresos" sigue siendo maqueta hasta que se implemente su módulo.
+          let value: number | string = s.value
+          // Anotado a propósito: `STATS` es `as const`, así que sin esto `sub`
+          // se estrecha a los literales del arreglo y no acepta los rótulos
+          // que se calculan abajo.
+          let sub: string = s.sub
+          if (s.key === 'bocetos' && sketchCount !== null) {
+            value = sketchCount
+            sub = 'en total'
+          } else if (s.key === 'citas' && monthStats !== null) {
+            value = monthStats.total
+            sub = `${monthStats.confirmadas} confirmadas`
+          } else if (s.key === 'clientes' && newClients !== null) {
+            value = newClients
+            sub = 'este mes'
+          }
           return (
             <article className="statcard" key={s.key}>
               <span className="statcard__icon" aria-hidden="true">{icons[s.icon]}</span>
-              <p className="statcard__value">{real ? sketchCount : s.value}</p>
+              <p className="statcard__value">{value}</p>
               <p className="statcard__label">{s.label}</p>
-              <p className="statcard__sub">{real ? 'en tu galería' : s.sub}</p>
+              <p className="statcard__sub">{sub}</p>
             </article>
           )
         })}
