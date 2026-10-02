@@ -1,4 +1,5 @@
 import { getToken, logout } from './token'
+import { trackSlow } from './serverWake'
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
 
@@ -38,7 +39,10 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
 
   let res: Response
   try {
-    res = await fetch(`${BASE_URL}${path}`, { ...init, headers })
+    const request = fetch(`${BASE_URL}${path}`, { ...init, headers })
+    // Una subida de imagen puede tardar por el tamaño y no por el servidor: solo
+    // las demás peticiones sirven para avisar de que está despertando.
+    res = await (isFormData ? request : trackSlow(request))
   } catch {
     throw new ApiError('No pudimos conectar con el servidor. Revisa tu conexión.', 0)
   }

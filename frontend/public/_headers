@@ -1,0 +1,32 @@
+# Cabeceras para Cloudflare Pages. Hacen lo que `nginx.conf` hace en Docker:
+# Pages no lee ese archivo, así que sin este se perderían los cachés y, peor,
+# el service worker quedaría cacheado y las actualizaciones nunca llegarían a
+# quien ya instaló la app.
+
+# Seguridad, para todo el sitio.
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+# El navegador debe revisar siempre el service worker y el HTML de entrada.
+/sw.js
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+
+# El manifest necesita su tipo propio para que Chrome ofrezca instalar la app.
+/manifest.webmanifest
+  Content-Type: application/manifest+json
+
+# Cada archivo del bundle lleva el hash en el nombre: un cambio real es otra
+# URL, así que se puede cachear para siempre.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+# Modelos 3D: pesan unos 7 MB en total y llevan la versión en el nombre
+# (cuerpo-v1.glb). Con datos móviles importa no bajarlos dos veces.
+/models/*
+  Cache-Control: public, max-age=31536000, immutable

@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoute'
+import ServerWakeNotice from './components/ServerWakeNotice'
 import { ThemeProvider } from './lib/theme'
 
 const Login = lazy(() => import('./pages/Login'))
@@ -22,6 +23,7 @@ function App() {
   return (
     <BrowserRouter>
       <ThemeProvider>
+        <ServerWakeNotice />
         <Suspense fallback={null}>
           <Routes>
             <Route path="/" element={<Login />} />

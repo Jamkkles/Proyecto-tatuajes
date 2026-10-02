@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '../lib/api'
 import { login, saveToken, saveUser } from '../lib/auth'
+import { REGISTRATION_OPEN } from '../lib/config'
 import AuthStage from '../components/AuthStage'
 import './Login.css'
 
@@ -146,7 +147,11 @@ export default function Login() {
           </form>
 
           <p className="card__foot">
-            ¿Aún no tienes estudio? <Link to="/registro">Crear cuenta</Link>
+            {REGISTRATION_OPEN && (
+              <>
+                ¿Aún no tienes estudio? <Link to="/registro">Crear cuenta</Link>
+              </>
+            )}
           </p>
         </section>
 
