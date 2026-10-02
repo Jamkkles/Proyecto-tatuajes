@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ApiError } from '../lib/api'
 import { getProject, updateProject, type Project } from '../lib/agenda'
+import { sizeFromPlacements } from '../lib/quotes'
 import { useAppShellHeader } from '../lib/useAppShellHeader'
 import {
   ALLOWED_MIME,
@@ -53,7 +54,13 @@ interface Placed {
   quaternion: [number, number, number, number]
   size: [number, number, number]
   anchor: { faceIndex: number | null; uv: [number, number] | null } | null
-  opacity: number
+  /**
+   * Giro de la calca sobre la piel, en grados. Se guarda aparte del cuaternión
+   * porque el deslizador necesita saber desde dónde gira: el cuaternión ya
+   * lleva dentro la orientación de la superficie y no se puede leer de vuelta
+   * como un ángulo sin ambigüedad.
+   */
+  roll: number
 }
 
 /** Boceto listo para colocar en el siguiente clic sobre el cuerpo. */
@@ -166,8 +173,12 @@ export default function Preview3D() {
   // El sexo y la parte se leen del modelo, no de un estado aparte: así abrir
   // una escena guardada deja los botones sincronizados sin trabajo extra.
   const model = resolveBodyModel(modelId)
-  const sizeMax = maxTattooSize(model)
+  // El tope del tamaño lo manda la zona en uso, no la pieza entera: un brazo
+  // admite mucho menos que una espalda.
+  const activeZone = model.zones.find((z) => z.id === zoneId) ?? null
+  const sizeMax = maxTattooSize(model, activeZone)
   const selected = placed.find((p) => p.id === selectedId) ?? null
+
 
   useAppShellHeader({
     title: 'Previsualización 3D',
@@ -197,8 +208,14 @@ export default function Preview3D() {
       }
 
       const depth = viewer.projectorDepth
+      const quaternion = viewer.orientationFor(hit.normal)
+      // Lo que cabe aquí manda sobre el tamaño por defecto: en una muñeca son
+      // 5 cm, no los 12 de siempre. Si no, la calca nacía cortada y el
+      // deslizador mostraba un número que no era el del dibujo.
+      // El tamaño por defecto (12 cm) cabe en cualquier zona: el tope más
+      // estrecho son los 25 cm de un brazo. No hace falta recortarlo aquí.
       const w = DEFAULT_TATTOO_SIZE
-      const h = DEFAULT_TATTOO_SIZE / armed.aspect
+      const h = w / armed.aspect
       const entry: Placed = {
         id: crypto.randomUUID(),
         sketchId: armed.sketchId,
@@ -207,10 +224,10 @@ export default function Preview3D() {
         sourceUrl: armed.url,
         aspect: armed.aspect,
         position: hit.point,
-        quaternion: viewer.orientationFor(hit.normal),
+        quaternion,
         size: [w, h, depth],
         anchor: { faceIndex: hit.faceIndex, uv: hit.uv },
-        opacity: 1,
+        roll: 0,
       }
 
       viewer.addPlacement({
@@ -352,31 +369,33 @@ export default function Preview3D() {
   /* --------- Edición del tatuaje seleccionado --------- */
   function changeSize(raw: number) {
     if (!selected) return
-    // El tope depende de la pieza: en una cabeza de 26 cm el máximo global de
-    // 60 cm daría una caja de proyección mayor que el propio modelo.
+    // El tope lo manda lo que de verdad cabe en ese punto con ese giro.
     const width = Math.min(Math.max(raw, MIN_TATTOO_SIZE), sizeMax)
     const size: [number, number, number] = [width, width / selected.aspect, selected.size[2]]
     viewerRef.current?.updatePlacement(selected.id, { size })
     setPlaced((l) => l.map((p) => (p.id === selected.id ? { ...p, size } : p)))
   }
 
-  function changeDepth(depth: number) {
-    if (!selected) return
-    const size: [number, number, number] = [selected.size[0], selected.size[1], depth]
-    viewerRef.current?.updatePlacement(selected.id, { size })
-    setPlaced((l) => l.map((p) => (p.id === selected.id ? { ...p, size } : p)))
-  }
+  /**
+   * Gira la calca hasta un ángulo concreto. El visor trabaja con incrementos,
+   * así que se le pasa la diferencia respecto del giro que ya tenía.
+   */
+  function changeRoll(deg: number) {
+    const viewer = viewerRef.current
+    if (!selected || !viewer) return
+    const delta = deg - selected.roll
+    if (delta === 0) return
 
-  function roll(deg: number) {
-    if (!selected) return
-    const q = viewerRef.current?.rollPlacement(selected.id, (deg * Math.PI) / 180)
-    if (q) setPlaced((l) => l.map((p) => (p.id === selected.id ? { ...p, quaternion: q } : p)))
-  }
+    const q = viewer.rollPlacement(selected.id, (delta * Math.PI) / 180)
+    if (!q) return
 
-  function changeOpacity(opacity: number) {
-    if (!selected) return
-    viewerRef.current?.updatePlacement(selected.id, { opacity })
-    setPlaced((l) => l.map((p) => (p.id === selected.id ? { ...p, opacity } : p)))
+    // Girar no cambia el tamaño. Antes se encogía el tatuaje cuando el giro
+    // dejaba menos sitio, y era desconcertante: movías el giro y el tamaño se
+    // movía solo. Ahora la calca envuelve, así que cabe igual en cualquier
+    // ángulo.
+    setPlaced((l) =>
+      l.map((p) => (p.id === selected.id ? { ...p, quaternion: q, roll: deg } : p)),
+    )
   }
 
   function removePlaced(id: string) {
@@ -425,7 +444,7 @@ export default function Preview3D() {
         quaternion: p.quaternion,
         size: p.size,
         anchor: p.anchor,
-        render: { order: i, opacity: p.opacity, flipX: false },
+        render: { order: i, flipX: false },
       })),
     }
 
@@ -436,10 +455,34 @@ export default function Preview3D() {
         : await createPreview(payload)
       setSceneId(saved.id)
       let message = 'Previsualización guardada.'
-      if (project && project.preview_id !== saved.id) {
-        const linked = await updateProject(project.id, { previewId: saved.id })
-        setProject(linked)
-        message = `Previsualización guardada y enlazada a «${linked.title}».`
+
+      if (project) {
+        // Aquí es donde el artista decide de qué porte va el tatuaje, así que
+        // la medida se copia al proyecto en vez de quedar solo dentro de la
+        // escena: la cotización la encuentra sin abrir el visor, y sobrevive
+        // si la escena se borra después.
+        const size = sizeFromPlacements(payload.placements, project.sketch_id)
+        const changes: Parameters<typeof updateProject>[1] = {}
+        if (project.preview_id !== saved.id) changes.previewId = saved.id
+        if (size && (size.widthCm !== project.width_cm || size.heightCm !== project.height_cm)) {
+          changes.widthCm = size.widthCm
+          changes.heightCm = size.heightCm
+        }
+        // Si el proyecto todavía no tiene diseño y en la escena hay un único
+        // boceto colocado, ese ES su diseño: probarlo sobre el cuerpo es
+        // justamente la forma de decidirlo. Sin este enlace la cotización no
+        // encuentra los colores del dibujo y tiene que adivinarlos.
+        if (!project.sketch_id && payload.placements.length === 1) {
+          changes.sketchId = payload.placements[0].sketchId
+        }
+
+        if (Object.keys(changes).length > 0) {
+          const linked = await updateProject(project.id, changes)
+          setProject(linked)
+          message = changes.widthCm
+            ? `Guardada y enlazada a «${linked.title}» · ${size!.widthCm} × ${size!.heightCm} cm`
+            : `Previsualización guardada y enlazada a «${linked.title}».`
+        }
       }
       setScenes(await listPreviews())
       setNotice(message)
@@ -504,7 +547,9 @@ export default function Preview3D() {
           quaternion: p.quaternion,
           size: p.size,
           anchor: p.anchor,
-          opacity: p.render?.opacity ?? 1,
+          // El giro no se guarda: va dentro del cuaternión. Al reabrir una
+          // escena el deslizador parte de cero y gira desde donde quedó.
+          roll: 0,
         }
         await viewer.addPlacement({
           id: entry.id,
@@ -512,7 +557,6 @@ export default function Preview3D() {
           position: entry.position,
           quaternion: entry.quaternion,
           size: entry.size,
-          opacity: entry.opacity,
         })
         restored.push(entry)
       }
@@ -839,34 +883,38 @@ export default function Preview3D() {
                   onChange={(e) => changeSize(Number(e.target.value) / 100)}
                 />
               </label>
+              {selected.size[0] >= sizeMax - 0.005 && (
+                <p className="prev3d__note">
+                  Es lo más grande que admite {activeZone ? activeZone.label.toLowerCase() : 'esta pieza'}:
+                  el tatuaje ya da casi la vuelta y más grande se encontraría consigo mismo por el
+                  otro lado.
+                </p>
+              )}
 
               <label className="prev3d__range">
-                <span>Profundidad <b>{Math.round(selected.size[2] * 100)} cm</b></span>
+                <span>Giro <b>{Math.round(selected.roll)}°</b></span>
                 <input
                   type="range"
-                  min={2}
-                  max={50}
+                  min={-180}
+                  max={180}
                   step={1}
-                  value={selected.size[2] * 100}
-                  onChange={(e) => changeDepth(Number(e.target.value) / 100)}
+                  value={selected.roll}
+                  onChange={(e) => changeRoll(Number(e.target.value))}
                 />
               </label>
 
               <div className="prev3d__row">
-                <span>Rotar</span>
-                <button type="button" className="prev3d__mini" onClick={() => roll(-15)}>−15°</button>
-                <button type="button" className="prev3d__mini" onClick={() => roll(15)}>+15°</button>
-                <button type="button" className="prev3d__mini" onClick={() => roll(90)}>+90°</button>
+                <button type="button" className="prev3d__mini" onClick={() => changeRoll(0)}>
+                  Enderezar
+                </button>
+                <button
+                  type="button"
+                  className="prev3d__mini"
+                  onClick={() => changeRoll(selected.roll === 90 ? 0 : 90)}
+                >
+                  90°
+                </button>
               </div>
-
-              <label className="prev3d__range">
-                <span>Opacidad <b>{Math.round(selected.opacity * 100)}%</b></span>
-                <input
-                  type="range" min={10} max={100} step={5}
-                  value={selected.opacity * 100}
-                  onChange={(e) => changeOpacity(Number(e.target.value) / 100)}
-                />
-              </label>
             </div>
           )}
         </section>

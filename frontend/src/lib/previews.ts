@@ -24,7 +24,12 @@ export interface PreviewPlacement {
   size: [number, number, number]
   /** Ancla para recolocar si cambiara la malla del modelo. */
   anchor: { faceIndex: number | null; uv: [number, number] | null } | null
-  render: { order: number; opacity: number; flipX: boolean }
+  /**
+   * `opacity` ya no se usa: el control se quitó porque un tatuaje no es
+   * translúcido y solo servía para disimular un mal recorte. Se mantiene
+   * opcional para poder abrir escenas guardadas antes del cambio.
+   */
+  render: { order: number; opacity?: number; flipX: boolean }
 }
 
 export interface Preview {

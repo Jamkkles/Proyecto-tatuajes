@@ -46,10 +46,11 @@ export interface BodyZone {
   camera: CameraPreset
   /**
    * Profundidad del proyector de la calca (m) para esta zona: aproximadamente
-   * el grosor del miembro. Poca → el tatuaje se corta; mucha → atraviesa y
-   * aparece también por el otro lado.
+   * el grosor del miembro.
    */
   decalDepth: number
+  /** Ancho máximo de calca que esta zona puede recibir (m). Ver `maxDecalWidth`. */
+  maxWidth: number
 }
 
 export interface BodyModel {
@@ -76,6 +77,8 @@ export interface BodyModel {
   targetHeight: number
   /** Profundidad por defecto del proyector (m). */
   decalDepth: number
+  /** Ancho máximo de calca que la pieza puede recibir (m). Ver `maxDecalWidth`. */
+  maxWidth: number
   camera: CameraPreset
   /** Solo el cuerpo completo tiene encuadres; una pieza suelta no. */
   zones: BodyZone[]
@@ -123,6 +126,29 @@ const PART_HEIGHT: Record<PartId, number> = {
   cabeza: 0.26,
 }
 
+/**
+ * Ancho máximo de calca que admite cada pieza (m).
+ *
+ * En un miembro la calca envuelve, así que el tope es **arco**: el contorno que
+ * se puede recorrer antes de que el dibujo se encuentre consigo mismo por el
+ * otro lado, unos 300° de la circunferencia local. En el torso no envuelve
+ * nada: la espalda y el pecho son anchos y planos, y ahí el tope es la silueta.
+ *
+ * Son valores fijos a propósito. Medir el contorno real en vivo daba un tope
+ * que cambiaba con cada giro y cada arrastre —son rayos contra una malla con
+ * relieve—, y el deslizador se volvía loco: la escala se movía bajo el dedo
+ * mientras se arrastraba. Más vale un tope estable y algo aproximado.
+ */
+const PART_MAX_WIDTH: Record<PartId, number> = {
+  cuerpo: 0.4,
+  torso: 0.36,
+  'brazo-izq': 0.25,
+  'brazo-der': 0.25,
+  'pierna-izq': 0.35,
+  'pierna-der': 0.35,
+  cabeza: 0.3,
+}
+
 /** Grosor del proyector de la calca (m): el grosor aproximado del miembro. */
 const PART_DEPTH: Record<PartId, number> = {
   cuerpo: 0.3,
@@ -156,13 +182,13 @@ const FULL_BODY_CAMERA: CameraPreset = { position: [0, 1.05, 2.6], target: [0, 0
 function fullBodyZones(spread: number): BodyZone[] {
   const x = (v: number) => Number((v * spread).toFixed(3))
   return [
-    { id: 'frente', label: 'Frente', decalDepth: 0.3, camera: { position: [0, 1.05, 2.6], target: [0, 0.95, 0] } },
-    { id: 'espalda', label: 'Espalda', decalDepth: 0.3, camera: { position: [0, 1.15, -2.4], target: [0, 1.05, 0] } },
-    { id: 'pecho', label: 'Pecho', decalDepth: 0.28, camera: { position: [0, 1.3, 1.3], target: [0, 1.28, 0] } },
-    { id: 'brazo-izq', label: 'Brazo izquierdo', decalDepth: 0.12, camera: { position: [x(1.15), 1.15, 0.75], target: [x(0.42), 1.1, 0] } },
-    { id: 'brazo-der', label: 'Brazo derecho', decalDepth: 0.12, camera: { position: [x(-1.15), 1.15, 0.75], target: [x(-0.42), 1.1, 0] } },
-    { id: 'pierna-izq', label: 'Pierna izquierda', decalDepth: 0.18, camera: { position: [x(0.85), 0.5, 1.1], target: [x(0.16), 0.45, 0] } },
-    { id: 'pierna-der', label: 'Pierna derecha', decalDepth: 0.18, camera: { position: [x(-0.85), 0.5, 1.1], target: [x(-0.16), 0.45, 0] } },
+    { id: 'frente', label: 'Frente', decalDepth: 0.3, maxWidth: x(0.4), camera: { position: [0, 1.05, 2.6], target: [0, 0.95, 0] } },
+    { id: 'espalda', label: 'Espalda', decalDepth: 0.3, maxWidth: x(0.4), camera: { position: [0, 1.15, -2.4], target: [0, 1.05, 0] } },
+    { id: 'pecho', label: 'Pecho', decalDepth: 0.28, maxWidth: x(0.34), camera: { position: [0, 1.3, 1.3], target: [0, 1.28, 0] } },
+    { id: 'brazo-izq', label: 'Brazo izquierdo', decalDepth: 0.12, maxWidth: 0.25, camera: { position: [x(1.15), 1.15, 0.75], target: [x(0.42), 1.1, 0] } },
+    { id: 'brazo-der', label: 'Brazo derecho', decalDepth: 0.12, maxWidth: 0.25, camera: { position: [x(-1.15), 1.15, 0.75], target: [x(-0.42), 1.1, 0] } },
+    { id: 'pierna-izq', label: 'Pierna izquierda', decalDepth: 0.18, maxWidth: 0.35, camera: { position: [x(0.85), 0.5, 1.1], target: [x(0.16), 0.45, 0] } },
+    { id: 'pierna-der', label: 'Pierna derecha', decalDepth: 0.18, maxWidth: 0.35, camera: { position: [x(-0.85), 0.5, 1.1], target: [x(-0.16), 0.45, 0] } },
   ]
 }
 
@@ -190,6 +216,7 @@ function build(sex: Sex, part: PartId): BodyModel {
     version: '1',
     targetHeight,
     decalDepth: PART_DEPTH[part],
+    maxWidth: PART_MAX_WIDTH[part],
     camera: full ? FULL_BODY_CAMERA : framing(targetHeight),
     zones: full ? fullBodyZones(SPREAD[sex]) : [],
   }
@@ -238,10 +265,13 @@ export const MIN_TATTOO_SIZE = 0.02
 export const MAX_TATTOO_SIZE = 0.6
 
 /**
- * Tope del deslizador de tamaño para una pieza concreta (m). Sin esto, en una
- * cabeza de 26 cm el tope global de 60 cm daría una caja de proyección más
- * grande que el propio modelo.
+ * Tope del deslizador de tamaño (m) para la pieza y la zona en uso.
+ *
+ * Manda el ancho que la zona puede recibir. Antes el tope solo miraba el alto de
+ * la pieza, de modo que en un brazo permitía pedir 57 cm y el dibujo aparecía
+ * recortado sin que nada explicara por qué.
  */
-export function maxTattooSize(model: BodyModel): number {
-  return Math.min(MAX_TATTOO_SIZE, model.targetHeight * 0.8)
+export function maxTattooSize(model: BodyModel, zone?: BodyZone | null): number {
+  const width = zone?.maxWidth ?? model.maxWidth
+  return Math.min(MAX_TATTOO_SIZE, model.targetHeight * 0.8, width)
 }

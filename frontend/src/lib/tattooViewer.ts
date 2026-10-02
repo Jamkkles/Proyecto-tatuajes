@@ -28,6 +28,354 @@ import type { BodyModel, CameraPreset } from './bodyModels'
 /** Píxeles de desplazamiento por debajo de los cuales un arrastre es un clic. */
 const CLICK_SLOP = 5
 
+/**
+ * Cuánto tiene que mirar un triángulo hacia el proyector para conservarse.
+ *
+ * Medido sobre un cilindro de 12 cm (un brazo), con una calca que llega justo
+ * a ese diámetro:
+ *
+ *   0,30 → envuelve 75°     0,08 → envuelve 86°
+ *   0,20 → envuelve 79°     0,02 → envuelve 90°, el máximo geométrico
+ *
+ * Subirlo recorta el envolvente, que es justo lo que no se quiere: envolver un
+ * brazo ES acercarse a la silueta. Se deja en 0,02, lo mínimo para descartar
+ * las astillas exactamente tangentes sin perder ni un grado útil. Con ese valor
+ * se siguen descartando ~300 triángulos de la cara opuesta.
+ */
+const MIN_FACING = 0.02
+
+/**
+ * Eje del proyector en espacio local. `orientationFor` usa `lookAt`, que deja
+ * el +Z del objeto sobre la normal de la superficie, de modo que girarlo por el
+ * cuaternión de la calca devuelve hacia dónde mira.
+ */
+const FORWARD = new THREE.Vector3(0, 0, 1)
+
+/**
+ * Margen de la caja del proyector sobre el grosor del miembro.
+ *
+ * No agranda el envolvente: medido sobre un cilindro, la calca llega a los
+ * mismos 90° con 12, 19 o 36 cm de profundidad, porque quien manda es el ancho
+ * y no el fondo. El margen solo cubre los casos en que el punto de colocación
+ * no cae en la parte más cercana de la pieza y la caja justa se quedaría corta.
+ *
+ * Lo que sí hacía la profundidad era provocar la duplicación: con 30 cm en un
+ * brazo de 12 la caja atravesaba y recortaba también la cara de atrás (180° de
+ * envolvente). Por eso dejó de ser un control y el recorte por normales lo
+ * cubre aunque una escena vieja traiga un valor grande.
+ */
+const PROJECTOR_REACH = 1.25
+
+/** Ejes locales de la calca: X es su ancho, Y su alto. */
+const RIGHT = new THREE.Vector3(1, 0, 0)
+const UP = new THREE.Vector3(0, 1, 0)
+
+/** Desde cuán lejos se lanza el rayo de medición (m), por delante de la piel. */
+const PROBE_STANDOFF = 1
+
+/**
+ * A partir de este arco se envuelve. Por debajo, la proyección plana de siempre
+ * da el mismo resultado sin dar rodeos.
+ */
+const MIN_WRAP_ANGLE = (40 * Math.PI) / 180
+
+/** Margen de la caja sobre el diámetro, para que el anillo entre entero. */
+const RING_MARGIN = 1.08
+
+/**
+ * Cuánto puede alejarse un punto del cilindro que se viene siguiendo antes de
+ * considerar que ya es otra parte del cuerpo y no este miembro.
+ *
+ * Un brazo no es un cilindro perfecto: se afina hacia la muñeca y tiene
+ * relieve, así que el radio real varía bastante a lo largo del tatuaje. Con
+ * poca tolerancia el envolvente se cortaba a los pocos grados; con 1 se admite
+ * cualquier punto entre el eje y el doble del radio, que sigue dejando fuera
+ * el torso o el otro brazo.
+ */
+const RING_TOLERANCE = 1
+
+/**
+ * Vanos con que se tantea la curvatura, de mayor a menor (m).
+ *
+ * Con poco vano el facetado de la malla domina la medida, así que se empieza
+ * ancho. Pero en un miembro delgado un vano ancho se sale de la piel y no
+ * devuelve nada —en una muñeca de 2,6 cm de radio, medir a 3 cm de distancia ya
+ * cae al aire—, de ahí que se vaya cerrando hasta encontrar uno que quepa.
+ */
+const CURVATURE_SPANS = [0.03, 0.018, 0.01, 0.006]
+
+/** Por encima de este radio la piel se considera plana (m). */
+const MAX_CURVE_RADIUS = 0.5
+
+/**
+ * Margen del recorte de malla sobre lo que ocupa la calca (m). Es lo que
+ * permite arrastrarla un trecho sin tener que rehacerlo.
+ */
+const PATCH_SLACK = 0.05
+
+/**
+ * Coseno del giro de la piel tras el cual se vuelve a anclar el origen del
+ * arrastre. 0 = un cuarto de vuelta.
+ */
+const REANCHOR_DOT = 0
+
+/**
+ * Fracción de la malla por encima de la cual el recorte deja de compensar: si
+ * se queda con casi todo, cuesta lo mismo proyectar sobre el cuerpo entero.
+ */
+const PATCH_WORTH_IT = 0.6
+
+/**
+ * Cuánto puede moverse una calca antes de volver a medir la curvatura (m).
+ *
+ * Un centímetro basta: a esa escala la piel sigue siendo la misma. Remedir en
+ * cada fotograma hacía temblar el dibujo y frenaba el arrastre.
+ */
+const REMEASURE_DISTANCE = 0.01
+
+
+/**
+ * Se queda solo con los triángulos que dan la cara al proyector.
+ *
+ * `DecalGeometry` recorta por la caja, pero la caja es un volumen: en un brazo
+ * entra por delante y sale por detrás, y la calca aparecía pegada en los dos
+ * lados. Se compara la normal de cada triángulo con la dirección del proyector
+ * y se descartan las que miran al revés.
+ *
+ * Las normales vienen de la malla del cuerpo, que es suave, así que promediar
+ * las de los tres vértices da mejor resultado que calcular la del plano: en una
+ * superficie curva el promedio sigue la curvatura y no el facetado.
+ *
+ * Si no sobrevive nada se devuelve la geometría original: más vale un tatuaje
+ * mal recortado que uno invisible.
+ */
+function cullAwayFacing(
+  geometry: THREE.BufferGeometry,
+  forward: THREE.Vector3,
+): THREE.BufferGeometry {
+  const position = geometry.getAttribute('position')
+  const normal = geometry.getAttribute('normal')
+  const uv = geometry.getAttribute('uv')
+  if (!position || !normal) return geometry
+
+  const positions: number[] = []
+  const normals: number[] = []
+  const uvs: number[] = []
+  const average = new THREE.Vector3()
+
+  for (let tri = 0; tri + 2 < position.count; tri += 3) {
+    average.set(0, 0, 0)
+    for (let v = 0; v < 3; v++) {
+      average.x += normal.getX(tri + v)
+      average.y += normal.getY(tri + v)
+      average.z += normal.getZ(tri + v)
+    }
+    if (average.lengthSq() === 0) continue
+    if (average.normalize().dot(forward) < MIN_FACING) continue
+
+    for (let v = 0; v < 3; v++) {
+      positions.push(position.getX(tri + v), position.getY(tri + v), position.getZ(tri + v))
+      normals.push(normal.getX(tri + v), normal.getY(tri + v), normal.getZ(tri + v))
+      if (uv) uvs.push(uv.getX(tri + v), uv.getY(tri + v))
+    }
+  }
+
+  if (positions.length === 0) return geometry
+
+  const culled = new THREE.BufferGeometry()
+  culled.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+  culled.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3))
+  if (uvs.length) culled.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2))
+  geometry.dispose()
+  return culled
+}
+
+/**
+ * Recorta la malla del cuerpo a los triángulos que rodean un punto.
+ *
+ * `DecalGeometry` recorre la malla entera cada vez que se reconstruye una
+ * calca. Sobre el brazo del proyecto (40.000 triángulos) eso son 41 ms, o sea
+ * 24 fps mientras se arrastra; sobre la vecindad del tatuaje baja a 18 ms.
+ */
+function localPatch(mesh: THREE.Mesh, center: THREE.Vector3, radius: number): THREE.Mesh | null {
+  const source = mesh.geometry
+  const position = source.getAttribute('position')
+  const normal = source.getAttribute('normal')
+  // Se leen los búferes en crudo, así que hay que descartar los entrelazados y
+  // los que no sean de tres componentes. Estas mallas no lo son, pero el visor
+  // carga archivos de fuera.
+  if (!(position instanceof THREE.BufferAttribute)) return null
+  if (!(normal instanceof THREE.BufferAttribute)) return null
+  if (position.itemSize !== 3 || normal.itemSize !== 3) return null
+
+  const index = source.getIndex()
+  const pos = position.array
+  const nor = normal.array
+  const idx = index?.array
+  const triangles = Math.floor((index ? index.count : position.count) / 3)
+  if (triangles === 0) return null
+
+  const cx = center.x
+  const cy = center.y
+  const cz = center.z
+  const radiusSq = radius * radius
+
+  // Dos pasadas sobre búferes tipados en lugar de ir empujando a un array
+  // normal: lo de antes costaba 212 ms sobre el brazo de 40.000 triángulos, un
+  // tirón de los que se ven, justo en el fotograma en que se agarra la calca.
+  // Primero se anotan los triángulos que entran, luego se copian de una vez.
+  const keep = new Uint32Array(triangles)
+  let kept = 0
+  for (let t = 0; t < triangles; t++) {
+    const base = t * 3
+    for (let v = 0; v < 3; v++) {
+      const i = (idx ? idx[base + v] : base + v) * 3
+      const dx = pos[i] - cx
+      const dy = pos[i + 1] - cy
+      const dz = pos[i + 2] - cz
+      if (dx * dx + dy * dy + dz * dz <= radiusSq) {
+        keep[kept++] = t
+        break
+      }
+    }
+  }
+  // Si se queda con casi toda la malla no hay nada que ganar: se proyecta
+  // sobre el cuerpo entero y se ahorra el recorte y su memoria.
+  if (kept === 0 || kept > triangles * PATCH_WORTH_IT) return null
+
+  const positions = new Float32Array(kept * 9)
+  const normals = new Float32Array(kept * 9)
+  for (let k = 0; k < kept; k++) {
+    const base = keep[k] * 3
+    for (let v = 0; v < 3; v++) {
+      const i = (idx ? idx[base + v] : base + v) * 3
+      const o = k * 9 + v * 3
+      positions[o] = pos[i]
+      positions[o + 1] = pos[i + 1]
+      positions[o + 2] = pos[i + 2]
+      normals[o] = nor[i]
+      normals[o + 1] = nor[i + 1]
+      normals[o + 2] = nor[i + 2]
+    }
+  }
+
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+  geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3))
+  const patch = new THREE.Mesh(geometry, mesh.material)
+  patch.updateMatrixWorld()
+  return patch
+}
+
+/**
+ * Reparte la imagen por **ángulo alrededor del eje del miembro** en vez de por
+ * distancia en plano.
+ *
+ * Es el cambio que hace que el tatuaje rodee el brazo. Una proyección plana
+ * reparte la textura según la sombra del dibujo: al acercarse al borde del
+ * miembro la piel se va de canto, la sombra deja de avanzar y la imagen se
+ * agolpa hasta cortarse. Midiendo el ángulo, en cambio, se avanza a paso
+ * constante sobre la piel y se puede seguir dando la vuelta.
+ *
+ * De paso hace el recorte: lo que queda fuera del arco del dibujo, o lejos del
+ * cilindro que se viene siguiendo (ya es otra parte del cuerpo), se descarta.
+ */
+function wrapUv(
+  geometry: THREE.BufferGeometry,
+  frame: {
+    center: THREE.Vector3
+    spin: THREE.Vector3
+    forward: THREE.Vector3
+    axis: THREE.Vector3
+    radius: number
+    arc: number
+    across: number
+    wrapX: boolean
+  },
+): THREE.BufferGeometry | null {
+  const position = geometry.getAttribute('position')
+  const normal = geometry.getAttribute('normal')
+  if (!position || !normal) return geometry
+
+  const { center, spin, forward, axis, radius, arc, across, wrapX } = frame
+  // Eje perpendicular a la normal dentro del plano del giro: con él y la normal
+  // se lee el ángulo de cada punto alrededor del miembro.
+  const sideways = new THREE.Vector3().crossVectors(spin, forward).normalize()
+
+  const positions: number[] = []
+  const normals: number[] = []
+  const uvs: number[] = []
+  const point = new THREE.Vector3()
+  const radial = new THREE.Vector3()
+
+  // Un vértice cuenta si está dentro del arco del dibujo, dentro de su alto y
+  // pegado al cilindro. Se evalúa por triángulo: o entran los tres o ninguno.
+  const sample = (i: number) => {
+    point.set(position.getX(i), position.getY(i), position.getZ(i)).sub(center)
+    const along = point.dot(spin)
+    radial.copy(point).addScaledVector(spin, -along)
+
+    const distance = radial.length()
+    if (Math.abs(distance - radius) > radius * RING_TOLERANCE) return null
+
+    const angle = Math.atan2(radial.dot(sideways), radial.dot(forward))
+    if (Math.abs(angle) > arc / 2) return null
+    if (Math.abs(along) > across / 2) return null
+
+    // El ángulo da la coordenada que envuelve; la del eje, la otra.
+    const wrapped = 0.5 + angle / arc
+    const straight = 0.5 + (along / across) * (axis.dot(spin) >= 0 ? 1 : -1)
+    return wrapX ? { u: wrapped, v: straight } : { u: straight, v: wrapped }
+  }
+
+  for (let t = 0; t + 2 < position.count; t += 3) {
+    const a = sample(t)
+    const b = sample(t + 1)
+    const c = sample(t + 2)
+    if (!a || !b || !c) continue
+    // Un triángulo que cruza la costura (de +180° a −180°) se vería como una
+    // banda estirada de lado a lado; se descarta, que son dos triángulos.
+    if (Math.abs(a.u - b.u) > 0.5 || Math.abs(b.u - c.u) > 0.5) continue
+
+    for (const [offset, uv] of [
+      [0, a],
+      [1, b],
+      [2, c],
+    ] as const) {
+      const i = t + offset
+      positions.push(position.getX(i), position.getY(i), position.getZ(i))
+      normals.push(normal.getX(i), normal.getY(i), normal.getZ(i))
+      uvs.push(uv.u, uv.v)
+    }
+  }
+
+  geometry.dispose()
+  if (positions.length === 0) return null
+
+  const wrapped = new THREE.BufferGeometry()
+  wrapped.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+  wrapped.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3))
+  wrapped.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2))
+  return wrapped
+}
+
+/**
+ * Normal de la piel en el punto tocado, interpolada entre los vértices.
+ *
+ * `hit.normal` la trae ya suavizada; `hit.face.normal` es la de la cara plana y
+ * hacía que la calca saltara de un triángulo a otro al arrastrarla sobre un
+ * brazo de pocos polígonos. Se cae a la de la cara solo si la malla no trae
+ * normales, que no es el caso de estos modelos.
+ */
+function smoothNormal(hit: THREE.Intersection, mesh: THREE.Mesh): THREE.Vector3 | null {
+  const source = hit.normal ?? hit.face?.normal
+  if (!source) return null
+  return source
+    .clone()
+    .applyNormalMatrix(new THREE.Matrix3().getNormalMatrix(mesh.matrixWorld))
+    .normalize()
+}
+
 export interface HitInfo {
   point: [number, number, number]
   normal: [number, number, number]
@@ -41,7 +389,6 @@ export interface PlacementInput {
   position: [number, number, number]
   quaternion: [number, number, number, number]
   size: [number, number, number]
-  opacity?: number
 }
 
 export interface PlacementTransform {
@@ -71,6 +418,47 @@ interface DecalEntry {
   size: THREE.Vector3
   /** Marca que la geometría debe rehacerse en el próximo fotograma. */
   dirty: boolean
+  /**
+   * Radio de la piel bajo la calca, medido una vez por sitio.
+   *
+   * Medirlo en cada reconstrucción la hacía temblar: son lanzamientos de rayos
+   * contra una malla con relieve, y el radio salía algo distinto cada vez, de
+   * modo que el envolvente cambiaba solo con mover el deslizador. Se calcula al
+   * colocar y al terminar de arrastrar, que es cuando de verdad cambia. El
+   * centro del cilindro **no** se guarda: se deduce de dónde está la calca en
+   * cada reconstrucción, para que el envolvente la siga al arrastrarla.
+   */
+  curvature: SurfaceCurvature | null
+  /** Dónde se midió, para rehacerla si la calca se va lejos. */
+  measuredAt: THREE.Vector3 | null
+  /**
+   * Trozo de la malla del cuerpo alrededor de la calca.
+   *
+   * `DecalGeometry` recorre la malla entera en cada reconstrucción: sobre un
+   * brazo de 40.000 triángulos son 41 ms, o sea 24 fps mientras se arrastra.
+   * Trabajando sobre la vecindad baja a 18 ms. Se reaprovecha mientras la calca
+   * siga dentro de él.
+   */
+  patch: THREE.Mesh | null
+  patchAt: THREE.Vector3 | null
+  patchRadius: number
+}
+
+/**
+ * Curvatura local de la piel bajo una calca.
+ *
+ * Guarda el **radio**, no el centro. El centro se vuelve a deducir en cada
+ * reconstrucción a partir de donde está la calca ahora
+ * (`posición − normal × radio`), y es lo que hace que el envolvente la siga al
+ * arrastrarla: con el centro guardado, el anillo de proyección se quedaba
+ * clavado donde se midió mientras el dibujo se iba, así que la imagen se
+ * movía errática y acababa desapareciendo al salirse del anillo viejo.
+ */
+interface SurfaceCurvature {
+  /** Radio del círculo que describe la piel; Infinity si es plana. */
+  radius: number
+  /** Si lo que envuelve es el ancho de la calca (si no, su alto). */
+  wrapX: boolean
 }
 
 export class TattooViewer {
@@ -94,6 +482,8 @@ export class TattooViewer {
   private selectedId: string | null = null
 
   private raycaster = new THREE.Raycaster()
+  /** Raycaster aparte para medir, para no pisar el estado del de la interacción. */
+  private probe = new THREE.Raycaster()
   private pointer = new THREE.Vector2()
   private orientHelper = new THREE.Object3D()
 
@@ -104,6 +494,18 @@ export class TattooViewer {
   // Estado del gesto de puntero en curso.
   private downAt: { x: number; y: number } | null = null
   private draggingId: string | null = null
+  /** Puntero capturado durante el arrastre, para liberarlo al soltar. */
+  private pointerId: number | null = null
+  /**
+   * Cómo estaba la calca al empezar a arrastrarla.
+   *
+   * El giro se recalcula **desde aquí**, no encadenando una rotación sobre otra
+   * en cada movimiento del ratón: encadenarlas acumulaba el temblor de la malla
+   * y el dibujo se iba torciendo solo a lo largo del arrastre. Solo se vuelve a
+   * anclar cuando la piel ha girado un cuarto de vuelta, para no llegar nunca
+   * al punto donde la rotación mínima es ambigua.
+   */
+  private dragFrom: { normal: THREE.Vector3; quaternion: THREE.Quaternion } | null = null
 
   private textureLoader = new THREE.TextureLoader()
   private gltfLoader: GLTFLoader
@@ -341,7 +743,6 @@ export class TattooViewer {
     const material = new THREE.MeshStandardMaterial({
       map: texture,
       transparent: true,
-      opacity: input.opacity ?? 1,
       // Las calcas no escriben profundidad: así no se ocluyen entre ellas.
       depthTest: true,
       depthWrite: false,
@@ -367,6 +768,11 @@ export class TattooViewer {
       quaternion: new THREE.Quaternion(...input.quaternion),
       size: new THREE.Vector3(...input.size),
       dirty: true,
+      curvature: null,
+      measuredAt: null,
+      patch: null,
+      patchAt: null,
+      patchRadius: 0,
     }
     this.decals.push(entry)
   }
@@ -377,13 +783,11 @@ export class TattooViewer {
       position: [number, number, number]
       quaternion: [number, number, number, number]
       size: [number, number, number]
-      opacity: number
     }>,
   ) {
     const entry = this.decals.find((d) => d.id === id)
     if (!entry) return
 
-    if (patch.opacity !== undefined) entry.material.opacity = patch.opacity
     if (patch.position) {
       entry.position.set(...patch.position)
       entry.dirty = true
@@ -424,6 +828,7 @@ export class TattooViewer {
   }
 
   private disposeDecal(entry: DecalEntry) {
+    entry.patch?.geometry.dispose()
     entry.mesh.removeFromParent()
     entry.mesh.geometry.dispose()
     entry.material.dispose()
@@ -437,13 +842,8 @@ export class TattooViewer {
       if (!entry.dirty) continue
       entry.dirty = false
 
-      const euler = new THREE.Euler().setFromQuaternion(entry.quaternion)
-      let geometry: THREE.BufferGeometry
-      try {
-        geometry = new DecalGeometry(this.bodyMesh, entry.position, euler, entry.size)
-      } catch {
-        continue
-      }
+      const geometry = this.buildDecalGeometry(entry)
+      if (!geometry) continue
       entry.mesh.geometry.dispose()
       entry.mesh.geometry = geometry
       // DecalGeometry emite vértices en espacio de mundo y la calca cuelga del
@@ -471,13 +871,67 @@ export class TattooViewer {
     // Primero las calcas: si se pincha una, se selecciona y se puede arrastrar.
     const meshes = this.decals.map((d) => d.mesh)
     const onDecal = meshes.length ? this.raycaster.intersectObjects(meshes, false)[0] : undefined
-    if (onDecal) {
-      const id = onDecal.object.name.replace('decal:', '')
+    // Pinchar justo encima de un dibujo de línea es difícil: entre trazo y
+    // trazo se ve la piel, y el clic se iba al cuerpo. Entonces el arrastre
+    // giraba la cámara en vez de mover el tatuaje, y parecía que todo se movía
+    // solo. Si el punto cae dentro de la huella de la calca elegida, cuenta
+    // como agarrarla.
+    const grabbed = onDecal ? null : this.decalUnderPointer()
+    if (onDecal || grabbed) {
+      const id = onDecal ? onDecal.object.name.replace('decal:', '') : grabbed!
       this.selectedId = id
       this.draggingId = id
       this.controls.enabled = false
+      // Sin capturar el puntero, sacarlo del lienzo a mitad del arrastre
+      // cortaba los eventos: el arrastre se quedaba abierto, la órbita seguía
+      // bloqueada y al volver a entrar la calca pegaba un salto hasta el
+      // cursor. Con captura, el gesto termina siempre donde el artista lo
+      // suelta.
+      this.pointerId = e.pointerId
+      try {
+        this.renderer.domElement.setPointerCapture(e.pointerId)
+      } catch {
+        // Algún navegador puede rechazarla; el arrastre sigue funcionando
+        // dentro del lienzo.
+      }
+
+      const entry = this.decals.find((d) => d.id === id)
+      this.dragFrom = entry
+        ? {
+            normal: FORWARD.clone().applyQuaternion(entry.quaternion),
+            quaternion: entry.quaternion.clone(),
+          }
+        : null
+
       this.callbacks.onSelect?.(id)
     }
+  }
+
+  /**
+   * Calca cuya huella contiene el punto del cuerpo que señala el puntero.
+   *
+   * Se prefiere la elegida, que es la que el artista está tocando; si no, la
+   * más pequeña que lo contenga, para poder agarrar una calca chica encima de
+   * otra grande.
+   */
+  private decalUnderPointer(): string | null {
+    if (!this.bodyMesh || this.decals.length === 0) return null
+    const hit = this.raycaster.intersectObject(this.bodyMesh, false)[0]
+    if (!hit) return null
+
+    const contains = (entry: DecalEntry) =>
+      hit.point.distanceTo(entry.position) <= Math.max(entry.size.x, entry.size.y) / 2
+
+    const selected = this.decals.find((d) => d.id === this.selectedId)
+    if (selected && contains(selected)) return selected.id
+
+    const candidates = this.decals.filter(contains)
+    if (candidates.length === 0) return null
+    return candidates.reduce((smallest, entry) =>
+      Math.max(entry.size.x, entry.size.y) < Math.max(smallest.size.x, smallest.size.y)
+        ? entry
+        : smallest,
+    ).id
   }
 
   private onPointerMove = (e: PointerEvent) => {
@@ -489,12 +943,34 @@ export class TattooViewer {
     const entry = this.decals.find((d) => d.id === this.draggingId)
     if (!entry) return
 
-    const normal = hit.face.normal
-      .clone()
-      .applyNormalMatrix(new THREE.Matrix3().getNormalMatrix(this.bodyMesh.matrixWorld))
-      .normalize()
+    // `hit.normal` viene interpolada entre los vértices; `hit.face.normal` es la
+    // de la cara plana y hacía que la calca saltara de triángulo en triángulo
+    // al arrastrarla sobre un brazo de pocos polígonos.
+    const normal = smoothNormal(hit, this.bodyMesh)
+    if (!normal) return
+
+    // Se gira lo mínimo para pasar de la normal donde empezó el arrastre a la
+    // de ahora, aplicado sobre la orientación de partida. Rehacer la
+    // orientación desde cero perdía el giro que el artista había dado; ir
+    // encadenando rotaciones lo conservaba pero acumulaba el temblor de la
+    // malla y el dibujo se torcía solo. Partir siempre del origen no deriva.
+    const from = this.dragFrom
+    if (from) {
+      const align = new THREE.Quaternion().setFromUnitVectors(from.normal, normal)
+      entry.quaternion.copy(from.quaternion).premultiply(align).normalize()
+      // Al dar la vuelta a un miembro la normal acaba casi opuesta a la de
+      // partida, y ahí la rotación mínima es ambigua: el eje de giro se vuelve
+      // indeterminado y el dibujo pegaba un volantazo. Se vuelve a anclar el
+      // origen cada vez que la piel ha girado un cuarto de vuelta, así nunca
+      // se llega a ese punto y de paso el temblor de la malla solo entra una
+      // vez por tramo en lugar de acumularse en cada movimiento del ratón.
+      if (from.normal.dot(normal) < REANCHOR_DOT) {
+        from.normal.copy(normal)
+        from.quaternion.copy(entry.quaternion)
+      }
+    }
+
     entry.position.copy(hit.point)
-    entry.quaternion.set(...this.orientationFor(normal.toArray() as [number, number, number]))
     entry.dirty = true
   }
 
@@ -502,10 +978,23 @@ export class TattooViewer {
     const wasDragging = this.draggingId
     this.controls.enabled = true
     this.draggingId = null
+    this.dragFrom = null
+    if (this.pointerId !== null) {
+      try {
+        this.renderer.domElement.releasePointerCapture(this.pointerId)
+      } catch {
+        // Ya estaba liberada.
+      }
+      this.pointerId = null
+    }
 
     if (wasDragging) {
       const entry = this.decals.find((d) => d.id === wasDragging)
       if (entry) {
+        // Ahora sí: la calca está en su sitio definitivo, se mide la piel de
+        // ahí y se rehace la geometría con ella.
+        entry.measuredAt = null
+        entry.dirty = true
         this.callbacks.onTransform?.(wasDragging, {
           position: entry.position.toArray() as [number, number, number],
           quaternion: entry.quaternion.toArray() as [number, number, number, number],
@@ -532,10 +1021,8 @@ export class TattooViewer {
       return
     }
 
-    const normal = hit.face.normal
-      .clone()
-      .applyNormalMatrix(new THREE.Matrix3().getNormalMatrix(this.bodyMesh.matrixWorld))
-      .normalize()
+    const normal = smoothNormal(hit, this.bodyMesh)
+    if (!normal) return
 
     this.callbacks.onPlace?.({
       point: hit.point.toArray() as [number, number, number],
@@ -546,8 +1033,237 @@ export class TattooViewer {
   }
 
   /** Profundidad del proyector para el modelo/zona activos. */
+  /** Profundidad de la caja para una calca nueva, ya con el margen aplicado. */
+  /**
+   * Construye la geometría de una calca sobre la piel.
+   *
+   * Sobre una superficie plana basta la proyección de siempre. Sobre un brazo o
+   * una muñeca no, porque una caja plana **no pasa de la silueta**: lo que
+   * sobra se proyecta al aire y el dibujo sale cortado. Para que el tatuaje
+   * rodee el miembro se proyecta una caja que abarca el anillo entero y después
+   * se recalculan las coordenadas de textura **por ángulo alrededor del eje**,
+   * en vez de por distancia en plano.
+   *
+   * Esa es toda la diferencia: una proyección plana reparte la imagen según la
+   * sombra del dibujo, que se agolpa al llegar al borde; repartirla por ángulo
+   * la hace avanzar a paso constante sobre la piel y seguir la curva hasta dar
+   * la vuelta.
+   */
+  private buildDecalGeometry(entry: DecalEntry): THREE.BufferGeometry | null {
+    if (!this.bodyMesh) return null
+
+    const forward = FORWARD.clone().applyQuaternion(entry.quaternion)
+    const right = RIGHT.clone().applyQuaternion(entry.quaternion)
+    const up = UP.clone().applyQuaternion(entry.quaternion)
+
+    const curve = this.curvatureFor(entry, forward, right, up)
+    const wrapX = curve?.wrapX ?? true
+    const span = wrapX ? entry.size.x : entry.size.y
+    const arc = curve ? span / curve.radius : 0
+    const wrapping = curve !== null && arc >= MIN_WRAP_ANGLE
+    const reach = Math.max(entry.size.x, entry.size.y)
+
+    // Cuánta malla hay que tener a mano. Al envolver, la caja abarca el anillo
+    // entero y su centro está un radio por dentro de la piel, así que alcanza
+    // bastante más lejos que la propia calca; con el margen de antes (un solo
+    // radio) el recorte se quedaba corto y la imagen aparecía mordida por los
+    // lados en cuanto la calca era pequeña sobre un miembro grueso.
+    const patch = this.patchFor(
+      entry,
+      wrapping ? curve.radius * (1 + RING_MARGIN) + reach / 2 : reach * 0.75,
+    )
+
+    const flat = () =>
+      this.flatDecal(entry.position, entry.quaternion, entry.size, forward, true, patch)
+
+    if (!wrapping) return flat()
+
+    // Eje del miembro: perpendicular a la normal y a la dirección que se
+    // envuelve. La calca gira alrededor de él.
+    const axis = wrapX ? right : up
+    const spin = new THREE.Vector3().crossVectors(forward, axis).normalize()
+    const { radius } = curve
+    // El eje del cilindro pasa un radio por dentro de la piel, bajo la calca.
+    // Se deduce aquí y no se guarda: así sigue a la calca mientras se arrastra.
+    const center = entry.position.clone().addScaledVector(forward, -radius)
+
+    // La caja abarca el anillo completo; el recorte fino lo hace el reparto por
+    // ángulo, que descarta lo que queda fuera del arco del dibujo.
+    const ring = radius * 2 * RING_MARGIN
+    const across = wrapX ? entry.size.y : entry.size.x
+    const size = new THREE.Vector3(
+      wrapX ? ring : across,
+      wrapX ? across : ring,
+      ring,
+    )
+
+    const geometry = this.flatDecal(center, entry.quaternion, size, forward, false, patch)
+    if (!geometry) return null
+
+    // Si el reparto por ángulo no deja ni un triángulo (pasa al borde de una
+    // zona, donde el cilindro deja de describir la piel) se cae a la
+    // proyección plana. Antes se devolvía null y la calca se quedaba con la
+    // geometría vieja: se congelaba a mitad del arrastre y luego pegaba un
+    // salto al volver a entrar.
+    return wrapUv(geometry, { center, spin, forward, axis, radius, arc, across, wrapX }) ?? flat()
+  }
+
+  /**
+   * Curvatura de la piel bajo una calca, medida solo cuando hace falta.
+   *
+   * Medirla en cada reconstrucción la hacía temblar: son rayos contra una malla
+   * con relieve y el radio salía algo distinto cada vez, así que el envolvente
+   * cambiaba solo con mover el deslizador de tamaño. Se vuelve a medir cuando
+   * la calca se ha ido lo bastante lejos de donde se midió.
+   */
+  private curvatureFor(
+    entry: DecalEntry,
+    forward: THREE.Vector3,
+    right: THREE.Vector3,
+    up: THREE.Vector3,
+  ): SurfaceCurvature | null {
+    // Mientras se arrastra no se vuelve a medir: cada medición da un radio algo
+    // distinto y el envolvente cambiaba de golpe cada centímetro, que es lo que
+    // hacía que el dibujo saltara al moverlo. Se queda con el radio de donde
+    // empezó y se actualiza al soltar. Congelar el radio no clava la calca: el
+    // centro del cilindro se deduce de su posición en cada reconstrucción.
+    if (this.draggingId === entry.id && entry.curvature !== null) return entry.curvature
+
+    const moved =
+      !entry.measuredAt || entry.measuredAt.distanceTo(entry.position) > REMEASURE_DISTANCE
+    if (!moved) return entry.curvature
+
+    const curveX = this.fitCurvature(entry.position, forward, right)
+    const curveY = this.fitCurvature(entry.position, forward, up)
+    const wrapX = (curveX?.radius ?? Infinity) <= (curveY?.radius ?? Infinity)
+    const chosen = wrapX ? curveX : curveY
+
+    entry.curvature = chosen ? { ...chosen, wrapX } : null
+    entry.measuredAt = entry.position.clone()
+    return entry.curvature
+  }
+
+  /**
+   * Trozo de malla sobre el que proyectar esta calca.
+   *
+   * `needed` es el alcance que la proyección necesita alrededor de la calca, y
+   * lo decide quien llama: envolver abarca el anillo entero del miembro y pide
+   * mucho más que una calca plana. Se reaprovecha mientras la calca siga
+   * cómodamente dentro —rehacerlo en cada fotograma costaría más que el
+   * ahorro— y el margen extra es justamente para que un arrastre corto no
+   * obligue a rehacerlo.
+   */
+  private patchFor(entry: DecalEntry, needed: number): THREE.Mesh {
+    if (!this.bodyMesh) return this.bodyMesh!
+
+    const covered =
+      entry.patchAt !== null &&
+      entry.patchAt.distanceTo(entry.position) + needed <= entry.patchRadius
+
+    // Se guarda también el "aquí no sale a cuenta recortar": si no, se volvía a
+    // recorrer la malla entera en cada fotograma para llegar a la misma
+    // conclusión.
+    if (covered) return entry.patch ?? this.bodyMesh
+
+    const radius = needed + PATCH_SLACK
+    const patch = localPatch(this.bodyMesh, entry.position, radius)
+
+    entry.patch?.geometry.dispose()
+    entry.patch = patch
+    entry.patchAt = entry.position.clone()
+    entry.patchRadius = radius
+    return patch ?? this.bodyMesh
+  }
+
+  /** La proyección plana de siempre, recortada a la cara que mira al proyector. */
+  private flatDecal(
+    position: THREE.Vector3,
+    quaternion: THREE.Quaternion,
+    size: THREE.Vector3,
+    forward: THREE.Vector3,
+    cullBack = true,
+    target: THREE.Mesh = this.bodyMesh!,
+  ): THREE.BufferGeometry | null {
+    try {
+      const euler = new THREE.Euler().setFromQuaternion(quaternion)
+      const geometry = new DecalGeometry(target, position, euler, size)
+      // La caja atraviesa el miembro de lado a lado, así que recorta también la
+      // cara de atrás y el dibujo salía repetido por detrás. Al envolver no se
+      // descarta aquí: ahí la cara "de atrás" es justamente la que se busca, y
+      // el recorte lo hace el reparto por ángulo.
+      return cullBack ? cullAwayFacing(geometry, forward) : geometry
+    } catch {
+      return null
+    }
+  }
+
+  /**
+   * Curvatura de la piel en una dirección: radio y centro del círculo que
+   * mejor la describe ahí. Devuelve null donde es plana.
+   *
+   * Se ajusta una circunferencia por **tres puntos de la superficie**, no por
+   * el giro de las normales. Las normales de estas mallas vienen suavizadas y
+   * sobre un modelo de pocos polígonos giran menos de lo que gira la piel: en
+   * un antebrazo daban 7,4 cm de radio donde la medida real es menos de la
+   * mitad, y con el centro tan lejos el envolvente se perdía a los pocos
+   * grados. Tres puntos dan el círculo exacto que pasa por ellos.
+   */
+  private fitCurvature(
+    position: THREE.Vector3,
+    forward: THREE.Vector3,
+    axis: THREE.Vector3,
+  ): { radius: number } | null {
+    let left: { point: THREE.Vector3; normal: THREE.Vector3 } | null = null
+    let right: { point: THREE.Vector3; normal: THREE.Vector3 } | null = null
+    for (const span of CURVATURE_SPANS) {
+      left = this.surfaceAt(position.clone().addScaledVector(axis, -span), forward)
+      right = this.surfaceAt(position.clone().addScaledVector(axis, span), forward)
+      if (left && right) break
+    }
+    if (!left || !right) return null
+
+    // Coordenadas en el plano del giro: `axis` hacia un lado, `forward` hacia
+    // fuera de la piel, con el punto de colocación en el origen.
+    const flatten = (point: THREE.Vector3) => {
+      const d = point.clone().sub(position)
+      return { x: d.dot(axis), y: d.dot(forward) }
+    }
+    const a = { x: 0, y: 0 }
+    const b = flatten(left.point)
+    const c = flatten(right.point)
+
+    // Circuncentro de los tres puntos.
+    const d = 2 * (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y))
+    if (Math.abs(d) < 1e-9) return null // alineados: la piel es plana aquí
+
+    const aSq = a.x * a.x + a.y * a.y
+    const bSq = b.x * b.x + b.y * b.y
+    const cSq = c.x * c.x + c.y * c.y
+    const cx = (aSq * (b.y - c.y) + bSq * (c.y - a.y) + cSq * (a.y - b.y)) / d
+    const cy = (aSq * (c.x - b.x) + bSq * (a.x - c.x) + cSq * (b.x - a.x)) / d
+
+    const radius = Math.hypot(cx - a.x, cy - a.y)
+    if (!Number.isFinite(radius) || radius <= 0 || radius > MAX_CURVE_RADIUS) return null
+    // El centro debe quedar por dentro de la piel; si sale hacia fuera, la
+    // superficie es cóncava aquí y no hay nada que envolver.
+    if (cy > 0) return null
+
+    return { radius }
+  }
+
+  /** Punto y normal de la piel justo delante de `from`, mirando por `forward`. */
+  private surfaceAt(
+    from: THREE.Vector3,
+    forward: THREE.Vector3,
+  ): { point: THREE.Vector3; normal: THREE.Vector3 } | null {
+    this.probe.set(from.clone().addScaledVector(forward, PROBE_STANDOFF), forward.clone().negate())
+    const hit = this.probe.intersectObject(this.bodyMesh!, false)[0]
+    if (!hit?.normal) return null
+    return { point: hit.point, normal: hit.normal }
+  }
+
   get projectorDepth(): number {
-    return this.decalDepth
+    return this.decalDepth * PROJECTOR_REACH
   }
 
   setProjectorDepth(depth: number) {

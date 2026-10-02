@@ -545,3 +545,12 @@
   border-color: transparent;
 }
 [data-theme="light"] .prev3d__btn--primary:hover:not(:disabled) { background: #000; color: #fff; }
+
+/* Aviso bajo el deslizador de tamaño: por qué no se puede agrandar más.
+   Aparece solo al tocar el tope, así que no estorba el resto del tiempo. */
+.prev3d__note {
+  margin: -2px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--ash);
+}
