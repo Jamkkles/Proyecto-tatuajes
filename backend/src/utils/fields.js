@@ -46,6 +46,22 @@ function money(raw, label) {
   return n;
 }
 
+/**
+ * Número con decimales dentro de un rango (medidas en cm, tasas de consumo).
+ * A diferencia de `money`, aquí los decimales son el punto: un tatuaje mide
+ * 12,5 cm y un insumo se gasta a 0,015 por cm².
+ *
+ * Se acota a 5 decimales, que es la precisión de las columnas NUMERIC.
+ */
+function decimal(raw, min, max, message) {
+  if (raw === undefined) return undefined;
+  const n = typeof raw === 'string' && raw.trim() !== '' ? Number(raw) : raw;
+  if (typeof n !== 'number' || !Number.isFinite(n) || n < min || n > max) {
+    throw new FieldError(message);
+  }
+  return Math.round(n * 100000) / 100000;
+}
+
 function integerBetween(raw, min, max, message) {
   if (raw === undefined) return undefined;
   const n = typeof raw === 'string' && raw.trim() !== '' ? Number(raw) : raw;
@@ -97,6 +113,7 @@ module.exports = {
   requiredText,
   optionalText,
   money,
+  decimal,
   integerBetween,
   oneOf,
   boolean,

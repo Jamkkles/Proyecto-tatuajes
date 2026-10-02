@@ -33,6 +33,20 @@ async function save({ buffer, mimeType, userId, folder = 'sketches' }) {
   return { key, url: `${PUBLIC_URL}/uploads/${key}` };
 }
 
+/**
+ * Lee el archivo de vuelta. Lo necesita el re-análisis de bocetos ya subidos
+ * (`npm run sketches:analyze`), que vuelve a medir su tinta y sus colores.
+ * Devuelve null si el archivo ya no está.
+ */
+async function read(key) {
+  try {
+    return await fs.readFile(path.join(UPLOAD_DIR, key));
+  } catch (err) {
+    if (err.code === 'ENOENT') return null;
+    throw err;
+  }
+}
+
 /** Borra el archivo. Si ya no existe, no es un error. */
 async function remove(key) {
   try {
@@ -42,4 +56,4 @@ async function remove(key) {
   }
 }
 
-module.exports = { name: 'local', save, remove, UPLOAD_DIR };
+module.exports = { name: 'local', save, read, remove, UPLOAD_DIR };

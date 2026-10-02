@@ -1,6 +1,6 @@
 const sketchModel = require('../models/sketchModel');
 const storage = require('../services/storage');
-const { optimizeImage, readDimensions } = require('../services/imageOptimizer');
+const { optimizeImage, readDimensions, readInkProfile } = require('../services/imageOptimizer');
 const { imageUpload: uploadMiddleware } = require('../middleware/imageUpload');
 
 const VALID_STATUS = ['disponible', 'reservado', 'tatuado'];
@@ -76,6 +76,10 @@ async function create(req, res) {
   }
 
   const { width, height } = readDimensions(optimized);
+  // Cobertura y paleta para el cotizador (HU14). Se miden una sola vez, al
+  // subir: son propiedades del dibujo y no cambian. Si no se pueden leer quedan
+  // NULL y la cotización usa su valor por defecto.
+  const { inkRatio, palette } = await readInkProfile(optimized);
 
   try {
     const sketch = await sketchModel.create({
@@ -92,6 +96,8 @@ async function create(req, res) {
       sizeBytes: optimized.length,
       width,
       height,
+      inkRatio,
+      palette,
     });
 
     return res.status(201).json({ sketch });

@@ -4,6 +4,7 @@ const photoModel = require('../models/sessionPhotoModel');
 const { removeFiles } = require('../services/storage/removeFiles');
 const {
   FieldError,
+  decimal,
   isUuid,
   money,
   oneOf,
@@ -16,6 +17,16 @@ const {
 const VALID_STATUS = ['activo', 'terminado', 'cancelado'];
 const NOT_FOUND = { message: 'Proyecto no encontrado.' };
 
+// Tope de cordura: un tatuaje de más de 2 m no existe.
+const MAX_CM = 200;
+
+/** Medida en centímetros; '' o null la borran. */
+function size(raw, label) {
+  if (raw === undefined) return undefined;
+  if (raw === null || raw === '') return null;
+  return decimal(raw, 0.1, MAX_CM, `${label} debe ir entre 0,1 y ${MAX_CM} cm.`);
+}
+
 function parseProject(body, { partial }) {
   const fields = {};
   if (!partial || body.title !== undefined) {
@@ -27,6 +38,10 @@ function parseProject(body, { partial }) {
   fields.status = oneOf(body.status, VALID_STATUS, 'Estado de proyecto no válido.');
   fields.sketchId = optionalUuid(body.sketchId, 'El boceto no es válido.');
   fields.previewId = optionalUuid(body.previewId, 'La previsualización no es válida.');
+  // Medidas reales del tatuaje, normalmente copiadas de la escena 3D al
+  // guardarla. `null` las borra, igual que el resto de los campos opcionales.
+  fields.widthCm = size(body.widthCm, 'El ancho');
+  fields.heightCm = size(body.heightCm, 'El alto');
   return fields;
 }
 

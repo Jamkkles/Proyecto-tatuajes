@@ -1,5 +1,6 @@
 const sessionModel = require('../models/sessionModel');
 const photoModel = require('../models/sessionPhotoModel');
+const quoteModel = require('../models/quoteModel');
 const storage = require('../services/storage');
 const { removeFiles } = require('../services/storage/removeFiles');
 const { optimizeImage, readDimensions } = require('../services/imageOptimizer');
@@ -90,6 +91,9 @@ async function create(req, res) {
 }
 
 // PATCH /api/sessions/:id  → reagendar, cancelar, marcar pagada… (HU21)
+//
+// Al pasar la sesión a `completada`, si tiene una cotización enlazada se
+// descuenta el stock que esa cotización calculó (HU16).
 async function update(req, res) {
   if (!isUuid(req.params.id)) return res.status(404).json(NOT_FOUND);
 
@@ -97,9 +101,47 @@ async function update(req, res) {
     const fields = parseSession(req.body ?? {}, { partial: true });
     const session = await sessionModel.update(req.params.id, req.user.sub, fields);
     if (!session) return res.status(404).json(NOT_FOUND);
-    return res.json({ session });
+
+    const stock = await consumeQuoteFor(session, fields.status, req.user.sub);
+    return res.json(stock ? { session, stock } : { session });
   } catch (err) {
     return sendError(res, err, 'actualizando la sesión');
+  }
+}
+
+/**
+ * HU16: al dar por finalizada una sesión cotizada, sus materiales se
+ * descuentan solos del inventario.
+ *
+ * Solo actúa en la transición a `completada` y solo si la sesión tiene una
+ * cotización enlazada. `consume` es idempotente (marca `consumed_at` dentro de
+ * la transacción), así que volver a guardar una sesión ya completada no
+ * descuenta de nuevo — devuelve null y aquí no se informa nada.
+ *
+ * Si el descuento falla, la sesión igual quedó completada: se registra en el
+ * log y el artista puede ajustar el stock a mano. Perder la actualización de
+ * la cita por un problema del inventario sería peor.
+ */
+async function consumeQuoteFor(session, requestedStatus, userId) {
+  if (requestedStatus !== 'completada') return null;
+
+  try {
+    const quote = await quoteModel.findBySession(session.id, userId);
+    if (!quote || quote.consumed_at) return null;
+
+    const result = await quoteModel.consume(quote.id, userId);
+    if (!result) return null;
+
+    return {
+      quoteId: result.quote.id,
+      // Lo que quedó en nivel crítico tras descontar: es lo que el frontend
+      // avisa para reponer a tiempo (HU13).
+      discounted: result.affected,
+      low: result.affected.filter((m) => m.low),
+    };
+  } catch (err) {
+    console.error('Error descontando el stock de la sesión:', err);
+    return null;
   }
 }
 

@@ -8,6 +8,7 @@ const pool = require('../config/db');
 const SELECT_WITH_SUMMARY = `
   SELECT p.id, p.user_id, p.client_id, p.title, p.description, p.body_zone,
          p.total_price, p.status, p.sketch_id, p.preview_id,
+         p.width_cm::float8 AS width_cm, p.height_cm::float8 AS height_cm,
          p.created_at, p.updated_at,
          c.name AS client_name, c.phone AS client_phone,
          sk.url AS sketch_url, pv.name AS preview_name,
@@ -97,6 +98,8 @@ const EDITABLE = {
   status: 'status',
   sketchId: 'sketch_id',
   previewId: 'preview_id',
+  widthCm: 'width_cm',
+  heightCm: 'height_cm',
 };
 
 async function update(id, userId, fields) {
@@ -133,9 +136,14 @@ async function remove(id, userId) {
 
 // Tablas que un proyecto puede referenciar. Lista cerrada: el nombre de tabla
 // se interpola en el SQL.
-const REFERENCE_TABLES = { sketch: 'sketches', preview: 'previews' };
+const REFERENCE_TABLES = {
+  sketch: 'sketches',
+  preview: 'previews',
+  project: 'projects',
+  session: 'project_sessions',
+};
 
-/** ¿El boceto / la escena 3D existe y es del artista? */
+/** ¿La fila referenciada existe y es del artista? */
 async function ownsReference(kind, id, userId) {
   const table = REFERENCE_TABLES[kind];
   const { rowCount } = await pool.query(

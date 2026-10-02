@@ -2,7 +2,7 @@ const pool = require('../config/db');
 
 const COLUMNS = `
   id, user_id, name, category, unit, quantity, min_quantity, unit_cost,
-  supplier, notes, created_at, updated_at
+  supplier, notes, consumption_basis, consumption_rate, color_hex, created_at, updated_at
 `;
 
 // Un insumo está en nivel crítico cuando su stock llegó al mínimo definido.
@@ -44,8 +44,9 @@ async function findByIdForUser(id, userId) {
 async function create(data) {
   const { rows } = await pool.query(
     `INSERT INTO materials
-       (user_id, name, category, unit, quantity, min_quantity, unit_cost, supplier, notes)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       (user_id, name, category, unit, quantity, min_quantity, unit_cost, supplier,
+        notes, consumption_basis, consumption_rate, color_hex)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
      RETURNING ${COLUMNS}`,
     [
       data.userId,
@@ -57,6 +58,9 @@ async function create(data) {
       data.unitCost ?? 0,
       data.supplier ?? null,
       data.notes ?? null,
+      data.consumptionBasis ?? 'ninguno',
+      data.consumptionRate ?? 0,
+      data.colorHex ?? null,
     ]
   );
   return rows[0];
@@ -72,6 +76,9 @@ const EDITABLE = {
   unitCost: 'unit_cost',
   supplier: 'supplier',
   notes: 'notes',
+  consumptionBasis: 'consumption_basis',
+  consumptionRate: 'consumption_rate',
+  colorHex: 'color_hex',
 };
 
 async function update(id, userId, fields) {
@@ -122,4 +129,26 @@ async function remove(id, userId) {
   return rows[0] ?? null;
 }
 
-module.exports = { listByUser, findByIdForUser, create, update, adjustStock, remove };
+/**
+ * Insumos que entran en una cotización (HU14): los que declararon cómo se
+ * consumen. La máquina o el pedal quedan fuera — no se gastan tatuando.
+ */
+async function listConsumable(userId) {
+  const { rows } = await pool.query(
+    `SELECT ${COLUMNS} FROM materials
+      WHERE user_id = $1 AND consumption_basis <> 'ninguno' AND consumption_rate > 0
+      ORDER BY lower(name)`,
+    [userId]
+  );
+  return rows;
+}
+
+module.exports = {
+  listByUser,
+  listConsumable,
+  findByIdForUser,
+  create,
+  update,
+  adjustStock,
+  remove,
+};

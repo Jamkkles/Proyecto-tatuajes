@@ -4,7 +4,7 @@ const pool = require('../config/db');
 // detalles internos del almacenamiento y no salen de la capa de modelo/controlador.
 const PUBLIC_COLUMNS = `
   id, user_id, title, description, body_zone, status, tags,
-  url, mime_type, size_bytes, width, height, created_at, updated_at
+  url, mime_type, size_bytes, width, height, ink_ratio, palette, created_at, updated_at
 `;
 
 /**
@@ -46,8 +46,9 @@ async function create(data) {
   const { rows } = await pool.query(
     `INSERT INTO sketches
        (user_id, title, description, body_zone, status, tags,
-        storage_driver, storage_key, url, mime_type, size_bytes, width, height)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        storage_driver, storage_key, url, mime_type, size_bytes, width, height,
+        ink_ratio, palette)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
      RETURNING ${PUBLIC_COLUMNS}`,
     [
       data.userId,
@@ -63,6 +64,9 @@ async function create(data) {
       data.sizeBytes,
       data.width,
       data.height,
+      data.inkRatio,
+      // JSONB: el driver no serializa arreglos de objetos por su cuenta.
+      data.palette ? JSON.stringify(data.palette) : null,
     ]
   );
   return rows[0];

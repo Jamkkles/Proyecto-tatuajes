@@ -57,9 +57,22 @@ function save({ buffer, userId, folder = 'sketches' }) {
   });
 }
 
+/**
+ * Descarga el archivo de vuelta. Lo necesita el re-análisis de bocetos ya
+ * subidos. Se baja por la URL pública que arma el SDK en vez de pedir el
+ * binario por la API: es la misma imagen y no gasta cuota de administración.
+ */
+async function read(key) {
+  configure();
+  const url = cloudinary.url(key, { resource_type: 'image', secure: true });
+  const response = await fetch(url);
+  if (!response.ok) return null;
+  return Buffer.from(await response.arrayBuffer());
+}
+
 async function remove(key) {
   configure();
   await cloudinary.uploader.destroy(key, { resource_type: 'image' });
 }
 
-module.exports = { name: 'cloudinary', save, remove };
+module.exports = { name: 'cloudinary', save, read, remove };

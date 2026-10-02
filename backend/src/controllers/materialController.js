@@ -1,6 +1,7 @@
 const materialModel = require('../models/materialModel');
 const {
   FieldError,
+  decimal,
   integerBetween,
   isUuid,
   money,
@@ -21,10 +22,27 @@ const VALID_CATEGORY = [
   'otros',
 ];
 const VALID_UNIT = ['unidad', 'caja', 'par', 'ml', 'rollo', 'hoja', 'metro', 'set'];
+// Cómo escala el gasto del insumo en una cotización (HU14).
+const VALID_BASIS = ['area', 'sesion', 'hora', 'ninguno'];
+// Tope de cordura de la tasa de consumo. Las tasas por área son centésimas
+// (0,015 cartuchos/cm²) y las de hora, decenas (25 ml de jabón); 1000 deja
+// margen de sobra sin permitir un número absurdo.
+const MAX_RATE = 1000;
+// Color de la tinta, para emparejarla con la paleta del boceto (HU14).
+const HEX_RE = /^#[0-9a-f]{6}$/i;
 
 // Tope de cordura para el stock (p. ej. mililitros de tinta).
 const MAX_QUANTITY = 1000000;
 const NOT_FOUND = { message: 'Insumo no encontrado.' };
+
+/** '' o null quitan el color; cualquier otra cosa debe ser un #rrggbb. */
+function hexColor(raw) {
+  if (raw === undefined) return undefined;
+  if (raw === null || raw === '') return null;
+  const text = String(raw).trim();
+  if (!HEX_RE.test(text)) throw new FieldError('El color debe ir en formato #rrggbb.');
+  return text.toLowerCase();
+}
 
 function parseMaterial(body, { partial }) {
   const fields = {};
@@ -46,6 +64,18 @@ function parseMaterial(body, { partial }) {
     'El nivel crítico debe ser un número entero de 0 en adelante.'
   );
   fields.unitCost = money(body.unitCost, 'El costo unitario');
+  fields.consumptionBasis = oneOf(
+    body.consumptionBasis,
+    VALID_BASIS,
+    'Base de consumo no válida.'
+  );
+  fields.consumptionRate = decimal(
+    body.consumptionRate,
+    0,
+    MAX_RATE,
+    'La tasa de consumo debe ser un número de 0 en adelante.'
+  );
+  fields.colorHex = hexColor(body.colorHex);
   fields.supplier = optionalText(body.supplier, 'El proveedor', 120);
   fields.notes = optionalText(body.notes, 'Las notas', 2000);
   return fields;

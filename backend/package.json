@@ -6,7 +6,8 @@
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "db:init": "node src/db/init.js",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "sketches:analyze": "node src/db/analyzeSketches.js"
   },
   "author": "",
   "license": "ISC",
