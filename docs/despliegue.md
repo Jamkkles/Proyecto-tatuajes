@@ -35,11 +35,17 @@ intentos de login, CORS solo acepta tu frontend y la base se conecta con TLS.
 ## 1. Neon (base de datos)
 
 1. Crea una cuenta en neon.com y un proyecto nuevo.
-2. **Versión de Postgres: 16.** Es la del contenedor local; si usas una más nueva,
-   `pg_dump` desde tu Docker (para respaldos) se negará a funcionar.
-3. **Región: AWS US East 2 (Ohio)**, para quedar junto a Render.
-4. Copia la cadena de conexión (`postgresql://…?sslmode=require`). Es una
-   contraseña: no la pegues en chats ni la subas a Git.
+2. **Región: AWS US East 2 (Ohio)**, para quedar junto a Render.
+3. **Versión de Postgres.** El esquema se probó en Postgres 18 (la que Neon crea
+   hoy por defecto). Es más nueva que la del contenedor local (16), así que los
+   respaldos usan una imagen 18 (ver *Mantenimiento*).
+4. Hay dos cadenas de conexión: la **agrupada** (`…-pooler…`, `DATABASE_URL`) y la
+   **directa** (`DATABASE_URL_UNPOOLED`). La app usa la agrupada; los scripts de
+   administración como `db:init`, la directa. Son contraseñas: no las pegues en
+   chats ni las subas a Git.
+
+Si enlazaste el proyecto con la CLI (`neon link`), ambas ya están en `.env.local`
+en la raíz del repositorio, que Git ignora.
 
 ## 2. Cloudinary (imágenes)
 
@@ -48,13 +54,14 @@ Crea una cuenta y, en *Dashboard → API Keys*, copia **Cloud name**, **API Key*
 
 ## 3. Crear las tablas y tu usuario
 
-Desde tu computador, con Docker corriendo. Usa **tus** datos: la contraseña debe
-tener al menos 10 caracteres (`db:init` se niega a sembrar la de ejemplo en una
-base que no sea local).
+Desde tu computador, con Docker corriendo, en la raíz del repositorio. Usa **tus**
+datos: la contraseña debe tener al menos 10 caracteres (`db:init` se niega a
+sembrar la de ejemplo en una base que no sea local). La cadena de conexión se
+lee de `.env.local`, así no hay que copiarla a mano:
 
 ```bash
 docker exec \
-  -e DATABASE_URL='PEGA-AQUI-LA-CADENA-DE-NEON' \
+  -e DATABASE_URL="$(grep '^DATABASE_URL_UNPOOLED=' .env.local | cut -d= -f2- | tr -d '"')" \
   -e SEED_NAME='Tu Nombre' \
   -e SEED_EMAIL='tu@correo.cl' \
   -e SEED_PASSWORD='una-contraseña-larga-y-propia' \
@@ -72,7 +79,7 @@ idempotente: se puede repetir (por ejemplo tras cambios en `schema.sql`).
 
    | Variable | Valor |
    |---|---|
-   | `DATABASE_URL` | La cadena de Neon |
+   | `DATABASE_URL` | La cadena **agrupada** de Neon (la que contiene `-pooler`) |
    | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Del paso 2 |
    | `CORS_ORIGIN`, `FRONTEND_URL` | De momento cualquier texto: se corrigen en el paso 6 |
 
@@ -146,10 +153,14 @@ para un servicio todo el mes. Comprueba que el plan gratuito del monitor y las
 condiciones de Render lo permitan.
 
 **Respaldos.** Neon conserva un historial limitado en el plan gratis. Un
-respaldo propio, con Postgres 16 en Neon:
+respaldo propio. `pg_dump` se niega a funcionar contra un servidor más nuevo que
+él, y el contenedor local es Postgres 16 frente al 18 de Neon, por eso se usa una
+imagen 18 aparte:
 
 ```bash
-docker exec proyecto-tatuajes-postgres-1 pg_dump 'CADENA-DE-NEON' > respaldo-$(date +%F).sql
+docker run --rm postgres:18-alpine pg_dump \
+  "$(grep '^DATABASE_URL_UNPOOLED=' .env.local | cut -d= -f2- | tr -d '"')" \
+  > respaldo-$(date +%F).sql
 ```
 
 **Correo de recuperación de contraseña.** Sin `SMTP_*` el backend usa un buzón de

@@ -15,5 +15,9 @@
   "bugs": {
     "url": "https://github.com/Jamkkles/Proyecto-tatuajes/issues"
   },
-  "homepage": "https://github.com/Jamkkles/Proyecto-tatuajes#readme"
+  "homepage": "https://github.com/Jamkkles/Proyecto-tatuajes#readme",
+  "dependencies": {
+    "@neon/config": "^1.8.3",
+    "@neon/env": "^1.4.8"
+  }
 }

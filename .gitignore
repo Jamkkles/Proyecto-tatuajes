@@ -47,3 +47,4 @@ backend/uploads/
 
 # Modelos 3D fuente (sin optimizar). El .glb optimizado sí se versiona.
 models-src/
+.neon
