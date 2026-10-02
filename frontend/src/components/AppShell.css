@@ -1,5 +1,5 @@
 /* ============================================================
-   AppShell "Ink & Honor" — Hector Tattoos
+   AppShell "Ink & Honor" — Tattoo Estudio
    Chrome compartido de la app autenticada: sidebar de navegación
    (drawer deslizable) + barra superior con botón de menú, título
    de la vista y acciones. Se esconde al bajar por la página.
@@ -103,14 +103,6 @@
   letter-spacing: 0.02em;
   color: var(--steel-hi);
   text-shadow: 0 2px 12px rgba(7, 8, 10, 0.9);
-}
-.dash__brand-sub {
-  margin-top: 3px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: var(--accent);
 }
 
 /* ---- Navegación ---- */
@@ -388,7 +380,6 @@
   border-right-color: #d3cec3;
 }
 [data-theme="light"] .dash__wordmark { color: #1b1d21; text-shadow: none; }
-[data-theme="light"] .dash__brand-sub { color: var(--accent); }
 [data-theme="light"] .navitem { color: #4a4e55; text-shadow: none; }
 [data-theme="light"] .navitem:hover { color: #1b1d21; background: rgba(27, 29, 33, 0.05); }
 [data-theme="light"] .navitem--active { color: #1b1d21; background: rgba(192, 57, 47, 0.09); }

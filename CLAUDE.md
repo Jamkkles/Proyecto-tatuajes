@@ -276,7 +276,11 @@ de la calibración está en el comentario de `CM2_POR_HORA`
 - PWA: `public/manifest.webmanifest`, `public/sw.js` (solo cachea el shell; los
   datos viven en la API, así que el modo offline es mínimo a propósito) e íconos
   PNG (`icon-192`, `icon-512`, `icon-maskable-512`, `apple-touch-icon`, este
-  último a pantalla completa porque iOS aplica su propia máscara).
+  último a pantalla completa porque iOS aplica su propia máscara). El ícono es
+  una aguja de tatuaje con una gota de tinta; los PNG salen de `icon.svg` e
+  `icon-maskable.svg` con `sharp` (`density: 384`), y `favicon.svg` es una
+  versión más gruesa para que se lea a 16 px. Al cambiar algo de lo que
+  precachea `sw.js` hay que subir `CACHE`, o las apps ya instaladas no se enteran
   `public/_headers` hace en Cloudflare Pages lo que `nginx.conf` hace en Docker
 - `lib/theme.tsx` — tema claro/oscuro global. `<ThemeProvider>` (en `App.tsx`,
   dentro de `BrowserRouter`) + hook `useTheme()` → `{ light, toggle }`. Persiste

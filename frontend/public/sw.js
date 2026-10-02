@@ -1,6 +1,10 @@
 // Service worker mínimo: cachea el app shell para que la PWA abra sin conexión.
 // No intercepta llamadas a la API (otra-origin), que siempre van a la red.
-const CACHE = 'ht-shell-v1';
+// Sube el número cada vez que cambie algo de SHELL (íconos, manifest): esos
+// archivos se sirven "caché primero", así que sin una versión nueva quien ya
+// instaló la app seguiría viendo la anterior. El `activate` borra las versiones
+// viejas.
+const CACHE = 'tattoo-estudio-shell-v2';
 const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg', '/favicon.svg'];
 
 self.addEventListener('install', (event) => {

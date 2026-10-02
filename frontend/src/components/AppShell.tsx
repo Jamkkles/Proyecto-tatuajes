@@ -125,8 +125,7 @@ export default function AppShell() {
         <div className="dash__brand">
           <span className="dash__seal" aria-hidden="true" />
           <span className="dash__brand-text">
-            <span className="dash__wordmark">Hector Tattoos</span>
-            <span className="dash__brand-sub">by Héctor</span>
+            <span className="dash__wordmark">Tattoo Estudio</span>
           </span>
         </div>
 
