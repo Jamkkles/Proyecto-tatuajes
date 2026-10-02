@@ -35,6 +35,17 @@ docker compose up          # levanta postgres + backend + frontend
 docker compose up postgres # solo la base de datos
 ```
 
+### Pruebas del backend
+```bash
+docker exec proyecto-tatuajes-backend-1 npx jest --runInBand
+```
+Se corren **dentro del contenedor**: en el host `jest` se cuelga cuando el
+proyecto está en una carpeta sincronizada con iCloud.
+
+### Despliegue (gratis, en la nube)
+Frontend en Cloudflare Pages, backend en Render (`render.yaml`), PostgreSQL en
+Neon e imágenes en Cloudinary. Paso a paso en `docs/despliegue.md`.
+
 ## Environment
 
 Backend requiere `backend/.env` (copiar de `backend/.env.example`):
@@ -49,6 +60,15 @@ PUBLIC_URL=http://localhost:3000
 Lista completa en `backend/.env.example` (SMTP para HU03, credenciales de
 Cloudinary, usuario semilla).
 
+**Con `NODE_ENV=production` el backend cambia de comportamiento a propósito:**
+se niega a arrancar si `JWT_SECRET` falta, es el de ejemplo o tiene menos de 32
+caracteres (`config/jwt.js`); el registro de cuentas queda cerrado (403) salvo
+`ALLOW_REGISTER=true`; y CORS no acepta ningún origen salvo los de `CORS_ORIGIN`
+(lista separada por comas, sin barra final). En desarrollo todo sigue abierto.
+`db:init` se niega a sembrar la contraseña de ejemplo en una base que no sea
+local. El frontend lee `VITE_API_URL` y `VITE_ALLOW_REGISTER` (ver
+`frontend/.env.example`), que Vite fija al compilar.
+
 Frontend lee `VITE_API_URL` (default en docker-compose: `http://localhost:3000`).
 
 ## Architecture
@@ -62,6 +82,15 @@ Frontend lee `VITE_API_URL` (default en docker-compose: `http://localhost:3000`)
 - `routes/` — Express Router montado en `app.js` (`/api/auth`, `/api/sketches`,
   `/api/previews`, `/api/clients`, `/api/projects`, `/api/sessions`)
 - `middleware/auth.js` — `requireAuth`: valida `Authorization: Bearer <token>` y deja el payload en `req.user`
+- `middleware/security.js` — CORS por `CORS_ORIGIN`, `registrationOpen`,
+  límite de intentos de login por IP (`createAuthLimiter`, 20 cada 15 min, se
+  salta bajo jest) y `trustProxy` (1 salto en producción: sin él, detrás de
+  Render todas las peticiones parecen de la misma IP). `app.js` añade `helmet`
+  con `Cross-Origin-Resource-Policy: cross-origin`: con el valor por defecto el
+  frontend, que vive en otro dominio, no podría mostrar las imágenes de /uploads
+- `config/dbConfig.js` — opciones del pool pensadas para una base que se
+  suspende sola (Neon): espera 15 s al conectar y suelta rápido las conexiones
+  ociosas; `DATABASE_SSL=true` fuerza TLS
 - `middleware/imageUpload.js` — multer en memoria para el campo `image` (5 MB,
   JPG/PNG/WEBP/GIF), compartido por bocetos y fotos de sesión
 - `utils/fields.js` — validadores de campos de la agenda; lanzan `FieldError`
@@ -240,6 +269,15 @@ de la calibración está en el comentario de `CM2_POR_HORA`
   `components/AgendaFields.tsx`
 - `/previsualizacion?proyecto=<id>` abre la escena enlazada al proyecto (o deja
   su boceto listo para colocar) y al guardar enlaza la escena al proyecto
+- `lib/serverWake.ts` + `components/ServerWakeNotice.tsx` — el backend gratuito
+  se duerme y tarda ~1 min en despertar. `apiFetch` marca como lenta cualquier
+  petición (salvo subidas de imagen, que tardan por su tamaño) que pase de 4 s, y
+  se muestra un aviso hasta que responde
+- PWA: `public/manifest.webmanifest`, `public/sw.js` (solo cachea el shell; los
+  datos viven en la API, así que el modo offline es mínimo a propósito) e íconos
+  PNG (`icon-192`, `icon-512`, `icon-maskable-512`, `apple-touch-icon`, este
+  último a pantalla completa porque iOS aplica su propia máscara).
+  `public/_headers` hace en Cloudflare Pages lo que `nginx.conf` hace en Docker
 - `lib/theme.tsx` — tema claro/oscuro global. `<ThemeProvider>` (en `App.tsx`,
   dentro de `BrowserRouter`) + hook `useTheme()` → `{ light, toggle }`. Persiste
   en `localStorage['dash-theme']` y sincroniza entre pestañas. Pone

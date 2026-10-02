@@ -1,0 +1,56 @@
+# Blueprint de Render para el backend (plan gratuito, sin tarjeta).
+#
+# El frontend NO va aquí: se publica como sitio estático en Cloudflare Pages
+# y la base de datos vive en Neon. Ver docs/despliegue.md.
+#
+# Las variables con `sync: false` las pide Render al crear el servicio y no se
+# guardan en este archivo: así no hay secretos en el repositorio.
+services:
+  - type: web
+    name: hector-tattoos-api
+    runtime: docker
+    plan: free
+    # Ohio, para estar en la misma región que la base de Neon (us-east-2): la
+    # latencia entre ambos pesa en cada consulta.
+    region: ohio
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Render fabrica un secreto aleatorio y lo guarda. El backend se niega a
+      # arrancar en producción con uno corto o de ejemplo.
+      - key: JWT_SECRET
+        generateValue: true
+
+      # Cadena de conexión de Neon (con ?sslmode=require).
+      - key: DATABASE_URL
+        sync: false
+
+      # Dirección del frontend en Cloudflare Pages, sin barra final. La usa
+      # CORS (quién puede llamar a la API) y el enlace del correo de
+      # recuperación de contraseña.
+      - key: CORS_ORIGIN
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+
+      # Un solo estudio, una sola cuenta: la crea `npm run db:init`.
+      - key: ALLOW_REGISTER
+        value: "false"
+
+      # En la nube el disco se borra en cada despliegue: las imágenes van a
+      # Cloudinary.
+      - key: STORAGE_DRIVER
+        value: cloudinary
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: CLOUDINARY_FOLDER
+        value: tatuajes/sketches
