@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 
 const authRoutes = require('./routes/authRoutes');
 const sketchRoutes = require('./routes/sketchRoutes');
@@ -11,12 +12,21 @@ const materialRoutes = require('./routes/materialRoutes');
 const quoteRoutes = require('./routes/quoteRoutes');
 const { requireAuth } = require('./middleware/auth');
 const localDriver = require('./services/storage/localDriver');
+const { corsOptions, trustProxy } = require('./middleware/security');
 
 // Construye y configura la app de Express sin ponerla a escuchar.
 // Se exporta así para poder importarla en las pruebas (supertest).
 const app = express();
 
-app.use(cors());
+// Detrás del proxy de la nube hay que fiarse de `X-Forwarded-For` para ver la
+// IP real de cada visitante (el límite de intentos de login la necesita).
+app.set('trust proxy', trustProxy());
+
+// Esta API devuelve JSON e imágenes: las cabeceras de seguridad por defecto
+// sirven, salvo una. `Cross-Origin-Resource-Policy: same-origin` impediría que
+// el frontend, que vive en otro dominio, mostrara las imágenes de /uploads.
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use(cors(corsOptions()));
 app.use(express.json());
 
 app.get('/health', (req, res) => {

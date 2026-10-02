@@ -6,7 +6,10 @@ const emailService = require('../services/emailService');
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_changeme';
+const { loadJwtSecret } = require('../config/jwt');
+const { registrationOpen } = require('../middleware/security');
+
+const JWT_SECRET = loadJwtSecret();
 const TOKEN_TTL = '7d';
 
 function signToken(user) {
@@ -48,6 +51,12 @@ async function login(req, res) {
 
 // POST /api/auth/register  (HU01)
 async function register(req, res) {
+  // En producción el estudio ya tiene su cuenta (la siembra `db:init`): dejar el
+  // registro abierto permitiría que cualquiera creara una en tu instancia.
+  if (!registrationOpen()) {
+    return res.status(403).json({ message: 'El registro de cuentas nuevas está cerrado.' });
+  }
+
   const { name, email, password } = req.body ?? {};
 
   if (!name || !email || !password) {
