@@ -36,6 +36,7 @@ import {
 } from '../lib/agendaForms'
 import { formatAmountInput, formatCLP, parseCLP } from '../lib/money'
 import { listPreviews, type Preview } from '../lib/previews'
+import { formatQuantity, listQuotes, quoteStatusLabel, type Quote } from '../lib/quotes'
 import { ALLOWED_MIME, MAX_FILE_BYTES, formatSize, listSketches, type Sketch } from '../lib/sketches'
 import { useAppShellHeader } from '../lib/useAppShellHeader'
 import './Studio.css'
@@ -82,6 +83,10 @@ export default function Proyecto() {
   const [previews, setPreviews] = useState<Preview[]>([])
   const [linking, setLinking] = useState(false)
 
+  // Cotizaciones del proyecto (HU14–HU16). Es información de apoyo: si falla
+  // la carga, el resto de la vista funciona igual.
+  const [quotes, setQuotes] = useState<Quote[]>([])
+
   const [adding, setAdding] = useState(false)
   const [newSession, setNewSession] = useState<SessionFormValue>(() => newSessionForm())
   const [creatingSession, setCreatingSession] = useState(false)
@@ -113,6 +118,10 @@ export default function Proyecto() {
     return () => {
       cancelled = true
     }
+  }, [id])
+
+  useEffect(() => {
+    listQuotes(id).then(setQuotes).catch(() => setQuotes([]))
   }, [id])
 
   // Opciones para enlazar el diseño. Si fallan, la vista funciona igual.
@@ -340,6 +349,63 @@ export default function Proyecto() {
                     <span style={{ transform: `scaleX(${paidPct / 100})` }} />
                   </div>
                   <p className="st-hint">{assignmentHint()}</p>
+                </section>
+
+                {/* ---------- Costo de insumos (HU14–HU16) ----------
+                     Lo que cuesta el material, aparte de lo que cobra el
+                     artista: por eso vive en su propio panel y no dentro de
+                     Pagos. */}
+                <section className="st-panel" aria-labelledby="qt-h">
+                  <div className="st-panel__head">
+                    <h2 className="st-h" id="qt-h">Costo de insumos</h2>
+                    <button
+                      className="st-btn st-btn--sm"
+                      type="button"
+                      onClick={() => navigate(`/cotizaciones?proyecto=${project.id}`)}
+                    >
+                      Cotizar
+                    </button>
+                  </div>
+
+                  {/* La medida viene de la escena 3D: es donde el artista
+                      decidió de qué porte va, y es la base del cálculo. */}
+                  {project.width_cm && project.height_cm ? (
+                    <p className="st-hint">
+                      Tamaño del tatuaje: <strong>{project.width_cm} × {project.height_cm} cm</strong>,
+                      tomado de la previsualización 3D.
+                    </p>
+                  ) : null}
+
+                  {quotes.length === 0 ? (
+                    <p className="st-empty">
+                      Sin cotizaciones. Calcula cuánto material lleva este tatuaje a partir de
+                      su tamaño y del boceto.
+                    </p>
+                  ) : (
+                    <ul className="st-list">
+                      {quotes.map((quote) => (
+                        <li className="st-item" key={quote.id}>
+                          <div className="st-item__main">
+                            <span className="st-item__title">{quote.title}</span>
+                            <span className="st-item__meta">
+                              {quote.width_cm} × {quote.height_cm} cm ·{' '}
+                              {formatDuration(quote.estimated_minutes)} ·{' '}
+                              {formatQuantity(quote.sessions_count)}{' '}
+                              {quote.sessions_count === 1 ? 'sesión' : 'sesiones'}
+                            </span>
+                          </div>
+                          <div className="st-item__side">
+                            <span className="st-money">{formatCLP(quote.materials_cost)}</span>
+                            <span className="st-badge">
+                              {quote.consumed_at
+                                ? 'Stock descontado'
+                                : quoteStatusLabel(quote.status)}
+                            </span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </section>
 
                 {/* ---------- Diseño y 3D ---------- */}

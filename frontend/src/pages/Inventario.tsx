@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { MoneyInput } from '../components/AgendaFields'
 import { apiErrorMessage } from '../lib/api'
 import {
+  CONSUMPTION_BASES,
   MATERIAL_CATEGORIES,
   MATERIAL_PRESETS,
   MATERIAL_UNITS,
   adjustStock,
+  basisPer,
   categoryLabel,
   createMaterial,
   deleteMaterial,
@@ -14,6 +16,7 @@ import {
   stockValue,
   unitShort,
   updateMaterial,
+  type ConsumptionBasis,
   type Material,
   type MaterialCategory,
   type MaterialInput,
@@ -32,6 +35,10 @@ interface MaterialFormValue {
   quantity: string
   minQuantity: string
   cost: string
+  basis: ConsumptionBasis
+  rate: string
+  /** Color de la tinta; '' cuando el insumo no es una tinta. */
+  colorHex: string
   supplier: string
   notes: string
 }
@@ -43,6 +50,9 @@ const EMPTY_FORM: MaterialFormValue = {
   quantity: '',
   minQuantity: '',
   cost: '',
+  basis: 'ninguno',
+  rate: '',
+  colorHex: '',
   supplier: '',
   notes: '',
 }
@@ -54,6 +64,9 @@ const materialToForm = (m: Material): MaterialFormValue => ({
   quantity: String(m.quantity),
   minQuantity: String(m.min_quantity),
   cost: formatAmountInput(m.unit_cost),
+  basis: m.consumption_basis,
+  rate: m.consumption_rate ? String(m.consumption_rate) : '',
+  colorHex: m.color_hex ?? '',
   supplier: m.supplier ?? '',
   notes: m.notes ?? '',
 })
@@ -65,6 +78,13 @@ const formToInput = (v: MaterialFormValue): MaterialInput => ({
   quantity: Math.max(0, Math.trunc(Number(v.quantity) || 0)),
   minQuantity: Math.max(0, Math.trunc(Number(v.minQuantity) || 0)),
   unitCost: parseCLP(v.cost),
+  consumptionBasis: v.basis,
+  // Un insumo que no se consume no lleva tasa: así no queda un número suelto
+  // si el artista cambia de opinión después de haberla escrito.
+  consumptionRate: v.basis === 'ninguno' ? 0 : Math.max(0, Number(v.rate) || 0),
+  // El color solo se guarda en las tintas: en el resto no significa nada y
+  // dejarlo puesto haría que un insumo entrara al reparto de color por error.
+  colorHex: v.category === 'tintas' ? v.colorHex || null : null,
   supplier: v.supplier.trim() || null,
   notes: v.notes.trim() || null,
 })
@@ -153,7 +173,9 @@ function MaterialFields({ idPrefix, value, onChange }: MaterialFieldsProps) {
 
       <div className="st-row">
         <div className="st-field">
-          <label className="st-label" htmlFor={`${idPrefix}-cost`}>Costo por unidad</label>
+          <label className="st-label" htmlFor={`${idPrefix}-cost`}>
+            Costo por {unitShort(value.unit, 1)}
+          </label>
           <MoneyInput
             id={`${idPrefix}-cost`}
             value={value.cost}
@@ -172,6 +194,88 @@ function MaterialFields({ idPrefix, value, onChange }: MaterialFieldsProps) {
           />
         </div>
       </div>
+
+      {/*
+        Regla de consumo (HU14): lo que conecta este insumo con el cotizador.
+        Un insumo sin regla no aparece en las cotizaciones, y eso está bien
+        para la máquina o el pedal.
+      */}
+      <div className="st-row">
+        <div className="st-field">
+          <label className="st-label" htmlFor={`${idPrefix}-basis`}>Se gasta</label>
+          <select
+            id={`${idPrefix}-basis`}
+            className="st-input"
+            value={value.basis}
+            onChange={(e) =>
+              onChange({ ...value, basis: e.target.value as ConsumptionBasis })
+            }
+          >
+            {CONSUMPTION_BASES.map((b) => (
+              <option key={b.value} value={b.value}>{b.label}</option>
+            ))}
+          </select>
+        </div>
+        {value.basis !== 'ninguno' && (
+          <div className="st-field">
+            <label className="st-label" htmlFor={`${idPrefix}-rate`}>
+              Cuánto {basisPer(value.basis)}
+            </label>
+            <input
+              id={`${idPrefix}-rate`}
+              className="st-input"
+              type="number"
+              min={0}
+              step="any"
+              inputMode="decimal"
+              value={value.rate}
+              onChange={(e) => onChange({ ...value, rate: e.target.value })}
+              placeholder="0"
+            />
+          </div>
+        )}
+      </div>
+      {/*
+        Color de la tinta (HU14). Es lo que permite repartir los mililitros
+        entre las tintas que el diseño realmente lleva, en vez de cobrar todas
+        por el área completa. Solo aparece en las tintas: en un guante o un
+        rollo de film el color no significa nada.
+      */}
+      {value.category === 'tintas' && (
+        <div className="st-field">
+          <label className="st-label" htmlFor={`${idPrefix}-color`}>Color de la tinta</label>
+          <div className="st-row st-actions--tight">
+            <input
+              id={`${idPrefix}-color`}
+              type="color"
+              className="st-input mat-color"
+              value={value.colorHex || '#111111'}
+              onChange={(e) => onChange({ ...value, colorHex: e.target.value })}
+            />
+            {value.colorHex && (
+              <button
+                className="st-btn st-btn--sm"
+                type="button"
+                onClick={() => onChange({ ...value, colorHex: '' })}
+              >
+                Quitar color
+              </button>
+            )}
+          </div>
+          <p className="st-hint">
+            {value.colorHex
+              ? 'Se usa para repartir la tinta según los colores del boceto.'
+              : 'Sin color, esta tinta se cotiza por el área completa del diseño.'}
+          </p>
+        </div>
+      )}
+
+      {value.basis !== 'ninguno' && (
+        <p className="st-hint">
+          {unitShort(value.unit, Number(value.rate) === 1 ? 1 : 2)} de este insumo{' '}
+          {basisPer(value.basis)}. Se usa para calcular las cotizaciones.
+        </p>
+      )}
 
       <div className="st-field">
         <label className="st-label" htmlFor={`${idPrefix}-notes`}>Notas</label>
@@ -267,13 +371,21 @@ export default function Inventario() {
     setPreset(name)
     const found = MATERIAL_PRESETS.find((p) => p.name === name)
     if (!found) return
-    // Solo sugiere el insumo: la cantidad y el costo los pone el artista.
+    // Solo sugiere el insumo: la cantidad la pone el artista. La regla de
+    // consumo y el precio sí vienen sugeridos, porque son lo que casi nadie
+    // rellenaría de memoria: sin regla el insumo no entra en las cotizaciones,
+    // y el precio referencial evita el error más común, cargar lo que cuesta
+    // el envase en vez de lo que cuesta la unidad.
     setForm((f) => ({
       ...f,
       name: found.name,
       category: found.category,
       unit: found.unit,
       minQuantity: String(found.minQuantity),
+      basis: found.basis,
+      rate: found.rate ? String(found.rate) : '',
+      colorHex: found.colorHex ?? '',
+      cost: formatAmountInput(found.unitCost),
     }))
   }
 

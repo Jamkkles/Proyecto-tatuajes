@@ -80,7 +80,7 @@ const NAV: { key: string; label: string; to?: string; match?: string[] }[] = [
   { key: 'bocetos', label: 'Bocetos', to: '/bocetos' },
   { key: 'citas', label: 'Citas', to: '/citas' },
   { key: 'clientes', label: 'Clientes', to: '/clientes', match: ['/clientes', '/proyectos'] },
-  { key: 'cotizaciones', label: 'Cotizaciones' },
+  { key: 'cotizaciones', label: 'Cotizaciones', to: '/cotizaciones' },
   { key: 'inventario', label: 'Inventario', to: '/inventario' },
   { key: 'prev3d', label: 'Previsualización 3D', to: '/previsualizacion' },
   { key: 'config', label: 'Configuración' },

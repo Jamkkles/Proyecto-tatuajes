@@ -1098,3 +1098,13 @@ textarea.st-input {
   color: #1f6b45;
   background: rgba(84, 196, 138, 0.18);
 }
+
+/* Selector de color de una tinta (HU14): el nativo trae su propio relleno,
+   así que solo necesita tamaño y que el recuadro se vea completo. */
+.st-field .mat-color {
+  width: 56px;
+  min-width: 56px;
+  height: 38px;
+  padding: 3px;
+  cursor: pointer;
+}

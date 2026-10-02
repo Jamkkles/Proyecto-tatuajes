@@ -22,6 +22,18 @@ export interface Sketch {
   size_bytes: number
   width: number | null
   height: number | null
+  /**
+   * Cobertura de tinta del dibujo: qué fracción del lienzo lleva tinta de
+   * verdad (0–1). La mide el backend al subir la imagen y es la entrada del
+   * cotizador (HU14). Es null en los bocetos subidos antes de esa iteración.
+   */
+  ink_ratio: number | null
+  /**
+   * Familias de color dominantes del dibujo con su parte del área entintada
+   * (suman 1). Es lo que permite repartir los mililitros entre las tintas que
+   * el diseño lleva de verdad. Null en los bocetos subidos antes de medirla.
+   */
+  palette: { hex: string; share: number }[] | null
   created_at: string
   updated_at: string
 }

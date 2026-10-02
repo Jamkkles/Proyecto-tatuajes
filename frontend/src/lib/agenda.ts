@@ -74,6 +74,13 @@ export interface Project {
   status: ProjectStatus
   sketch_id: string | null
   preview_id: string | null
+  /**
+   * Tamaño real del tatuaje sobre la piel. Se copia de la escena 3D al
+   * guardarla (ahí es donde el artista decide de qué porte va), y es lo que
+   * precarga la cotización sin tener que abrir la previsualización.
+   */
+  width_cm: number | null
+  height_cm: number | null
   created_at: string
   updated_at: string
   // Resumen calculado por el backend.
@@ -97,6 +104,8 @@ export interface ProjectInput {
   status?: ProjectStatus
   sketchId?: string | null
   previewId?: string | null
+  widthCm?: number | null
+  heightCm?: number | null
 }
 
 export interface SessionPhoto {

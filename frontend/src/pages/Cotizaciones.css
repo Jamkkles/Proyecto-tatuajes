@@ -1,0 +1,165 @@
+/* ============================================================
+   Cotizaciones — cálculo de costo de insumos (HU14–HU16)
+
+   Complementa a Studio.css: la página usa sus paneles, campos y
+   botones (`st-*`) y aquí solo van las piezas propias del
+   cotizador, con prefijo `qt-`.
+
+   Todo se escribe con los tokens globales (`--ink-3`, `--line`,
+   `--fog`, `--ash`…), que `.studio` ya redefine para el tema
+   claro en Studio.css. Por eso esta hoja no necesita un bloque
+   `[data-theme='light']` propio.
+   ============================================================ */
+
+/* ============ Resumen del cálculo ============
+   Las tres cifras que el artista mira antes que nada: cuánto hay
+   que tatuar de verdad, cuánto va a demorar y cuánto cuesta el
+   material. */
+.qt-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.qt-summary__cell {
+  display: grid;
+  gap: 2px;
+  align-content: start;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--ink-3);
+}
+/* El costo es la respuesta a la pregunta; se destaca del resto. */
+.qt-summary__cell--total {
+  border-color: var(--ash);
+}
+.qt-summary__label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+.qt-summary__value {
+  font-size: clamp(1.15rem, 2.4vw, 1.4rem);
+  font-weight: 650;
+  line-height: 1.2;
+  color: var(--fog);
+}
+.qt-summary__cell--total .qt-summary__value {
+  color: var(--steel-hi, var(--fog));
+}
+
+/* ============ Detalle de insumos ============ */
+.qt-items {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+/* Fila elástica en vez de columnas fijas: este panel convive con el
+   formulario, así que su ancho depende de la ventana y de la barra
+   lateral, no solo del viewport. Con `flex-wrap` el nombre se queda
+   con la primera línea y la cantidad, la unidad y el monto bajan
+   solos cuando no caben — un media query de viewport no serviría,
+   porque el que se estrecha es el contenedor. */
+.qt-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--ink-3);
+}
+.qt-item__main {
+  display: grid;
+  flex: 1 1 150px;
+  gap: 1px;
+  min-width: 0;
+}
+.qt-item__name {
+  overflow: hidden;
+  font-weight: 600;
+  color: var(--fog);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.qt-item__qty {
+  flex: 0 0 74px;
+  text-align: right;
+}
+.qt-item__unit {
+  flex: 0 0 auto;
+  min-width: 42px;
+  font-size: 0.82rem;
+  color: var(--ash);
+}
+/* Empuja el monto contra el borde derecho quede donde quede la fila. */
+.qt-item__sub {
+  flex: 1 0 auto;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--fog);
+  text-align: right;
+}
+
+/* ============ Paleta del boceto ============
+   Los colores que el sistema midió en el dibujo, con su parte del
+   área entintada. Van arriba del detalle porque son la explicación
+   de por qué cada tinta recibe los mililitros que recibe. */
+.qt-palette {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin-bottom: 12px;
+}
+.qt-palette__label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+.qt-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.qt-swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--fog);
+}
+/* Borde propio para que un color casi blanco siga siendo visible sobre
+   el panel claro, y un casi negro sobre el oscuro. */
+.qt-swatch__dot {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  vertical-align: -2px;
+}
+.qt-missing {
+  margin-bottom: 12px;
+}
+.qt-missing .qt-swatch__dot {
+  margin-right: 3px;
+}
+
+/* El aviso de "sin paleta" ocupa el lugar de los colores del boceto. */
+.qt-palette-hint {
+  margin: 0 0 12px;
+}

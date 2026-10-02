@@ -16,6 +16,7 @@ const Clientes = lazy(() => import('./pages/Clientes'))
 const Cliente = lazy(() => import('./pages/Cliente'))
 const Proyecto = lazy(() => import('./pages/Proyecto'))
 const Inventario = lazy(() => import('./pages/Inventario'))
+const Cotizaciones = lazy(() => import('./pages/Cotizaciones'))
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
               <Route path="/clientes/:id" element={<Cliente />} />
               <Route path="/proyectos/:id" element={<Proyecto />} />
               <Route path="/inventario" element={<Inventario />} />
+              <Route path="/cotizaciones" element={<Cotizaciones />} />
             </Route>
           </Routes>
         </Suspense>
