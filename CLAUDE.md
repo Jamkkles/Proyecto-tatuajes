@@ -288,6 +288,14 @@ de la calibración está en el comentario de `CM2_POR_HORA`
   versión más gruesa para que se lea a 16 px. Al cambiar algo de lo que
   precachea `sw.js` hay que subir `CACHE`, o las apps ya instaladas no se enteran
   `public/_headers` hace en Cloudflare Pages lo que `nginx.conf` hace en Docker
+- **Áreas seguras de iOS.** `index.html` usa `viewport-fit=cover` y barra de estado
+  `black-translucent`, así que en la PWA instalada la página llega al borde físico
+  (bajo la hora, la isla y la barra de inicio). `index.css` define `--safe-top`,
+  `--safe-right`, `--safe-bottom` y `--safe-left` (de `env(safe-area-inset-*)`, 0
+  fuera de iOS) y `AppShell.css` los suma al padding de la barra superior, del
+  menú lateral y del pie del contenido. Todo elemento fijo o pegado a un borde
+  tiene que usarlas. Para probarlo sin iPhone: dar a `--safe-top` (59px con isla,
+  47px con notch) y `--safe-bottom` (34px) un valor a mano en el navegador
 - `lib/theme.tsx` — tema claro/oscuro global. `<ThemeProvider>` (en `App.tsx`,
   dentro de `BrowserRouter`) + hook `useTheme()` → `{ light, toggle }`. Persiste
   en `localStorage['dash-theme']` y sincroniza entre pestañas. Pone

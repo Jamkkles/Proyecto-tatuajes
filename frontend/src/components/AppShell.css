@@ -53,7 +53,11 @@
   flex-direction: column;
   gap: 22px;
   padding: clamp(16px, 3vw, 22px);
-  padding-top: max(clamp(16px, 3vw, 22px), env(safe-area-inset-top));
+  padding-top: max(clamp(16px, 3vw, 22px), var(--safe-top));
+  /* El pie del menú (usuario, cerrar sesión) no debe quedar bajo la barra de
+     inicio de iOS, ni el borde izquierdo bajo el notch en horizontal. */
+  padding-bottom: max(clamp(16px, 3vw, 22px), var(--safe-bottom));
+  padding-left: max(clamp(16px, 3vw, 22px), var(--safe-left));
   overflow-y: auto;
   /* Nubes irezumi que suben como humo desde el pie; velo vertical fuerte
      arriba (nav legible) y suave abajo (la nube se aprecia). */
@@ -245,6 +249,8 @@
   min-width: 0;
   min-height: 100svh;
   margin-left: 0; /* el drawer se superpone en móvil; en escritorio reserva ancho */
+  /* Que el final de la página no quede bajo la barra de inicio de iOS. */
+  padding-bottom: var(--safe-bottom);
 }
 
 /* ---- Barra superior: botón de menú + título de la vista + acciones ----
@@ -259,6 +265,13 @@
   align-items: center;
   gap: clamp(10px, 2vw, 18px);
   padding: clamp(12px, 3vw, 16px) clamp(16px, 5vw, 40px);
+  /* En la app instalada en iPhone (barra de estado translúcida + viewport-fit:
+     cover) la página llega hasta el borde físico de la pantalla. Sin esto los
+     botones quedaban bajo la hora y la isla, justo donde iOS captura el
+     deslizamiento hacia abajo, y ni se veían bien ni se podían pulsar. */
+  padding-top: calc(clamp(12px, 3vw, 16px) + var(--safe-top));
+  padding-left: calc(clamp(16px, 5vw, 40px) + var(--safe-left));
+  padding-right: calc(clamp(16px, 5vw, 40px) + var(--safe-right));
   border-bottom: 1px solid var(--line);
   background: rgba(2, 3, 4, 0.9); /* más oscuro que el lienzo (#090a0b) */
   backdrop-filter: blur(8px);
