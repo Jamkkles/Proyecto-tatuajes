@@ -306,6 +306,37 @@
   cursor: progress;
 }
 
+/* Variante sin relleno, para la acción que no es la principal (crear cuenta).
+   Es un <Link>, así que hay que quitarle el subrayado y centrarlo. */
+.btn--secondary {
+  display: block;
+  margin-top: 0;
+  background: transparent;
+  border-color: var(--line);
+  color: var(--steel-hi);
+  text-align: center;
+  text-decoration: none;
+}
+.btn--secondary::before {
+  background: var(--steel-hi);
+}
+.btn--secondary:hover:not(:disabled) {
+  color: var(--ink);
+  border-color: var(--steel);
+}
+
+.card__signup {
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line-soft);
+}
+.card__signup-label {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--ash);
+  text-align: center;
+}
+
 /* ---------- Pie y estado de éxito ---------- */
 .card__foot {
   margin: 26px 0 0;

@@ -146,13 +146,16 @@ export default function Login() {
               </button>
           </form>
 
-          <p className="card__foot">
-            {REGISTRATION_OPEN && (
-              <>
-                ¿Aún no tienes estudio? <Link to="/registro">Crear cuenta</Link>
-              </>
-            )}
-          </p>
+          {/* Quien aún no tiene cuenta la crea aquí. Es un botón y no un enlace
+              suelto al pie: es lo primero que busca una persona nueva. */}
+          {REGISTRATION_OPEN && (
+            <div className="card__signup">
+              <p className="card__signup-label">¿Primera vez en Tattoo Estudio?</p>
+              <Link className="btn btn--secondary" to="/registro">
+                <span className="btn__label">Crear cuenta</span>
+              </Link>
+            </div>
+          )}
         </section>
 
        
