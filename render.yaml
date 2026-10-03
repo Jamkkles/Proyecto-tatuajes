@@ -38,9 +38,12 @@ services:
       - key: FRONTEND_URL
         sync: false
 
-      # Un solo estudio, una sola cuenta: la crea `npm run db:init`.
+      # Registro abierto: cada artista crea su cuenta desde el login y solo ve sus
+      # propios datos. OJO: cualquiera en internet puede registrarse y ocupar el
+      # espacio de la base de Neon (0,5 GB) y de Cloudinary del plan gratis. Para
+      # cerrarlo, "false" aquí y VITE_ALLOW_REGISTER=false en Cloudflare Pages.
       - key: ALLOW_REGISTER
-        value: "false"
+        value: "true"
 
       # En la nube el disco se borra en cada despliegue: las imágenes van a
       # Cloudinary.

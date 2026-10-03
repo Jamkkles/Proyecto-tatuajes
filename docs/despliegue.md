@@ -27,8 +27,15 @@ depender de ellos.
 > despertando»). Después va con normalidad.
 
 Seguridad que ya trae el código para producción: el backend se niega a arrancar
-con un `JWT_SECRET` débil, el registro de cuentas queda cerrado, hay límite de
-intentos de login, CORS solo acepta tu frontend y la base se conecta con TLS.
+con un `JWT_SECRET` débil, hay límite de intentos de login, CORS solo acepta tu
+frontend y la base se conecta con TLS.
+
+**Registro de cuentas.** Por defecto el backend en producción lo cierra (403). El
+`render.yaml` lo abre con `ALLOW_REGISTER=true` para que cada artista cree su
+cuenta desde el botón «Crear cuenta» del login; cada cuenta solo ve sus datos. La
+contrapartida: cualquiera en internet puede registrarse y gastar el espacio gratis
+de Neon (0,5 GB) y de Cloudinary. Para cerrarlo, `ALLOW_REGISTER=false` en Render
+y `VITE_ALLOW_REGISTER=false` en Cloudflare (deben ir de acuerdo).
 
 ---
 
@@ -104,7 +111,7 @@ idempotente: se puede repetir (por ejemplo tras cambios en `schema.sql`).
    | Variable | Valor |
    |---|---|
    | `VITE_API_URL` | La URL de Render del paso 4, **sin barra final** |
-   | `VITE_ALLOW_REGISTER` | `false` |
+   | `VITE_ALLOW_REGISTER` | No la definas: sin ella se muestra el botón «Crear cuenta». Pon `false` solo si cierras el registro |
    | `NODE_VERSION` | `22` |
 
 4. Despliega. Anota la URL (`https://TU-PROYECTO.pages.dev`).
@@ -127,7 +134,7 @@ Guarda; Render redespliega solo.
 - [ ] Subes un boceto: debe aparecer con una URL de `res.cloudinary.com`.
 - [ ] Colocas un tatuaje en la previsualización 3D y guardas la escena.
 - [ ] Creas una cotización.
-- [ ] `/registro` no deja crear cuentas.
+- [ ] El botón «Crear cuenta» del login te deja registrar una cuenta nueva, y esa cuenta entra vacía.
 
 Si el login falla con «No pudimos conectar con el servidor», casi siempre es
 `CORS_ORIGIN` mal escrito (con barra final, con `http` en vez de `https`) o

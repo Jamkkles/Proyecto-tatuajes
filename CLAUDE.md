@@ -69,6 +69,12 @@ caracteres (`config/jwt.js`); el registro de cuentas queda cerrado (403) salvo
 local. El frontend lee `VITE_API_URL` y `VITE_ALLOW_REGISTER` (ver
 `frontend/.env.example`), que Vite fija al compilar.
 
+**Registro abierto en la nube.** `render.yaml` pone `ALLOW_REGISTER=true`: el
+login muestra el botón «Crear cuenta» (`.btn--secondary`, se oculta con
+`VITE_ALLOW_REGISTER=false`) y cada artista solo ve sus datos. Las dos banderas
+deben ir de acuerdo. Ojo: `render.yaml` es un Blueprint que Render sincroniza solo,
+así que el valor de ahí manda sobre lo que se cambie a mano en el panel.
+
 Frontend lee `VITE_API_URL` (default en docker-compose: `http://localhost:3000`).
 
 ## Architecture
