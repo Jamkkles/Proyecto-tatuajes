@@ -36,6 +36,15 @@
 }
 
 :root {
+  /* Áreas seguras del iPhone: la hora/isla de arriba, la barra de inicio de
+     abajo y el notch en horizontal. Valen 0 fuera de iOS. Van en variables (y
+     no solo con env() suelto) para poder probar el diseño de un iPhone desde un
+     navegador de escritorio, cambiando estos valores a mano. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+
   /* Lienzo e superficies */
   --ink: #07080a;
   --ink-2: #0e1013;
