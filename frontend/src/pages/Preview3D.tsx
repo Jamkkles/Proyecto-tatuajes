@@ -126,6 +126,12 @@ function imageAspect(url: string): Promise<number> {
   })
 }
 
+/** Lleva un ángulo al rango del deslizador de giro, (−180°, 180°]. */
+function wrapDegrees(deg: number) {
+  const wrapped = ((((deg + 180) % 360) + 360) % 360) - 180
+  return wrapped === -180 ? 180 : wrapped
+}
+
 export default function Preview3D() {
   const stageRef = useRef<HTMLDivElement>(null)
   const viewerRef = useRef<TattooViewer | null>(null)
@@ -263,10 +269,20 @@ export default function Preview3D() {
         viewer = new Viewer(stageRef.current, {
           onPlace: (hit) => handlersRef.current.onPlace(hit),
           onSelect: (id) => setSelectedId(id),
+          // Arrastre (posición) y gesto de dos dedos (tamaño y giro): lo que
+          // cambie en el lienzo tiene que verse en los deslizadores.
           onTransform: (id, t) =>
             setPlaced((list) =>
               list.map((p) =>
-                p.id === id ? { ...p, position: t.position, quaternion: t.quaternion } : p,
+                p.id === id
+                  ? {
+                      ...p,
+                      position: t.position,
+                      quaternion: t.quaternion,
+                      size: t.size,
+                      roll: wrapDegrees(p.roll + ((t.rollDelta ?? 0) * 180) / Math.PI),
+                    }
+                  : p,
               ),
             ),
           // 0 = el modelo no cargó; mejor que no salga insignia a que muestre
@@ -287,6 +303,20 @@ export default function Preview3D() {
       setReady(false)
     }
   }, [])
+
+  /* --------- Selección --------- */
+  // El visor tiene que saber siempre cuál es el tatuaje elegido, venga de donde
+  // venga la elección (recién colocado, tocado en la lista, abierto de una
+  // escena): de eso depende que los dos dedos lo editen a él o muevan la cámara.
+  useEffect(() => {
+    if (ready) viewerRef.current?.select(selectedId)
+  }, [ready, selectedId])
+
+  /* --------- Límites del pellizco --------- */
+  // El gesto de dos dedos respeta el mismo tope que el deslizador de tamaño.
+  useEffect(() => {
+    if (ready) viewerRef.current?.setSizeLimits(MIN_TATTOO_SIZE, sizeMax)
+  }, [ready, sizeMax])
 
   /* --------- Carga del modelo --------- */
   useEffect(() => {
@@ -673,10 +703,38 @@ export default function Preview3D() {
           </button>
         </div>
 
+        {/* En el celular los deslizadores quedan más abajo, fuera de vista:
+            el tamaño y el giro del tatuaje elegido se leen aquí mismo. */}
+        {selected && (
+          <button
+            type="button"
+            className="prev3d__readout"
+            onClick={() => selectPlaced(null)}
+            aria-label={`Tatuaje elegido: ${Math.round(selected.size[0] * 100)} centímetros, giro ${Math.round(selected.roll)} grados. Soltar selección`}
+          >
+            {Math.round(selected.size[0] * 100)} cm · {Math.round(selected.roll)}°
+            <span className="prev3d__readout-x" aria-hidden="true">×</span>
+          </button>
+        )}
+
+        {/* Con dedos, lo útil al tener un tatuaje elegido es saber cómo editarlo;
+            con ratón los deslizadores están a la vista y basta la pista de siempre. */}
         <span className="prev3d__hint">
-          {armed
-            ? `Haz clic sobre el modelo para colocar «${armed.title}»`
-            : 'Arrastra para girar · rueda para acercar'}
+          {selected && (
+            <span className="prev3d__hint--touch">
+              Un dedo lo mueve · dos dedos: tamaño y giro · × para soltarlo
+            </span>
+          )}
+          <span className={selected ? 'prev3d__hint--mouse' : undefined}>
+            {armed ? (
+              `Toca el modelo para colocar «${armed.title}»`
+            ) : (
+              <>
+                <span className="prev3d__hint--mouse">Arrastra para girar · rueda para acercar</span>
+                <span className="prev3d__hint--touch">Un dedo gira · dos dedos acercan</span>
+              </>
+            )}
+          </span>
         </span>
 
         {triangles !== null && (

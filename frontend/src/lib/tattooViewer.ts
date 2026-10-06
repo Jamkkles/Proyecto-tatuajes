@@ -27,6 +27,29 @@ import type { BodyModel, CameraPreset } from './bodyModels'
 
 /** Píxeles de desplazamiento por debajo de los cuales un arrastre es un clic. */
 const CLICK_SLOP = 5
+/** Un dedo tiembla más que un ratón: un toque admite más holgura para ser clic. */
+const TAP_SLOP = 12
+
+/**
+ * Giro de los dos dedos que se ignora antes de empezar a rotar la calca (rad).
+ * Al pellizcar para cambiar el tamaño los dedos nunca se mueven perfectamente
+ * en línea; sin esta holgura el tatuaje se torcía un poco cada vez que se
+ * agrandaba.
+ */
+const TWIST_DEADZONE = (6 * Math.PI) / 180
+
+/**
+ * Con dos dedos, cuánto más allá de su borde se puede tocar una calca elegida
+ * para que el gesto sea suyo y no de la cámara (en radios de la calca). Un
+ * tatuaje de 5 cm no deja sitio para apoyar dos dedos encima.
+ */
+const PINCH_REACH = 2
+
+/** Hasta cuántas veces la distancia del encuadre de partida deja alejar el pellizco. */
+const PINCH_MAX_ZOOM_OUT = 1.5
+
+/** Cada cuánto se le cuenta a la página cómo va el gesto (ms). */
+const GESTURE_EMIT_MS = 80
 
 /**
  * Cuánto tiene que mirar un triángulo hacia el proyector para conservarse.
@@ -395,7 +418,39 @@ export interface PlacementTransform {
   position: [number, number, number]
   quaternion: [number, number, number, number]
   size: [number, number, number]
+  /**
+   * Cuánto giró la calca sobre su plano desde el aviso anterior (rad, positivo
+   * en sentido antihorario visto de frente). Solo viene en el gesto de dos
+   * dedos; la página lo suma al ángulo que muestra el deslizador.
+   */
+  rollDelta?: number
 }
+
+/** Gesto de dos dedos en curso: sobre una calca o sobre la cámara. */
+type Gesture =
+  | {
+      kind: 'decal'
+      entry: DecalEntry
+      /** Separación y ángulo de los dedos al empezar. */
+      distance: number
+      lastAngle: number
+      /** Giro acumulado de los dedos (sin la holgura) y lo ya avisado. */
+      twist: number
+      rollSent: number
+      size: THREE.Vector3
+      quaternion: THREE.Quaternion
+      lastEmit: number
+    }
+  | {
+      kind: 'camera'
+      distance: number
+      /** Cámara y objetivo al empezar, y a qué distancia estaban. */
+      target: THREE.Vector3
+      direction: THREE.Vector3
+      range: number
+      /** Punto del cuerpo bajo los dedos: hacia ahí se acerca. */
+      anchor: THREE.Vector3 | null
+    }
 
 export interface ViewerCallbacks {
   /** Clic sobre el cuerpo en un punto libre. */
@@ -496,6 +551,19 @@ export class TattooViewer {
   private draggingId: string | null = null
   /** Puntero capturado durante el arrastre, para liberarlo al soltar. */
   private pointerId: number | null = null
+  /** Dedos apoyados en el lienzo (solo táctil), por id de puntero. */
+  private touches = new Map<number, { x: number; y: number }>()
+  private gesture: Gesture | null = null
+  /**
+   * Este toque llegó a tener dos dedos. Hasta que se levanten todos no vuelve la
+   * órbita ni cuenta como clic: si no, al soltar un dedo el otro giraba la
+   * cámara de golpe o dejaba caer un tatuaje nuevo.
+   */
+  private multiTouch = false
+  private sizeLimits = { min: 0.02, max: 0.4 }
+  /** Encuadre de partida del modelo: a él vuelve la cámara al alejarse. */
+  private homeTarget = new THREE.Vector3(0, 0.95, 0)
+  private homeRange = 2.6
   /**
    * Cómo estaba la calca al empezar a arrastrarla.
    *
@@ -543,6 +611,11 @@ export class TattooViewer {
     this.controls.minDistance = 0.25
     this.controls.maxDistance = 8
     this.controls.target.set(0, 0.95, 0)
+    // Los dos dedos los maneja el visor (`beginGesture`). Por defecto
+    // OrbitControls hace zoom y desplazamiento a la vez, y como dos dedos nunca
+    // se mueven parejos, cada pellizco arrastraba la cámara fuera del cuerpo.
+    // Un valor que no reconoce lo deja quieto con dos dedos.
+    this.controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: -1 as THREE.TOUCH }
     this.controls.update()
 
     // Luces: clave + relleno + contra, más un entorno de estudio para que la
@@ -678,7 +751,14 @@ export class TattooViewer {
   setCamera(preset: CameraPreset) {
     this.camera.position.set(...preset.position)
     this.controls.target.set(...preset.target)
+    this.homeTarget.copy(this.controls.target)
+    this.homeRange = this.camera.position.distanceTo(this.controls.target)
     this.controls.update()
+  }
+
+  /** Tamaño mínimo y máximo (ancho, m) que admite el gesto de pellizco. */
+  setSizeLimits(min: number, max: number) {
+    this.sizeLimits = { min, max: Math.max(min, max) }
   }
 
   zoom(factor: number) {
@@ -856,7 +936,7 @@ export class TattooViewer {
 
   /* ---------------- Interacción ---------------- */
 
-  private updatePointer(e: PointerEvent) {
+  private updatePointer(e: { clientX: number; clientY: number }) {
     const rect = this.renderer.domElement.getBoundingClientRect()
     this.pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
     this.pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
@@ -865,6 +945,18 @@ export class TattooViewer {
 
   private onPointerDown = (e: PointerEvent) => {
     if (e.button !== 0 || !this.bodyMesh) return
+
+    if (e.pointerType === 'touch') {
+      this.touches.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (this.touches.size === 2) {
+        this.beginGesture()
+        return
+      }
+      // Un tercer dedo no cambia nada; y un dedo que llega cuando el gesto ya
+      // terminó tampoco empieza otra cosa hasta que se levanten todos.
+      if (this.touches.size > 2 || this.multiTouch) return
+    }
+
     this.downAt = { x: e.clientX, y: e.clientY }
     this.updatePointer(e)
 
@@ -935,6 +1027,17 @@ export class TattooViewer {
   }
 
   private onPointerMove = (e: PointerEvent) => {
+    const finger = e.pointerType === 'touch' ? this.touches.get(e.pointerId) : undefined
+    if (finger) {
+      finger.x = e.clientX
+      finger.y = e.clientY
+    }
+    if (this.gesture) {
+      this.applyGesture()
+      return
+    }
+    if (this.multiTouch) return
+
     if (!this.draggingId || !this.bodyMesh) return
     this.updatePointer(e)
     const hit = this.raycaster.intersectObject(this.bodyMesh, false)[0]
@@ -975,6 +1078,18 @@ export class TattooViewer {
   }
 
   private onPointerUp = (e: PointerEvent) => {
+    if (e.pointerType === 'touch') {
+      this.touches.delete(e.pointerId)
+      if (this.multiTouch) {
+        if (this.gesture && this.touches.size < 2) this.endGesture()
+        if (this.touches.size === 0) {
+          this.multiTouch = false
+          this.controls.enabled = true
+        }
+        return
+      }
+    }
+
     const wasDragging = this.draggingId
     this.controls.enabled = true
     this.draggingId = null
@@ -1009,7 +1124,8 @@ export class TattooViewer {
     const down = this.downAt
     this.downAt = null
     if (!down || !this.bodyMesh) return
-    if (Math.hypot(e.clientX - down.x, e.clientY - down.y) > CLICK_SLOP) return
+    const slop = e.pointerType === 'touch' ? TAP_SLOP : CLICK_SLOP
+    if (Math.hypot(e.clientX - down.x, e.clientY - down.y) > slop) return
 
     this.updatePointer(e)
     const hit = this.raycaster.intersectObject(this.bodyMesh, false)[0]
@@ -1030,6 +1146,216 @@ export class TattooViewer {
       faceIndex: hit.faceIndex ?? -1,
       uv: hit.uv ? ([hit.uv.x, hit.uv.y] as [number, number]) : null,
     })
+  }
+
+  /* ---------------- Gestos de dos dedos ---------------- */
+
+  /** Los dos primeros dedos apoyados, con su separación, ángulo y punto medio. */
+  private fingers() {
+    const [a, b] = [...this.touches.values()]
+    return {
+      a,
+      b,
+      distance: Math.max(1, Math.hypot(b.x - a.x, b.y - a.y)),
+      // En pantalla la Y crece hacia abajo, así que este ángulo crece en
+      // sentido horario.
+      angle: Math.atan2(b.y - a.y, b.x - a.x),
+      mid: { clientX: (a.x + b.x) / 2, clientY: (a.y + b.y) / 2 },
+    }
+  }
+
+  /**
+   * Calca a la que va dirigido un gesto de dos dedos, o null si es para la
+   * cámara.
+   *
+   * Solo la calca **elegida** recibe el gesto (o la que se venía arrastrando,
+   * que es la elegida). Así elegir un tatuaje es entrar a editarlo, y soltarlo
+   * devuelve los dos dedos a la cámara: si cualquier calca bajo los dedos se
+   * agrandara, no habría forma de acercar la cámara a un tatuaje para mirarlo.
+   * Vale tocarla o caer cerca (`PINCH_REACH`): sobre un tatuaje chico no caben
+   * dos dedos.
+   */
+  private gestureTarget(): DecalEntry | null {
+    if (!this.bodyMesh || this.decals.length === 0) return null
+
+    const dragged = this.decals.find((d) => d.id === this.draggingId)
+    if (dragged) return dragged
+
+    const selected = this.decals.find((d) => d.id === this.selectedId)
+    if (!selected) return null
+
+    const { a, b, mid } = this.fingers()
+    const points = [mid, { clientX: a.x, clientY: a.y }, { clientX: b.x, clientY: b.y }]
+    const reach = (Math.max(selected.size.x, selected.size.y) / 2) * PINCH_REACH
+
+    for (const point of points) {
+      this.updatePointer(point)
+      if (this.raycaster.intersectObject(selected.mesh, false).length > 0) return selected
+      const hit = this.raycaster.intersectObject(this.bodyMesh, false)[0]
+      if (hit && hit.point.distanceTo(selected.position) <= reach) return selected
+    }
+    return null
+  }
+
+  private beginGesture() {
+    const entry = this.gestureTarget()
+
+    // Si un dedo ya estaba arrastrando la calca, el arrastre termina aquí: con
+    // dos dedos se cambia tamaño y giro, no posición.
+    if (this.draggingId) {
+      const dragged = this.decals.find((d) => d.id === this.draggingId)
+      if (dragged) dragged.measuredAt = null
+    }
+    this.draggingId = null
+    this.dragFrom = null
+    this.downAt = null
+    if (this.pointerId !== null) {
+      try {
+        this.renderer.domElement.releasePointerCapture(this.pointerId)
+      } catch {
+        // Ya estaba liberada.
+      }
+      this.pointerId = null
+    }
+    this.multiTouch = true
+    this.controls.enabled = false
+
+    const { distance, angle, mid } = this.fingers()
+
+    if (entry) {
+      this.gesture = {
+        kind: 'decal',
+        entry,
+        distance,
+        lastAngle: angle,
+        twist: 0,
+        rollSent: 0,
+        size: entry.size.clone(),
+        quaternion: entry.quaternion.clone(),
+        lastEmit: 0,
+      }
+      return
+    }
+
+    // Para la cámara: se acerca hacia el punto del cuerpo que queda entre los
+    // dedos, que es lo que la persona está mirando.
+    this.updatePointer(mid)
+    const hit = this.bodyMesh ? this.raycaster.intersectObject(this.bodyMesh, false)[0] : undefined
+    const offset = this.camera.position.clone().sub(this.controls.target)
+    this.gesture = {
+      kind: 'camera',
+      distance,
+      target: this.controls.target.clone(),
+      direction: offset.clone().normalize(),
+      range: offset.length(),
+      anchor: hit ? hit.point.clone() : null,
+    }
+  }
+
+  private applyGesture() {
+    const gesture = this.gesture
+    if (!gesture || this.touches.size < 2) return
+    const { distance, angle } = this.fingers()
+
+    if (gesture.kind === 'camera') {
+      this.pinchCamera(gesture, distance)
+      return
+    }
+
+    const { entry } = gesture
+    // Tamaño: proporcional a cuánto se separaron los dedos, dentro de lo que
+    // admite la zona. Se escala el ancho y el alto lo sigue.
+    const width = THREE.MathUtils.clamp(
+      gesture.size.x * (distance / gesture.distance),
+      this.sizeLimits.min,
+      this.sizeLimits.max,
+    )
+    const scale = width / gesture.size.x
+    entry.size.set(width, gesture.size.y * scale, gesture.size.z)
+
+    // Giro: se va sumando el cambio de ángulo entre movimientos (así puede pasar
+    // de 180° sin saltar) y se le descuenta la holgura.
+    let step = angle - gesture.lastAngle
+    if (step > Math.PI) step -= Math.PI * 2
+    if (step < -Math.PI) step += Math.PI * 2
+    gesture.twist += step
+    gesture.lastAngle = angle
+
+    const beyond = Math.max(0, Math.abs(gesture.twist) - TWIST_DEADZONE)
+    // El eje Z de la calca sale de la piel hacia quien mira: girarla en positivo
+    // es antihorario visto de frente, al revés que el ángulo de pantalla.
+    const roll = -Math.sign(gesture.twist) * beyond
+    entry.quaternion
+      .copy(gesture.quaternion)
+      .multiply(new THREE.Quaternion().setFromAxisAngle(FORWARD, roll))
+    entry.dirty = true
+
+    const now = performance.now()
+    if (now - gesture.lastEmit >= GESTURE_EMIT_MS) {
+      gesture.lastEmit = now
+      this.emitGesture(gesture, roll)
+    }
+  }
+
+  /** Le cuenta a la página cómo va (o cómo quedó) la calca del gesto. */
+  private emitGesture(gesture: Extract<Gesture, { kind: 'decal' }>, roll: number) {
+    const { entry } = gesture
+    this.callbacks.onTransform?.(entry.id, {
+      position: entry.position.toArray() as [number, number, number],
+      quaternion: entry.quaternion.toArray() as [number, number, number, number],
+      size: entry.size.toArray() as [number, number, number],
+      rollDelta: roll - gesture.rollSent,
+    })
+    gesture.rollSent = roll
+  }
+
+  /**
+   * Zoom de la cámara con dos dedos, sin desplazamiento libre.
+   *
+   * Al acercar, la cámara avanza en línea recta hacia el punto del cuerpo que
+   * quedó entre los dedos, así que ese punto no se mueve de su sitio en
+   * pantalla. Al alejar, el objetivo vuelve hacia el encuadre de partida, de
+   * modo que el cuerpo termina siempre centrado.
+   */
+  private pinchCamera(gesture: Extract<Gesture, { kind: 'camera' }>, distance: number) {
+    // Alejar tiene un tope más corto que el de los botones: con los dedos es
+    // fácil pasarse, y un cuerpo del tamaño de una uña no le sirve a nadie.
+    const farthest = Math.max(
+      gesture.range,
+      Math.min(this.controls.maxDistance, this.homeRange * PINCH_MAX_ZOOM_OUT),
+    )
+    const range = THREE.MathUtils.clamp(
+      gesture.range * (gesture.distance / distance),
+      this.controls.minDistance,
+      farthest,
+    )
+    const target = gesture.target.clone()
+
+    if (range < gesture.range) {
+      if (gesture.anchor) target.lerp(gesture.anchor, 1 - range / gesture.range)
+    } else if (range > gesture.range) {
+      const span = this.homeRange - gesture.range
+      const back = span > 1e-4 ? Math.min(1, (range - gesture.range) / span) : 1
+      target.lerp(this.homeTarget, back)
+    }
+
+    this.controls.target.copy(target)
+    this.camera.position.copy(target).addScaledVector(gesture.direction, range)
+    this.controls.update()
+  }
+
+  private endGesture() {
+    const gesture = this.gesture
+    this.gesture = null
+    if (!gesture || gesture.kind !== 'decal') return
+
+    // Como al soltar un arrastre: la calca quedó en su forma definitiva, se
+    // vuelve a medir la piel y se rehace con ella.
+    const { entry } = gesture
+    entry.measuredAt = null
+    entry.dirty = true
+    const beyond = Math.max(0, Math.abs(gesture.twist) - TWIST_DEADZONE)
+    this.emitGesture(gesture, -Math.sign(gesture.twist) * beyond)
   }
 
   /** Profundidad del proyector para el modelo/zona activos. */

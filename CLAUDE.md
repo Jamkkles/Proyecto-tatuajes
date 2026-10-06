@@ -351,6 +351,28 @@ de la calibración está en el comentario de `CM2_POR_HORA`
   - Durante el arrastre se **captura el puntero**. Sin eso, sacarlo del lienzo
     cortaba los eventos: el gesto se quedaba abierto, la órbita bloqueada, y al
     volver a entrar la calca pegaba un salto hasta el cursor.
+  **Gestos táctiles** (el visor los maneja él, no OrbitControls). Con dos dedos
+  OrbitControls hace zoom y desplazamiento a la vez, y como dos dedos nunca se
+  mueven parejos, cada pellizco arrastraba la cámara fuera del cuerpo: por eso
+  `controls.touches.TWO` lleva un valor que no reconoce y los dos dedos pasan
+  por `beginGesture` / `applyGesture` / `endGesture`:
+  - Sobre la calca **elegida** (tocándola o cerca, `PINCH_REACH`): separar los
+    dedos cambia el tamaño, dentro de `setSizeLimits` (los mismos topes del
+    deslizador), y girarlos la rota, con una holgura de 6° (`TWIST_DEADZONE`) para
+    que no se tuerza al agrandarla. Solo la elegida: si cualquier calca bajo los
+    dedos respondiera, no habría forma de acercar la cámara a un tatuaje.
+  - En cualquier otro caso es la cámara (`pinchCamera`): al acercar avanza en
+    línea recta hacia el punto del cuerpo entre los dedos (ese punto no se mueve
+    en pantalla) y al alejar el objetivo vuelve al encuadre de partida
+    (`homeTarget`), con tope en `PINCH_MAX_ZOOM_OUT`. No hay desplazamiento libre.
+  - `multiTouch` dura hasta que se levantan todos los dedos: mientras tanto no
+    hay órbita ni clic, o al soltar un dedo el otro giraba la cámara de golpe o
+    dejaba caer un tatuaje.
+  El gesto avisa a la página por `onTransform` con `size` y `rollDelta`, y ella
+  mantiene `roll` y los deslizadores. La página tiene que pasar la selección al
+  visor (`viewer.select`, hay un efecto para eso): sin ella el pellizco no sabe a
+  qué calca va. Sobre el lienzo, `.prev3d__readout` muestra tamaño y giro del
+  tatuaje elegido y sirve de botón para soltarlo.
   El giro va por un deslizador continuo (`rollPlacement` aplica incrementos, y
   la página guarda el ángulo en `roll` para saber desde dónde gira). **Al
   arrastrar** la calca no se rehace su orientación desde la normal nueva —eso
