@@ -36,7 +36,7 @@
 }
 .prev3d__canvas canvas {
   display: block;
-  touch-action: none; /* los gestos los maneja OrbitControls */
+  touch-action: none; /* los gestos los maneja el visor (tattooViewer.ts) */
 }
 
 .prev3d__loading {
@@ -99,6 +99,50 @@
   letter-spacing: 0.06em;
   color: var(--ash);
 }
+/* Tamaño y giro del tatuaje elegido, sobre el propio lienzo. */
+.prev3d__readout {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  z-index: 3;
+  padding: 5px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(7, 8, 10, 0.72);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--steel-hi);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  /* Área táctil cómoda aunque el chip sea bajo. */
+  min-height: 32px;
+  cursor: pointer;
+}
+.prev3d__readout-x {
+  font-size: 15px;
+  line-height: 1;
+  color: var(--ash);
+}
+.prev3d__readout:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(195, 210, 219, 0.3);
+}
+[data-theme='light'] .prev3d__readout {
+  background: rgba(247, 245, 240, 0.86);
+  border-color: #cfc9bd;
+  color: #1b1d21;
+}
+
+/* La pista cambia según con qué se maneje el visor: ratón o dedos. */
+.prev3d__hint--touch { display: none; }
+@media (hover: none) and (pointer: coarse) {
+  .prev3d__hint--mouse { display: none; }
+  .prev3d__hint--touch { display: inline; }
+}
+
 .prev3d__meta {
   position: absolute;
   left: 16px;
