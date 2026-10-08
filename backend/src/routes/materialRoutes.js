@@ -3,9 +3,11 @@ const { requireAuth } = require('../middleware/auth');
 const {
   list,
   create,
+  loadDefaults,
   update,
   adjustStock,
   remove,
+  removeAll,
 } = require('../controllers/materialController');
 
 const router = express.Router();
@@ -15,6 +17,8 @@ router.use(requireAuth);
 
 router.get('/', list);
 router.post('/', create);
+router.post('/defaults', loadDefaults);
+router.delete('/', removeAll);
 router.patch('/:id', update);
 router.post('/:id/stock', adjustStock);
 router.delete('/:id', remove);

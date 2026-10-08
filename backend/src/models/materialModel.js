@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const { DEFAULT_MATERIALS } = require('../data/defaultMaterials');
 
 const COLUMNS = `
   id, user_id, name, category, unit, quantity, min_quantity, unit_cost,
@@ -130,6 +131,60 @@ async function remove(id, userId) {
 }
 
 /**
+ * Carga el kit básico (`data/defaultMaterials.js`) en el inventario del artista.
+ *
+ * Solo agrega lo que no tiene: se compara el nombre sin distinguir mayúsculas,
+ * así que pedirlo dos veces, o pedirlo con un inventario a medias, no duplica
+ * nada ni pisa lo que el artista ya ajustó. Va en una sola consulta, no una por
+ * insumo: son treinta y esto corre dentro del registro de una cuenta.
+ *
+ * @returns los insumos que se crearon (los que ya existían no salen)
+ */
+async function createDefaults(userId) {
+  const col = (pick) => DEFAULT_MATERIALS.map(pick);
+  const { rows } = await pool.query(
+    `INSERT INTO materials
+       (user_id, name, category, unit, quantity, min_quantity, unit_cost,
+        consumption_basis, consumption_rate, color_hex)
+     SELECT $1, d.name, d.category, d.unit, d.quantity, d.min_quantity, d.unit_cost,
+            d.basis, d.rate, d.color
+       FROM unnest($2::text[], $3::text[], $4::text[], $5::int[], $6::int[],
+                   $7::int[], $8::text[], $9::numeric[], $10::text[])
+            AS d(name, category, unit, quantity, min_quantity, unit_cost, basis, rate, color)
+      WHERE NOT EXISTS (
+        SELECT 1 FROM materials m
+         WHERE m.user_id = $1 AND lower(m.name) = lower(d.name)
+      )
+     RETURNING ${COLUMNS}`,
+    [
+      userId,
+      col((m) => m.name),
+      col((m) => m.category),
+      col((m) => m.unit),
+      col((m) => m.quantity),
+      col((m) => m.minQuantity),
+      col((m) => m.unitCost),
+      col((m) => m.consumptionBasis),
+      col((m) => m.consumptionRate),
+      col((m) => m.colorHex),
+    ]
+  );
+  return rows;
+}
+
+/**
+ * Vacía el inventario del artista. Las cotizaciones guardadas no se pierden:
+ * `quote_items.material_id` pasa a NULL y la línea conserva su nombre, unidad y
+ * costo; solo deja de poder descontar stock de un insumo que ya no existe.
+ *
+ * @returns cuántos insumos se eliminaron
+ */
+async function removeAll(userId) {
+  const { rowCount } = await pool.query('DELETE FROM materials WHERE user_id = $1', [userId]);
+  return rowCount;
+}
+
+/**
  * Insumos que entran en una cotización (HU14): los que declararon cómo se
  * consumen. La máquina o el pedal quedan fuera — no se gastan tatuando.
  */
@@ -148,7 +203,9 @@ module.exports = {
   listConsumable,
   findByIdForUser,
   create,
+  createDefaults,
   update,
   adjustStock,
   remove,
+  removeAll,
 };
