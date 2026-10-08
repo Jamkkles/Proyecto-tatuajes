@@ -140,17 +140,17 @@ async function remove(id, userId) {
  *
  * @returns los insumos que se crearon (los que ya existían no salen)
  */
-async function createDefaults(userId) {
+async function createDefaults(userId, db = pool) {
   const col = (pick) => DEFAULT_MATERIALS.map(pick);
-  const { rows } = await pool.query(
+  const { rows } = await db.query(
     `INSERT INTO materials
        (user_id, name, category, unit, quantity, min_quantity, unit_cost,
-        consumption_basis, consumption_rate, color_hex)
+        consumption_basis, consumption_rate, color_hex, notes)
      SELECT $1, d.name, d.category, d.unit, d.quantity, d.min_quantity, d.unit_cost,
-            d.basis, d.rate, d.color
+            d.basis, d.rate, d.color, d.notes
        FROM unnest($2::text[], $3::text[], $4::text[], $5::int[], $6::int[],
-                   $7::int[], $8::text[], $9::numeric[], $10::text[])
-            AS d(name, category, unit, quantity, min_quantity, unit_cost, basis, rate, color)
+                   $7::int[], $8::text[], $9::numeric[], $10::text[], $11::text[])
+            AS d(name, category, unit, quantity, min_quantity, unit_cost, basis, rate, color, notes)
       WHERE NOT EXISTS (
         SELECT 1 FROM materials m
          WHERE m.user_id = $1 AND lower(m.name) = lower(d.name)
@@ -167,9 +167,53 @@ async function createDefaults(userId) {
       col((m) => m.consumptionBasis),
       col((m) => m.consumptionRate),
       col((m) => m.colorHex),
+      col((m) => m.notes),
     ]
   );
   return rows;
+}
+
+/**
+ * Le ofrece el catálogo al artista **una sola vez**: la primera que entra a su
+ * inventario o a las cotizaciones.
+ *
+ * La marca `materials_seeded_at` se sella con un UPDATE condicional, así que dos
+ * peticiones simultáneas (el inventario y las cotizaciones se piden juntas al
+ * abrir la app) no siembran dos veces: solo la que logra el UPDATE sigue. Marca y
+ * carga van en una transacción, para que un fallo a medias no deje la marca
+ * puesta sin insumos.
+ *
+ * Solo siembra si el inventario está vacío. Quien ya armó el suyo a mano (las
+ * cuentas anteriores a esta función) conserva exactamente lo que tiene, y a esas
+ * se les marca de todos modos para no preguntar de nuevo.
+ *
+ * @returns cuántos insumos se cargaron (0 casi siempre: ya estaba hecho)
+ */
+async function ensureStarterKit(userId) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const claimed = await client.query(
+      `UPDATE users SET materials_seeded_at = now()
+        WHERE id = $1 AND materials_seeded_at IS NULL`,
+      [userId]
+    );
+    let created = 0;
+    if (claimed.rowCount > 0) {
+      const { rows } = await client.query(
+        'SELECT 1 FROM materials WHERE user_id = $1 LIMIT 1',
+        [userId]
+      );
+      if (rows.length === 0) created = (await createDefaults(userId, client)).length;
+    }
+    await client.query('COMMIT');
+    return created;
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 /**
@@ -204,6 +248,7 @@ module.exports = {
   findByIdForUser,
   create,
   createDefaults,
+  ensureStarterKit,
   update,
   adjustStock,
   remove,

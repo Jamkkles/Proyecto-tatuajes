@@ -1,5 +1,6 @@
 const express = require('express');
 const { requireAuth } = require('../middleware/auth');
+const { starterKit } = require('../middleware/starterKit');
 const {
   list,
   create,
@@ -13,7 +14,7 @@ const {
 const router = express.Router();
 
 // El inventario es privado de cada artista.
-router.use(requireAuth);
+router.use(requireAuth, starterKit);
 
 router.get('/', list);
 router.post('/', create);

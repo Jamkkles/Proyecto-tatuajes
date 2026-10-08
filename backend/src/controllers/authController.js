@@ -8,7 +8,6 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 const { loadJwtSecret } = require('../config/jwt');
 const { registrationOpen } = require('../middleware/security');
-const materialModel = require('../models/materialModel');
 
 const JWT_SECRET = loadJwtSecret();
 const TOKEN_TTL = '7d';
@@ -75,16 +74,6 @@ async function register(req, res) {
 
     const passwordHash = await bcrypt.hash(password, 10);
     const user = await userModel.create({ name, email, passwordHash });
-
-    // Cada cuenta nueva arranca con el kit básico de insumos, para no empezar
-    // con un inventario vacío (y cotizaciones sin líneas). Si falla no se
-    // revierte el registro: la cuenta ya existe y el artista puede pedir el kit
-    // desde el inventario.
-    try {
-      await materialModel.createDefaults(user.id);
-    } catch (seedErr) {
-      console.error('No se pudieron cargar los insumos iniciales:', seedErr);
-    }
 
     return res.status(201).json({ token: signToken(user), user: publicUser(user) });
   } catch (err) {
