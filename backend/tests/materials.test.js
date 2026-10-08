@@ -166,4 +166,61 @@ describe('Inventario de insumos (HU11–HU13)', () => {
       .expect(() => expect(materialModel.remove).not.toHaveBeenCalled())
       .end(done);
   });
+
+  describe('kit básico y vaciado del inventario', () => {
+    test('sin token ninguna de las dos acciones funciona', async () => {
+      await request(app).post('/api/materials/defaults').expect(401);
+      await request(app).delete('/api/materials?confirm=true').expect(401);
+    });
+
+    test('cargar el kit devuelve lo que se creó y siempre para el artista del token', async () => {
+      materialModel.createDefaults.mockResolvedValue([material, { ...material, id: 'x' }]);
+
+      const res = await request(app).post('/api/materials/defaults').set('Authorization', auth);
+
+      expect(res.status).toBe(201);
+      expect(res.body.created).toBe(2);
+      expect(res.body.materials).toHaveLength(2);
+      // El id sale del token, nunca del cuerpo.
+      expect(materialModel.createDefaults).toHaveBeenCalledWith(USER_ID);
+    });
+
+    test('si ya tenía todo el kit, no crea nada y no es un error', async () => {
+      materialModel.createDefaults.mockResolvedValue([]);
+
+      const res = await request(app).post('/api/materials/defaults').set('Authorization', auth);
+
+      expect(res.status).toBe(201);
+      expect(res.body.created).toBe(0);
+    });
+
+    test('vaciar el inventario exige confirmación explícita', async () => {
+      for (const url of ['/api/materials', '/api/materials?confirm=1', '/api/materials?confirm=false']) {
+        const res = await request(app).delete(url).set('Authorization', auth);
+        expect(res.status).toBe(400);
+      }
+      expect(materialModel.removeAll).not.toHaveBeenCalled();
+    });
+
+    test('confirmado, vacía solo el inventario del artista del token', async () => {
+      materialModel.removeAll.mockResolvedValue(29);
+
+      const res = await request(app).delete('/api/materials?confirm=true').set('Authorization', auth);
+
+      expect(res.status).toBe(200);
+      expect(res.body.deleted).toBe(29);
+      expect(materialModel.removeAll).toHaveBeenCalledWith(USER_ID);
+    });
+
+    test('un fallo de la base se informa sin filtrar el error', async () => {
+      materialModel.removeAll.mockRejectedValue(new Error('db caída'));
+      const log = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const res = await request(app).delete('/api/materials?confirm=true').set('Authorization', auth);
+
+      expect(res.status).toBe(500);
+      expect(JSON.stringify(res.body)).not.toMatch(/db caída/);
+      log.mockRestore();
+    });
+  });
 });

@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const { DEFAULT_MATERIALS } = require('../data/defaultMaterials');
 
 const COLUMNS = `
   id, user_id, name, category, unit, quantity, min_quantity, unit_cost,
@@ -130,6 +131,104 @@ async function remove(id, userId) {
 }
 
 /**
+ * Carga el kit básico (`data/defaultMaterials.js`) en el inventario del artista.
+ *
+ * Solo agrega lo que no tiene: se compara el nombre sin distinguir mayúsculas,
+ * así que pedirlo dos veces, o pedirlo con un inventario a medias, no duplica
+ * nada ni pisa lo que el artista ya ajustó. Va en una sola consulta, no una por
+ * insumo: son treinta y esto corre dentro del registro de una cuenta.
+ *
+ * @returns los insumos que se crearon (los que ya existían no salen)
+ */
+async function createDefaults(userId, db = pool) {
+  const col = (pick) => DEFAULT_MATERIALS.map(pick);
+  const { rows } = await db.query(
+    `INSERT INTO materials
+       (user_id, name, category, unit, quantity, min_quantity, unit_cost,
+        consumption_basis, consumption_rate, color_hex, notes)
+     SELECT $1, d.name, d.category, d.unit, d.quantity, d.min_quantity, d.unit_cost,
+            d.basis, d.rate, d.color, d.notes
+       FROM unnest($2::text[], $3::text[], $4::text[], $5::int[], $6::int[],
+                   $7::int[], $8::text[], $9::numeric[], $10::text[], $11::text[])
+            AS d(name, category, unit, quantity, min_quantity, unit_cost, basis, rate, color, notes)
+      WHERE NOT EXISTS (
+        SELECT 1 FROM materials m
+         WHERE m.user_id = $1 AND lower(m.name) = lower(d.name)
+      )
+     RETURNING ${COLUMNS}`,
+    [
+      userId,
+      col((m) => m.name),
+      col((m) => m.category),
+      col((m) => m.unit),
+      col((m) => m.quantity),
+      col((m) => m.minQuantity),
+      col((m) => m.unitCost),
+      col((m) => m.consumptionBasis),
+      col((m) => m.consumptionRate),
+      col((m) => m.colorHex),
+      col((m) => m.notes),
+    ]
+  );
+  return rows;
+}
+
+/**
+ * Le ofrece el catálogo al artista **una sola vez**: la primera que entra a su
+ * inventario o a las cotizaciones.
+ *
+ * La marca `materials_seeded_at` se sella con un UPDATE condicional, así que dos
+ * peticiones simultáneas (el inventario y las cotizaciones se piden juntas al
+ * abrir la app) no siembran dos veces: solo la que logra el UPDATE sigue. Marca y
+ * carga van en una transacción, para que un fallo a medias no deje la marca
+ * puesta sin insumos.
+ *
+ * Solo siembra si el inventario está vacío. Quien ya armó el suyo a mano (las
+ * cuentas anteriores a esta función) conserva exactamente lo que tiene, y a esas
+ * se les marca de todos modos para no preguntar de nuevo.
+ *
+ * @returns cuántos insumos se cargaron (0 casi siempre: ya estaba hecho)
+ */
+async function ensureStarterKit(userId) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const claimed = await client.query(
+      `UPDATE users SET materials_seeded_at = now()
+        WHERE id = $1 AND materials_seeded_at IS NULL`,
+      [userId]
+    );
+    let created = 0;
+    if (claimed.rowCount > 0) {
+      const { rows } = await client.query(
+        'SELECT 1 FROM materials WHERE user_id = $1 LIMIT 1',
+        [userId]
+      );
+      if (rows.length === 0) created = (await createDefaults(userId, client)).length;
+    }
+    await client.query('COMMIT');
+    return created;
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+/**
+ * Vacía el inventario del artista. Las cotizaciones guardadas no se pierden:
+ * `quote_items.material_id` pasa a NULL y la línea conserva su nombre, unidad y
+ * costo; solo deja de poder descontar stock de un insumo que ya no existe.
+ *
+ * @returns cuántos insumos se eliminaron
+ */
+async function removeAll(userId) {
+  const { rowCount } = await pool.query('DELETE FROM materials WHERE user_id = $1', [userId]);
+  return rowCount;
+}
+
+/**
  * Insumos que entran en una cotización (HU14): los que declararon cómo se
  * consumen. La máquina o el pedal quedan fuera — no se gastan tatuando.
  */
@@ -148,7 +247,10 @@ module.exports = {
   listConsumable,
   findByIdForUser,
   create,
+  createDefaults,
+  ensureStarterKit,
   update,
   adjustStock,
   remove,
+  removeAll,
 };

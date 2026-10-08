@@ -160,4 +160,32 @@ async function remove(req, res) {
   }
 }
 
-module.exports = { list, create, update, adjustStock, remove };
+// POST /api/materials/defaults  → carga el kit básico; no duplica lo que ya hay
+async function loadDefaults(req, res) {
+  try {
+    const materials = await materialModel.createDefaults(req.user.sub);
+    return res.status(201).json({ materials, created: materials.length });
+  } catch (err) {
+    return sendError(res, err, 'cargando los insumos básicos');
+  }
+}
+
+// DELETE /api/materials?confirm=true  → vacía el inventario del artista
+async function removeAll(req, res) {
+  // Una llamada sin confirmar no borra nada: vaciar el inventario no se puede
+  // deshacer, y un DELETE a la colección es fácil de disparar por error.
+  if (req.query.confirm !== 'true') {
+    return res
+      .status(400)
+      .json({ message: 'Para eliminar todo el inventario hay que confirmarlo.' });
+  }
+
+  try {
+    const deleted = await materialModel.removeAll(req.user.sub);
+    return res.json({ deleted });
+  } catch (err) {
+    return sendError(res, err, 'vaciando el inventario');
+  }
+}
+
+module.exports = { list, create, loadDefaults, update, adjustStock, remove, removeAll };

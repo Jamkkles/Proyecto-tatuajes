@@ -358,3 +358,15 @@ ALTER TABLE projects
 ALTER TABLE projects
   ADD COLUMN IF NOT EXISTS height_cm NUMERIC(6,2)
     CHECK (height_cm IS NULL OR (height_cm > 0 AND height_cm <= 200));
+
+-- ============================================================
+-- Inventario inicial
+--
+-- Cada artista recibe el catálogo de insumos la primera vez que entra a su
+-- inventario o a las cotizaciones. Esta marca dice si ya se le ofreció, y es lo
+-- que hace que «Eliminar todos» no se deshaga solo: sin ella, un inventario
+-- vacío no se distingue de uno que nunca se llenó y se volvería a sembrar.
+-- NULL = todavía no.
+-- ============================================================
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS materials_seeded_at TIMESTAMPTZ;
