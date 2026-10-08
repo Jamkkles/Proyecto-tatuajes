@@ -4,8 +4,10 @@
 // archivos se sirven "caché primero", así que sin una versión nueva quien ya
 // instaló la app seguiría viendo la anterior. El `activate` borra las versiones
 // viejas.
-const CACHE = 'tattoo-estudio-shell-v2';
-const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg', '/favicon.svg'];
+const CACHE = 'tattoo-estudio-shell-v3';
+// Si alguno de estos archivos no existe, `addAll` falla entero y el service worker
+// no se instala: al renombrar o borrar un ícono hay que actualizar esta lista.
+const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icon-192.png', '/favicon-32.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

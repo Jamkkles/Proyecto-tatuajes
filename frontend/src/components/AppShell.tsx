@@ -123,7 +123,7 @@ export default function AppShell() {
       {/* ---------- Sidebar ---------- */}
       <aside className="dash__sidebar" id="dash-nav">
         <div className="dash__brand">
-          <span className="dash__seal" aria-hidden="true" />
+          <img className="dash__logo" src="/icon-192.png" width={36} height={36} alt="" />
           <span className="dash__brand-text">
             <span className="dash__wordmark">Tattoo Estudio</span>
           </span>

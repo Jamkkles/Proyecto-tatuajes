@@ -282,11 +282,18 @@ de la calibración está en el comentario de `CM2_POR_HORA`
 - PWA: `public/manifest.webmanifest`, `public/sw.js` (solo cachea el shell; los
   datos viven en la API, así que el modo offline es mínimo a propósito) e íconos
   PNG (`icon-192`, `icon-512`, `icon-maskable-512`, `apple-touch-icon`, este
-  último a pantalla completa porque iOS aplica su propia máscara). El ícono es
-  una aguja de tatuaje con una gota de tinta; los PNG salen de `icon.svg` e
-  `icon-maskable.svg` con `sharp` (`density: 384`), y `favicon.svg` es una
-  versión más gruesa para que se lea a 16 px. Al cambiar algo de lo que
-  precachea `sw.js` hay que subir `CACHE`, o las apps ya instaladas no se enteran
+  último a pantalla completa porque iOS aplica su propia máscara). El logo es
+  una «H» gótica con una aguja en el centro (`public/logo.png`, transparente).
+  **Todos los íconos salen de él** con `node frontend/scripts/make-icons.cjs
+  [original.png]`: pasándole la imagen original rehace `logo.png` (se queda con
+  la mancha más grande, descarta píxeles sueltos y pasa el negro a
+  transparencia) y siempre rehace `icon-192/512`, el adaptable de Android
+  (logo dentro del círculo seguro), `apple-touch-icon`, `favicon-16/32` y
+  `favicon.ico`. El menú lateral usa `icon-192.png` (`.dash__logo`): trae su
+  propio fondo oscuro, así que se ve igual en tema claro y oscuro. Al cambiar
+  algo de lo que precachea `sw.js` hay que subir `CACHE` **y** mantener
+  actualizada su lista `SHELL`: si un archivo de esa lista no existe, `addAll`
+  falla y el service worker no se instala
   `public/_headers` hace en Cloudflare Pages lo que `nginx.conf` hace en Docker
 - **Áreas seguras de iOS.** `index.html` usa `viewport-fit=cover` y barra de estado
   `black-translucent`, así que en la PWA instalada la página llega al borde físico
