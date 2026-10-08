@@ -156,6 +156,25 @@ enteros (base del cálculo de cotizaciones, HU14). Nivel crítico =
 - `POST /api/materials` (`name` obligatorio, `category`, `unit`, `quantity`,
   `minQuantity`, `unitCost`, `supplier`, `notes`) → `201 { material }`
 - `PATCH /api/materials/:id`, `DELETE /api/materials/:id` → `204`
+- **Kit básico.** Cada cuenta nueva recibe 29 insumos con su regla de consumo, su
+  color y un precio de referencia (`data/defaultMaterials.js`): `register` llama a
+  `materialModel.createDefaults` y, si eso falla, **no** revierte el registro (el
+  artista puede pedir el kit después). `POST /api/materials/defaults` lo carga a
+  demanda y devuelve `{ materials, created }`: solo agrega lo que no está (compara
+  el nombre en minúsculas), así que repetirlo no duplica ni pisa lo editado.
+  `DELETE /api/materials?confirm=true` vacía el inventario → `{ deleted }`; sin
+  `confirm=true` da 400. Las cotizaciones guardadas sobreviven: `quote_items.material_id`
+  pasa a NULL y la línea conserva nombre y costo
+- **Por qué el kit lleva solo una variante por familia**: el cotizador cobra *todos*
+  los insumos con regla por tamaño que haya. Con las 7 variantes de cartucho del
+  catálogo, cada tatuaje cobraría 7 agujas. Por eso el kit trae un cartucho de
+  línea y uno de sombreado, un solo papel de transfer y un solo film, y deja fuera
+  máquinas, fuente, pedal y set de grises (no se consumen). El stock inicial es el
+  doble del nivel crítico, para no llenar el inventario de alertas; es de ejemplo
+- `data/defaultMaterials.js` es una copia depurada de `MATERIAL_PRESETS` del
+  frontend (el selector «Insumos frecuentes»). Viven aparte porque el frontend se
+  compila solo y no puede importar del backend: **un precio o una tasa cambiados en
+  uno hay que cambiarlos en el otro**
 - `POST /api/materials/:id/stock` con `{ delta }` (negativo para descontar) →
   el stock se suma en la base con `GREATEST(0, …)`, así dos ajustes seguidos no
   se pisan ni queda negativo
@@ -260,7 +279,9 @@ de la calibración está en el comentario de `CM2_POR_HORA`
   `lib/money.ts` formatea y lee pesos (lo usan agenda e inventario);
   `lib/agendaForms.ts` convierte formularios ↔ API
 - `/inventario` — insumos con stock, nivel crítico, costo unitario, regla de
-  consumo y, en las tintas, su color. `MATERIAL_PRESETS` (en `lib/materials.ts`)
+  consumo y, en las tintas, su color. Sobre la lista hay dos botones: «Cargar
+  insumos básicos» (el kit) y «Eliminar todos» (pide confirmación con
+  `window.confirm`, que dice cuántos son y qué pasa con las cotizaciones). `MATERIAL_PRESETS` (en `lib/materials.ts`)
   es el catálogo de insumos típicos de tatuaje, cada uno con su `basis`, `rate`
   y `unitCost` sugeridos (precios referenciales de Chile, por unidad de conteo),
   y las tintas con su `colorHex`

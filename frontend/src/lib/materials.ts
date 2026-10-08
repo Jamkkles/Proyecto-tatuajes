@@ -170,6 +170,24 @@ export function deleteMaterial(id: string): Promise<void> {
   return apiFetch<void>(`/api/materials/${id}`, { method: 'DELETE' })
 }
 
+/**
+ * Carga el kit básico de insumos (los mismos que recibe una cuenta nueva).
+ * Devuelve solo los que se crearon: lo que el artista ya tenía no se duplica ni
+ * se pisa, así que puede salir una lista vacía.
+ */
+export function loadDefaultMaterials(): Promise<Material[]> {
+  return apiFetch<{ materials: Material[] }>('/api/materials/defaults', { method: 'POST' }).then(
+    (r) => r.materials,
+  )
+}
+
+/** Vacía el inventario entero. Devuelve cuántos insumos se eliminaron. */
+export function deleteAllMaterials(): Promise<number> {
+  return apiFetch<{ deleted: number }>('/api/materials?confirm=true', { method: 'DELETE' }).then(
+    (r) => r.deleted,
+  )
+}
+
 /** ¿Llegó al nivel crítico? Misma regla que usa el backend para ordenar. */
 export const isLowStock = (m: Material) => m.quantity <= m.min_quantity
 

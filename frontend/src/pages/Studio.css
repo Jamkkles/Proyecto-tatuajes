@@ -328,6 +328,14 @@ textarea.st-input {
   border-left: 2px solid var(--danger);
   border-radius: 2px;
 }
+/* Acciones sobre el inventario entero: cargar el kit básico o vaciarlo. */
+.st-kit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
 .st-notice {
   margin: 0 0 14px;
   padding: 10px 14px;

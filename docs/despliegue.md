@@ -133,6 +133,9 @@ Guarda; Render redespliega solo.
 - [ ] Abres la URL de Pages e inicias sesión con el usuario del paso 3.
 - [ ] Subes un boceto: debe aparecer con una URL de `res.cloudinary.com`.
 - [ ] Colocas un tatuaje en la previsualización 3D y guardas la escena.
+- [ ] Tu cuenta nueva ya trae 29 insumos en Inventario. Las cuentas que se crearon
+      **antes** de esa función (la tuya, si la sembraste con `db:init`) arrancan con
+      el inventario vacío: pulsa «Cargar insumos básicos».
 - [ ] Creas una cotización.
 - [ ] El botón «Crear cuenta» del login te deja registrar una cuenta nueva, y esa cuenta entra vacía.
 

@@ -10,9 +10,11 @@ import {
   basisPer,
   categoryLabel,
   createMaterial,
+  deleteAllMaterials,
   deleteMaterial,
   isLowStock,
   listMaterials,
+  loadDefaultMaterials,
   stockValue,
   unitShort,
   updateMaterial,
@@ -318,6 +320,8 @@ export default function Inventario() {
   const [preset, setPreset] = useState('')
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState('')
+  // Qué hace el kit básico en este momento: cargarlo o vaciar el inventario.
+  const [kitBusy, setKitBusy] = useState<'load' | 'clear' | null>(null)
 
   useAppShellHeader({
     title: 'Inventario',
@@ -387,6 +391,55 @@ export default function Inventario() {
       colorHex: found.colorHex ?? '',
       cost: formatAmountInput(found.unitCost),
     }))
+  }
+
+  /** Agrega el kit básico. Lo que ya está en el inventario no se toca. */
+  async function loadKit() {
+    setKitBusy('load')
+    setNotice('')
+    try {
+      const created = await loadDefaultMaterials()
+      if (created.length === 0) {
+        setNotice('Ya tienes todos los insumos del kit básico.')
+        return
+      }
+      setMaterials((list) => sortMaterials([...list, ...created]))
+      setNotice(
+        `Se cargaron ${created.length} ${created.length === 1 ? 'insumo' : 'insumos'} del kit básico. ` +
+          'El stock es de ejemplo: ajústalo a lo que de verdad tienes.',
+      )
+    } catch (err) {
+      setNotice(apiErrorMessage(err, 'No pudimos cargar el kit básico.'))
+    } finally {
+      setKitBusy(null)
+    }
+  }
+
+  /** Vacía el inventario, para quien prefiere armarlo a su manera. */
+  async function clearAll() {
+    const count = materials.length
+    if (count === 0) return
+    const ok = window.confirm(
+      `¿Eliminar los ${count} insumos del inventario?\n\n` +
+        'Esto no se puede deshacer. Las cotizaciones guardadas conservan sus líneas, ' +
+        'pero dejan de descontar stock. Después puedes volver a cargar el kit básico.',
+    )
+    if (!ok) return
+
+    setKitBusy('clear')
+    setNotice('')
+    try {
+      await deleteAllMaterials()
+      setMaterials([])
+      setCategory('todas')
+      setOnlyLow(false)
+      setQuery('')
+      setNotice('Inventario vacío. Agrega tus insumos a tu manera.')
+    } catch (err) {
+      setNotice(apiErrorMessage(err, 'No pudimos vaciar el inventario.'))
+    } finally {
+      setKitBusy(null)
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -507,6 +560,25 @@ export default function Inventario() {
                 />
               </div>
 
+              <div className="st-kit">
+                <button
+                  type="button"
+                  className="st-btn st-btn--sm"
+                  onClick={loadKit}
+                  disabled={loading || kitBusy !== null}
+                >
+                  {kitBusy === 'load' ? 'Cargando…' : 'Cargar insumos básicos'}
+                </button>
+                <button
+                  type="button"
+                  className="st-btn st-btn--sm st-btn--danger"
+                  onClick={clearAll}
+                  disabled={loading || kitBusy !== null || materials.length === 0}
+                >
+                  {kitBusy === 'clear' ? 'Eliminando…' : 'Eliminar todos'}
+                </button>
+              </div>
+
               <div className="st-chips" role="group" aria-label="Filtrar por categoría">
                 <button
                   type="button"
@@ -550,7 +622,7 @@ export default function Inventario() {
               ) : visible.length === 0 ? (
                 <p className="st-empty">
                   {materials.length === 0
-                    ? 'Tu inventario está vacío. Agrega el primer insumo con la lista de insumos frecuentes.'
+                    ? 'Tu inventario está vacío. Carga el kit básico o agrega tus insumos con la lista de insumos frecuentes.'
                     : 'Ningún insumo coincide con el filtro.'}
                 </p>
               ) : (
