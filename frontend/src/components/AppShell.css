@@ -79,21 +79,15 @@
   gap: 12px;
 }
 
-.dash__seal {
-  position: relative;
-  width: 32px;
-  height: 32px;
+/* El logo viene con su propio fondo oscuro y esquinas redondeadas (es el mismo
+   archivo del ícono de la app), así que se ve igual en tema claro y oscuro. */
+.dash__logo {
+  display: block;
   flex-shrink: 0;
-  background: var(--accent);
-  border-radius: 3px;
-  box-shadow: 0 6px 18px -6px rgba(192, 57, 47, 0.7);
-}
-.dash__seal::after {
-  content: '';
-  position: absolute;
-  inset: 5px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 1px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.8);
 }
 
 .dash__brand-text {
