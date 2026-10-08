@@ -119,6 +119,12 @@ idempotente: se puede repetir (por ejemplo tras cambios en `schema.sql`).
 Las cabeceras de caché y seguridad salen de `frontend/public/_headers`; Pages no
 lee el `nginx.conf` de Docker.
 
+> **Después de actualizar el código, vuelve a correr el paso 3.** El inventario
+> inicial usa una columna nueva (`users.materials_seeded_at`) que `db:init` agrega
+> sin tocar tus datos. Si despliegas sin correrlo, la app funciona pero el
+> inventario se ve vacío y en el log de Render aparece «column materials_seeded_at
+> does not exist».
+
 ## 6. Cerrar el círculo
 
 En Render → tu servicio → *Environment*, corrige:
@@ -133,9 +139,10 @@ Guarda; Render redespliega solo.
 - [ ] Abres la URL de Pages e inicias sesión con el usuario del paso 3.
 - [ ] Subes un boceto: debe aparecer con una URL de `res.cloudinary.com`.
 - [ ] Colocas un tatuaje en la previsualización 3D y guardas la escena.
-- [ ] Tu cuenta nueva ya trae 29 insumos en Inventario. Las cuentas que se crearon
-      **antes** de esa función (la tuya, si la sembraste con `db:init`) arrancan con
-      el inventario vacío: pulsa «Cargar insumos básicos».
+- [ ] Al abrir Inventario por primera vez ya ves 42 insumos (tintas, cartuchos,
+      barrera, higiene, transfer, cuidado y equipos). Es lo mismo para una cuenta
+      nueva que para una que ya existía con el inventario vacío (la tuya). «Eliminar
+      todos» los quita y no vuelven solos; «Cargar insumos básicos» los repone.
 - [ ] Creas una cotización.
 - [ ] El botón «Crear cuenta» del login te deja registrar una cuenta nueva, y esa cuenta entra vacía.
 

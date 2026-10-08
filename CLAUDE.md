@@ -156,25 +156,40 @@ enteros (base del cálculo de cotizaciones, HU14). Nivel crítico =
 - `POST /api/materials` (`name` obligatorio, `category`, `unit`, `quantity`,
   `minQuantity`, `unitCost`, `supplier`, `notes`) → `201 { material }`
 - `PATCH /api/materials/:id`, `DELETE /api/materials/:id` → `204`
-- **Kit básico.** Cada cuenta nueva recibe 29 insumos con su regla de consumo, su
-  color y un precio de referencia (`data/defaultMaterials.js`): `register` llama a
-  `materialModel.createDefaults` y, si eso falla, **no** revierte el registro (el
-  artista puede pedir el kit después). `POST /api/materials/defaults` lo carga a
-  demanda y devuelve `{ materials, created }`: solo agrega lo que no está (compara
-  el nombre en minúsculas), así que repetirlo no duplica ni pisa lo editado.
-  `DELETE /api/materials?confirm=true` vacía el inventario → `{ deleted }`; sin
-  `confirm=true` da 400. Las cotizaciones guardadas sobreviven: `quote_items.material_id`
-  pasa a NULL y la línea conserva nombre y costo
-- **Por qué el kit lleva solo una variante por familia**: el cotizador cobra *todos*
-  los insumos con regla por tamaño que haya. Con las 7 variantes de cartucho del
-  catálogo, cada tatuaje cobraría 7 agujas. Por eso el kit trae un cartucho de
-  línea y uno de sombreado, un solo papel de transfer y un solo film, y deja fuera
-  máquinas, fuente, pedal y set de grises (no se consumen). El stock inicial es el
-  doble del nivel crítico, para no llenar el inventario de alertas; es de ejemplo
-- `data/defaultMaterials.js` es una copia depurada de `MATERIAL_PRESETS` del
-  frontend (el selector «Insumos frecuentes»). Viven aparte porque el frontend se
-  compila solo y no puede importar del backend: **un precio o una tasa cambiados en
-  uno hay que cambiarlos en el otro**
+- **Inventario inicial.** Todo artista —nuevo o ya existente— recibe el catálogo
+  completo (42 insumos, `data/defaultMaterials.js`) **la primera vez que entra a
+  Inventario o a Cotizaciones**. Lo hace el middleware `starterKit`
+  (`materialModel.ensureStarterKit`), no el registro: así alcanza también a las
+  cuentas que ya existían. Reglas:
+  - `users.materials_seeded_at` marca que ya se le ofreció. Se sella con un
+    `UPDATE … WHERE materials_seeded_at IS NULL` dentro de una transacción con la
+    carga: dos peticiones simultáneas no siembran dos veces (probado con 20) y un
+    fallo no deja la marca puesta sin insumos
+  - Solo siembra si el inventario está **vacío**: quien ya armó el suyo conserva
+    exactamente lo que tiene, y se le marca igual para no volver a preguntar
+  - La marca es lo que hace que «Eliminar todos» no se deshaga solo
+  - Nunca frena la petición: si falla (p. ej. falta la columna porque no se corrió
+    `db:init` tras desplegar) se registra y la pantalla sigue, vacía
+- `POST /api/materials/defaults` («Cargar insumos básicos») lo carga a demanda y
+  devuelve `{ materials, created }`: solo agrega lo que no está (compara el nombre
+  en minúsculas), así que repetirlo no duplica ni pisa lo editado.
+  `DELETE /api/materials?confirm=true` («Eliminar todos») vacía el inventario →
+  `{ deleted }`; sin `confirm=true` da 400. Las cotizaciones guardadas sobreviven:
+  `quote_items.material_id` pasa a NULL y la línea conserva nombre y costo
+- **Las variantes alternativas entran apagadas** (13 de los 42: los otros 5
+  cartuchos, el papel térmico, el film post tatuaje, los grips, el set de grises y
+  los 4 equipos). El cotizador cobra *todos* los insumos con regla por tamaño que
+  haya: con las 7 variantes de cartucho activas cada tatuaje cobraría 7 agujas. De
+  cada familia queda una activa (un cartucho de línea y uno de sombreado, un papel,
+  un film); las otras tienen `consumption_basis = 'ninguno'`, conservan la tasa
+  sugerida **dentro de la nota** (porque `formToInput` pone la tasa en 0 al
+  guardar un insumo sin consumo) y la nota explica cómo encenderlas
+- Stock inicial: el doble del nivel crítico (los equipos, 1 con mínimo 0) para que
+  el inventario no arranque en alerta; es de ejemplo
+- `data/defaultMaterials.js` copia a `MATERIAL_PRESETS` del frontend (el selector
+  «Insumos frecuentes») con esas variantes apagadas. Viven aparte porque el frontend
+  se compila solo y no puede importar del backend: **un precio o una tasa cambiados
+  en uno hay que cambiarlos en el otro**
 - `POST /api/materials/:id/stock` con `{ delta }` (negativo para descontar) →
   el stock se suma en la base con `GREATEST(0, …)`, así dos ajustes seguidos no
   se pisan ni queda negativo
