@@ -119,9 +119,15 @@ idempotente: se puede repetir (por ejemplo tras cambios en `schema.sql`).
 Las cabeceras de caché y seguridad salen de `frontend/public/_headers`; Pages no
 lee el `nginx.conf` de Docker.
 
+> **Recordatorios, WhatsApp y notificaciones push:** paso a paso en
+> `docs/whatsapp-y-notificaciones.md`. Necesitan variables nuevas en Render
+> (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`; `CRON_SECRET` lo genera el Blueprint) y un
+> servicio externo que llame al programador cada 10 minutos.
+
 > **Después de actualizar el código, vuelve a correr el paso 3.** El inventario
-> inicial usa una columna nueva (`users.materials_seeded_at`) que `db:init` agrega
-> sin tocar tus datos. Si despliegas sin correrlo, la app funciona pero el
+> inicial usa una columna nueva (`users.materials_seeded_at`) y los avisos usan cuatro
+> tablas nuevas (`notifications`, `push_subscriptions`, `notification_settings`,
+> `message_log`); `db:init` las agrega sin tocar tus datos. Si despliegas sin correrlo, la app funciona pero el
 > inventario se ve vacío y en el log de Render aparece «column materials_seeded_at
 > does not exist».
 
