@@ -1,9 +1,11 @@
-import { useCallback, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { getUser, logout } from '../lib/auth'
+import { syncPushSubscription } from '../lib/push'
 import { useHideOnScroll } from '../lib/useHideOnScroll'
 import type { AppHeader } from '../lib/useAppShellHeader'
 import Atmos from './Atmos'
+import NotificationBell from './NotificationBell'
 import ThemeToggle from './ThemeToggle'
 import './AppShell.css'
 
@@ -83,7 +85,7 @@ const NAV: { key: string; label: string; to?: string; match?: string[] }[] = [
   { key: 'cotizaciones', label: 'Cotizaciones', to: '/cotizaciones' },
   { key: 'inventario', label: 'Inventario', to: '/inventario' },
   { key: 'prev3d', label: 'Previsualización 3D', to: '/previsualizacion' },
-  { key: 'config', label: 'Configuración' },
+  { key: 'config', label: 'Configuración', to: '/configuracion' },
 ]
 
 export default function AppShell() {
@@ -100,6 +102,12 @@ export default function AppShell() {
 
   // El header se esconde al bajar y vuelve al subir o con el mouse arriba.
   const headerHidden = useHideOnScroll()
+
+  // Con el permiso de notificaciones ya dado, se le recuerda al servidor este
+  // dispositivo cada vez que se abre la app (ver `syncPushSubscription`).
+  useEffect(() => {
+    void syncPushSubscription()
+  }, [])
 
   const firstName = user?.name?.trim().split(/\s+/)[0] ?? 'artista'
   const initial = firstName.charAt(0).toUpperCase()
@@ -191,9 +199,7 @@ export default function AppShell() {
 
           <div className="dash__top-right">
             <ThemeToggle className="dash__iconbtn" />
-            <button className="dash__iconbtn dash__iconbtn--dot" type="button" aria-label="Notificaciones">
-              <span className="navitem__icon">{icons.bell}</span>
-            </button>
+            <NotificationBell />
             <span className="dash__avatar dash__avatar--sm" aria-hidden="true">{initial}</span>
           </div>
         </header>

@@ -18,6 +18,7 @@ const Cliente = lazy(() => import('./pages/Cliente'))
 const Proyecto = lazy(() => import('./pages/Proyecto'))
 const Inventario = lazy(() => import('./pages/Inventario'))
 const Cotizaciones = lazy(() => import('./pages/Cotizaciones'))
+const Configuracion = lazy(() => import('./pages/Configuracion'))
 
 function App() {
   return (
@@ -48,6 +49,7 @@ function App() {
               <Route path="/proyectos/:id" element={<Proyecto />} />
               <Route path="/inventario" element={<Inventario />} />
               <Route path="/cotizaciones" element={<Cotizaciones />} />
+              <Route path="/configuracion" element={<Configuracion />} />
             </Route>
           </Routes>
         </Suspense>
