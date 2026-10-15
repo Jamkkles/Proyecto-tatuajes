@@ -219,7 +219,7 @@ Hay dos destinatarios distintos: el **artista** (campanita + push) y el **client
   queda), `POST /api/push/unsubscribe`, `POST /api/push/test`
 - `GET/PUT /api/notification-settings` → los tres interruptores y los dos textos editables
   (`reminderNote` ≤ 300, `aftercareNote` ≤ 600; una sola línea: se juntan los saltos), más
-  `channels: { whatsapp: 'automatico' | 'manual', push }`. Los valores por defecto viven
+  `channels: { whatsapp: 'automatico' | 'vinculado' | 'manual', push, whatsappWeb }`. Los valores por defecto viven
   en el DEFAULT de `schema.sql` **y** en `DEFAULT_SETTINGS`; un test los compara
 - `POST /api/sessions/:id/message` con `{ kind: 'recordatorio' | 'cuidados' }` (el botón
   «Recordar por WhatsApp»): sin deduplicar y sin aviso en la campanita
@@ -240,6 +240,26 @@ Hay dos destinatarios distintos: el **artista** (campanita + push) y el **client
   mensaje. Los parámetros se limpian (`cleanParam`): Meta rechaza saltos de línea,
   tabulaciones y parámetros vacíos. Sin `WHATSAPP_TOKEN` + `WHATSAPP_PHONE_NUMBER_ID` no se
   usa y todo va por el camino manual (gratis)
+- **WhatsApp vinculado** (`services/whatsappWeb/`): canal gratis y **no oficial** (Baileys,
+  `@whiskeysockets/baileys@7.0.0-rc14`, ESM → `import()` dinámico desde CommonJS). El
+  artista enlaza su propio WhatsApp como dispositivo vinculado y los mensajes salen de su
+  número. Va contra los términos de WhatsApp y puede bloquear el número: **apagado por
+  defecto** (`WHATSAPP_WEB_ENABLED=true` + `WHATSAPP_AUTH_KEY` ≥ 32 caracteres, que cifra la
+  sesión con AES-256-GCM en `whatsapp_auth`; `utils/secretBox.js`), y vincular exige
+  `acceptRisk: true` **en el servidor**, no solo en la pantalla. Prioridad en `deliver`:
+  API oficial > WhatsApp vinculado > enlace manual (`message_log.channel`: `whatsapp` |
+  `whatsapp_web` | `manual`); cualquier fallo cae al manual. Reglas que no se quitan: fila
+  por artista, pausa de 4–9 s y «escribiendo…», tope por hora (`countRecent`), solo a
+  números que `onWhatsApp` confirma, conexión al enviar y cierre por inactividad. La
+  fábrica `createManager` recibe todo por parámetro y se prueba con un socket simulado; la
+  librería nunca se ejecutó contra WhatsApp real en las pruebas.
+  - `GET /api/whatsapp-web` (estado), `POST /link` (`{ phone, acceptRisk }` → `{ pairingCode }`),
+    `POST /test`, `POST /unlink`. Se vincula con **código**, no con QR
+  - Como una corrida de recordatorios ahora puede durar minutos, `POST /api/jobs/reminders`
+    responde `202 { status: 'en_curso' }` a los 20 s y `runReminders` es de una sola corrida
+    a la vez
+  - Frontend: `components/WhatsAppLink.tsx` (en Configuración, solo si
+    `channels.whatsappWeb`) y `lib/whatsappWeb.ts`
 - `utils/phone.js` normaliza a dígitos con código de país; solo celulares chilenos (9
   dígitos con 9) o internacionales escritos con `+`. `utils/chileTime.js` da fechas y horas
   en `America/Santiago` (el servidor corre en UTC)

@@ -17,7 +17,11 @@ cita agendada ──► programador (cada 10 min) ──► ¿faltan entre 1 y 2
                                                        (gratis, sin aprobación de Meta)
 ```
 
-Los mismos dos caminos valen para los otros mensajes: al **cancelar** o **cambiar la
+Hay un **tercer camino**, gratis y automático pero **no oficial**: que el artista vincule su
+propio WhatsApp (sección 3 bis). Si hay API oficial se usa esa; si no, el WhatsApp
+vinculado; y si ninguno está o falla, el enlace manual.
+
+Los mismos caminos valen para los otros mensajes: al **cancelar** o **cambiar la
 hora** de una cita se avisa al cliente, y al marcar la sesión como **completada** se
 le mandan los cuidados.
 
@@ -131,6 +135,75 @@ Sin `CRON_SECRET` el endpoint no existe (404), y con una clave equivocada respon
 
 Quien reciba un mensaje debe haber aceptado que le escriban: la política de Meta exige
 consentimiento del cliente (opt-in) incluso con el número de prueba.
+
+## 3 bis. WhatsApp vinculado: automático y gratis, pero no oficial
+
+Es lo más cercano a «gratis y automático». El artista abre **Configuración → Enviar los
+mensajes solos** y vincula su WhatsApp como un dispositivo más, igual que WhatsApp Web. Desde
+ese momento el servidor envía los recordatorios, avisos y cuidados desde su número, sin pagar
+por mensaje ni pasar por Meta.
+
+**Léelo antes de usarlo con clientes reales:**
+
+- **No es la API oficial y los términos de WhatsApp no lo permiten.** El servidor habla con
+  WhatsApp haciéndose pasar por un dispositivo vinculado (librería
+  [Baileys](https://github.com/WhiskeySockets/Baileys)). Si WhatsApp lo detecta, **puede
+  bloquear el número del artista**, y eso es un riesgo real: es el número con el que habla con
+  sus clientes. Por eso la pantalla pide aceptarlo y **el servidor lo exige** (`acceptRisk`).
+- Para bajar el riesgo el sistema envía **despacio** (pausa de 4 a 9 s entre mensajes y
+  «escribiendo…» antes de cada uno), **con tope por hora** (15 por artista), **solo a números
+  que existen en WhatsApp**, y solo mensajes sueltos a clientes (nunca difusión). Aun así no
+  elimina el riesgo. Conviene un número del estudio, no el personal, y clientes que ya
+  escribieron o aceptaron los avisos.
+- Es una librería no oficial: cuando WhatsApp cambia su protocolo puede dejar de funcionar
+  hasta que se actualice. Por eso cualquier fallo **cae al camino manual** y el mensaje no se
+  pierde.
+- La vinculación se hace **con código** (WhatsApp → Dispositivos vinculados → Vincular con el
+  número de teléfono), no con QR. La sesión se guarda **cifrada** (AES-256-GCM) en la base de
+  datos, porque el disco de Render gratuito se borra en cada despliegue.
+
+### Activarlo en el servidor
+
+Viene **apagado**. Para encenderlo:
+
+1. La librería tiene que estar en `backend/package.json` (`npm install --save-exact
+   @whiskeysockets/baileys@7.0.0-rc14`). Se importa solo al usar la función, así que sin ella
+   el resto del sistema funciona igual. Se fijó la `7.0.0-rc14`, la última, porque la estable
+   6.x no se instala en la imagen Alpine (necesita `git`).
+2. Crear las tablas: `npm run db:init` (local) o pegar el final de `schema.sql` en Neon
+   (`whatsapp_sessions`, `whatsapp_auth` y el nuevo valor `whatsapp_web` del canal en
+   `message_log`).
+3. Variables de entorno en Render (**no** van en `render.yaml`, que se sincroniza solo y
+   dejaría la función encendida para todos): `WHATSAPP_WEB_ENABLED=true` y `WHATSAPP_AUTH_KEY`
+   (32 o más caracteres; `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`).
+   Guarda esa clave: sin ella las sesiones ya vinculadas no se pueden leer.
+4. Opcionales: `WHATSAPP_WEB_MAX_PER_HOUR` (15), `WHATSAPP_WEB_MAX_SESSIONS` (3),
+   `WHATSAPP_WEB_IDLE_MINUTES` (5).
+
+### Cómo se usa
+
+1. **Configuración → Enviar los mensajes solos**, leer el aviso, marcar que lo acepta y
+   escribir su número de WhatsApp.
+2. «Obtener código de vinculación» muestra un código de 8 caracteres. En el teléfono:
+   *Ajustes → Dispositivos vinculados → Vincular un dispositivo → Vincular con el número de
+   teléfono* y escribirlo. La pantalla se actualiza sola.
+3. «Enviarme un mensaje de prueba» manda un mensaje al propio número del artista
+   («Mensajes contigo») para comprobar que funciona.
+4. «Desvincular» cierra la sesión también en WhatsApp y borra lo guardado.
+
+### Cómo se comporta
+
+- Se conecta **al enviar** y se cierra a los 5 minutos sin uso, así que no hay una conexión
+  abierta por artista todo el día (el plan gratuito de Render tiene 512 MB) y sobrevive a que
+  el servidor se duerma.
+- Si el artista cierra la sesión desde su teléfono, el servidor lo detecta y olvida la
+  vinculación; los mensajes vuelven al camino manual.
+- Una corrida de recordatorios con varios clientes tarda: cada mensaje lleva su pausa. Si
+  pasa de 20 s, el endpoint del programador responde `202 {status:"en_curso"}` y el trabajo
+  sigue en el servidor (el programador externo corta a los 30 s). Dos corridas simultáneas se
+  unen en una.
+- Es **un servidor con estado**: la conexión vive en memoria. Funciona con una sola instancia,
+  como el plan gratuito.
 
 ## 4. Textos editables (HU28)
 
