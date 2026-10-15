@@ -101,6 +101,18 @@ describe('runReminders (HU22)', () => {
   });
 });
 
+describe('el resumen cuenta lo que salió solo', () => {
+  test('tanto por la API oficial como por el WhatsApp vinculado; lo manual aparte', async () => {
+    reminderModel.dueForReminder.mockResolvedValue([due(1), due(2), due(3)]);
+    deliver
+      .mockResolvedValueOnce({ status: 'enviado', channel: 'whatsapp' })
+      .mockResolvedValueOnce({ status: 'enviado', channel: 'whatsapp_web' })
+      .mockResolvedValueOnce({ status: 'pendiente', channel: 'manual' });
+
+    expect(await runReminders({ now: NOW })).toMatchObject({ checked: 3, whatsapp: 2, manual: 1 });
+  });
+});
+
 describe('una sola corrida a la vez', () => {
   test('si llega otra mientras una sigue en curso, se une a ella en vez de empezar otra', async () => {
     reminderModel.dueForReminder.mockResolvedValue([due(1)]);

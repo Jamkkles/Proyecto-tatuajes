@@ -45,7 +45,7 @@ async function run({ now, env }) {
       );
       if (result.status === 'duplicado') summary.duplicates += 1;
       else if (result.status === 'omitido') summary.omitted += 1;
-      else if (result.channel === 'whatsapp') summary.whatsapp += 1;
+      else if (result.channel === 'whatsapp' || result.channel === 'whatsapp_web') summary.whatsapp += 1; // salió solo
       else summary.manual += 1;
     } catch (err) {
       summary.errors += 1;
