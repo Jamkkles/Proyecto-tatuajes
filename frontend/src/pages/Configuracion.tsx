@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import PushControl from '../components/PushControl'
+import WhatsAppLink from '../components/WhatsAppLink'
 import { apiErrorMessage } from '../lib/api'
 import { getUser } from '../lib/auth'
 import {
@@ -117,11 +118,17 @@ export default function Configuracion() {
                     <strong>WhatsApp conectado.</strong> Los mensajes salen solos; si alguno falla, te
                     llega un aviso para enviarlo tú.
                   </>
+                ) : channels.whatsapp === 'vinculado' ? (
+                  <>
+                    <strong>Tu WhatsApp está vinculado.</strong> Los mensajes salen solos desde tu
+                    número; si alguno falla, te llega un aviso para enviarlo tú.
+                  </>
                 ) : (
                   <>
-                    <strong>Modo manual.</strong> La API de WhatsApp aún no está conectada, así que cada
-                    mensaje te llega como aviso con un botón «Enviar por WhatsApp» que abre el chat con
-                    el texto ya escrito. Es gratis y funciona con cualquier cliente.
+                    <strong>Modo manual.</strong> Cada mensaje te llega como aviso con un botón «Enviar
+                    por WhatsApp» que abre el chat con el texto ya escrito. Es gratis, seguro y funciona
+                    con cualquier cliente.
+                    {channels.whatsappWeb && ' Si prefieres que salgan solos, vincula tu WhatsApp más abajo.'}
                   </>
                 )}
               </p>
@@ -208,6 +215,22 @@ export default function Configuracion() {
             </>
           )}
         </form>
+
+        {/* ---------- Envío automático gratis (no oficial) ---------- */}
+        {channels?.whatsappWeb && channels.whatsapp !== 'automatico' && (
+          <section className="st-panel" aria-labelledby="cfg-link-h">
+            <h2 className="st-h" id="cfg-link-h">Enviar los mensajes solos, gratis</h2>
+            <p className="st-hint cfg__lead">
+              Vincula tu WhatsApp como un dispositivo más (igual que WhatsApp Web) y los recordatorios
+              saldrán desde tu número sin que tengas que hacer nada.
+            </p>
+            <WhatsAppLink
+              onLinkedChange={(linked) =>
+                setChannels((c) => (c ? { ...c, whatsapp: linked ? 'vinculado' : 'manual' } : c))
+              }
+            />
+          </section>
+        )}
       </div>
     </div>
   )

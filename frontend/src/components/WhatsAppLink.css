@@ -1,0 +1,100 @@
+.wl {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.wl__lead,
+.wl__ok {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--steel);
+}
+.wl__ok strong {
+  color: var(--steel-hi);
+}
+
+.wl__warn {
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--fog);
+  border: 1px solid var(--line);
+  border-left: 3px solid #c9a24a;
+  border-radius: 10px;
+  background: rgba(201, 162, 74, 0.08);
+}
+.wl__warn strong {
+  color: var(--steel-hi);
+}
+
+.wl__check {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 14px 0;
+  font-size: 14px;
+  color: var(--steel);
+  cursor: pointer;
+}
+.wl__check input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 1px 0 0;
+  accent-color: var(--steel-hi);
+}
+
+/* El código que se escribe en el teléfono: grande y con letras separadas para copiarlo bien. */
+.wl__code {
+  margin: 0;
+  font-size: clamp(26px, 8vw, 34px);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--steel-hi);
+  user-select: all;
+}
+.wl__steps {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--fog);
+}
+.wl__steps strong {
+  color: var(--steel);
+}
+
+.wl__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.wl__hint,
+.wl__notice {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ash);
+}
+.wl__notice {
+  color: #6aa386;
+}
+.wl__error {
+  margin: 0;
+  font-size: 13px;
+  color: #d98282;
+}
+
+[data-theme='light'] .wl__warn {
+  background: rgba(201, 162, 74, 0.14);
+}
+[data-theme='light'] .wl__notice {
+  color: #3f7a5c;
+}
+[data-theme='light'] .wl__error {
+  color: #b23a3a;
+}

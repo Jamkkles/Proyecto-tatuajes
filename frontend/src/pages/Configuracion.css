@@ -26,6 +26,9 @@
 .cfg__channel--automatico {
   border-left-color: #6aa386;
 }
+.cfg__channel--vinculado {
+  border-left-color: #6aa386;
+}
 .cfg__channel--manual {
   border-left-color: #c9a24a;
 }

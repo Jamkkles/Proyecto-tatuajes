@@ -73,9 +73,14 @@ export interface NotificationSettings {
 }
 
 export interface NotificationChannels {
-  /** `automatico`: la API los envía sola. `manual`: se le deja un enlace al artista. */
-  whatsapp: 'automatico' | 'manual'
+  /**
+   * `automatico`: la API oficial los envía sola. `vinculado`: salen del WhatsApp que el
+   * artista vinculó. `manual`: se le deja un enlace al artista.
+   */
+  whatsapp: 'automatico' | 'vinculado' | 'manual'
   push: boolean
+  /** ¿El servidor tiene activado el WhatsApp vinculado? Si no, no se ofrece. */
+  whatsappWeb: boolean
 }
 
 export interface NotificationSettingsResponse {
