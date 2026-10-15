@@ -10,6 +10,19 @@ const { epochSeconds } = require('../utils/chileTime');
  * @returns {{ checked, whatsapp, manual, omitted, duplicates, errors }}
  */
 async function runReminders({ now = new Date(), env = process.env } = {}) {
+  // Con el WhatsApp vinculado cada envío lleva una pausa de varios segundos, así que una
+  // corrida puede durar minutos. Si llega otra mientras tanto (el programador interno y el
+  // externo coinciden), se une a la que está en curso en vez de empezar otra encima.
+  if (inFlight) return inFlight;
+  inFlight = run({ now, env }).finally(() => {
+    inFlight = null;
+  });
+  return inFlight;
+}
+
+let inFlight = null;
+
+async function run({ now, env }) {
   const due = await reminderModel.dueForReminder(now);
   const summary = { checked: due.length, whatsapp: 0, manual: 0, omitted: 0, duplicates: 0, errors: 0 };
 

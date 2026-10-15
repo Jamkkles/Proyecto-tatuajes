@@ -9,6 +9,11 @@ function secretMatches(given, expected) {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
+// Cuánto se espera a que termine antes de responder «sigue en curso».
+const WAIT_MS = 20_000;
+const TIMED_OUT = Symbol('timed-out');
+const wait = (ms) => new Promise((resolve) => setTimeout(() => resolve(TIMED_OUT), ms).unref?.());
+
 /**
  * POST /api/jobs/reminders
  *
@@ -29,7 +34,17 @@ async function reminders(req, res) {
   }
 
   try {
-    return res.json(await runReminders());
+    // El programador externo corta a los 30 segundos y, tras varios fallos seguidos, puede
+    // dar el trabajo por roto. Con el WhatsApp vinculado una corrida con varios mensajes
+    // tarda más que eso (cada envío lleva pausa), así que se espera un rato razonable y, si
+    // no termina, se responde que sigue en curso: el trabajo continúa en el servidor.
+    const run = runReminders();
+    const outcome = await Promise.race([run, wait(WAIT_MS)]);
+    if (outcome === TIMED_OUT) {
+      run.catch((err) => console.error('Falló la corrida de recordatorios:', err.message));
+      return res.status(202).json({ status: 'en_curso' });
+    }
+    return res.json(outcome);
   } catch (err) {
     return sendError(res, err, 'enviando los recordatorios');
   }

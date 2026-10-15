@@ -100,3 +100,37 @@ describe('runReminders (HU22)', () => {
     expect(peak).toBe(1);
   });
 });
+
+describe('una sola corrida a la vez', () => {
+  test('si llega otra mientras una sigue en curso, se une a ella en vez de empezar otra', async () => {
+    reminderModel.dueForReminder.mockResolvedValue([due(1)]);
+    let release;
+    deliver.mockImplementation(() => new Promise((resolve) => { release = () => resolve({ status: 'pendiente', channel: 'manual' }); }));
+
+    const first = runReminders({ now: NOW });
+    const second = runReminders({ now: NOW });
+    await new Promise((r) => setImmediate(r));
+    release();
+    const [a, b] = await Promise.all([first, second]);
+
+    expect(reminderModel.dueForReminder).toHaveBeenCalledTimes(1);
+    expect(deliver).toHaveBeenCalledTimes(1);
+    expect(b).toBe(a);
+  });
+
+  test('al terminar, la siguiente corrida vuelve a consultar', async () => {
+    reminderModel.dueForReminder.mockResolvedValue([]);
+    await runReminders({ now: NOW });
+    await runReminders({ now: NOW });
+    expect(reminderModel.dueForReminder).toHaveBeenCalledTimes(2);
+  });
+
+  test('si una corrida falla, no deja la puerta cerrada para las siguientes', async () => {
+    reminderModel.dueForReminder.mockRejectedValueOnce(new Error('base caída'));
+    await expect(runReminders({ now: NOW })).rejects.toThrow('base caída');
+
+    reminderModel.dueForReminder.mockResolvedValue([]);
+    await expect(runReminders({ now: NOW })).resolves.toMatchObject({ checked: 0 });
+  });
+});
+
