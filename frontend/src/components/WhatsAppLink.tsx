@@ -63,7 +63,7 @@ export default function WhatsAppLink({ onLinkedChange }: WhatsAppLinkProps) {
   }, [])
 
   // Mientras espera que el artista escriba el código en su teléfono, se revisa cada pocos segundos.
-  const waiting = state?.status === 'esperando_codigo'
+  const waiting = state?.status === 'esperando_codigo' || state?.status === 'vinculando'
   useEffect(() => {
     if (!waiting) return
     const timer = setInterval(() => {
@@ -162,6 +162,12 @@ export default function WhatsAppLink({ onLinkedChange }: WhatsAppLinkProps) {
             Cancelar
           </button>
         </>
+      )}
+
+      {state.status === 'vinculando' && (
+        <p className="wl__lead" role="status">
+          Código recibido. Terminando de vincular con tu WhatsApp… esto tarda unos segundos.
+        </p>
       )}
 
       {state.status === 'desvinculado' && (

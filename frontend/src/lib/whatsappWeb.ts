@@ -6,7 +6,7 @@ import { apiFetch } from './api'
  * no permite automatizar así una cuenta y puede bloquear el número (ver el aviso en la
  * pantalla y `docs/whatsapp-y-notificaciones.md`).
  */
-export type WhatsAppWebStatus = 'desactivado' | 'desvinculado' | 'esperando_codigo' | 'vinculado'
+export type WhatsAppWebStatus = 'desactivado' | 'desvinculado' | 'esperando_codigo' | 'vinculando' | 'vinculado'
 
 export interface WhatsAppWebState {
   status: WhatsAppWebStatus

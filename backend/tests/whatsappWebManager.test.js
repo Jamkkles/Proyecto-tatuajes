@@ -150,6 +150,23 @@ describe('vincular', () => {
     expect(ctx.sockets[0].end).toHaveBeenCalled();
   });
 
+  test('mientras WhatsApp reabre la conexión tras el código, el estado sigue siendo «vinculando»', async () => {
+    // El segundo socket (el que se abre tras el 515) no confirma de inmediato.
+    ctx = setup({ onCreate: (sock, n) => (n === 1 ? askForCode(sock) : undefined) });
+    await ctx.manager.startLinking(USER, '56912345678', { env: ENV });
+    await ctx.sockets[0].ev.emit('connection.update', {
+      connection: 'close',
+      lastDisconnect: { error: { output: { statusCode: 515 } } },
+    });
+    expect(ctx.baileys.makeWASocket).toHaveBeenCalledTimes(2);
+
+    expect(await ctx.manager.getStatus(USER, { env: ENV })).toMatchObject({ status: 'vinculando', phone: '56912345678' });
+
+    // Y cuando confirma, pasa a vinculado.
+    await ctx.sockets[1].ev.emit('connection.update', { connection: 'open' });
+    expect(await ctx.manager.getStatus(USER, { env: ENV })).toMatchObject({ status: 'vinculado' });
+  });
+
   test('si ya hay un WhatsApp vinculado no se vincula otro encima', async () => {
     ctx = setup({ ...linking, session: linked });
     await expect(ctx.manager.startLinking(USER, '56900000000', { env: ENV })).rejects.toMatchObject({ code: 'ya_vinculado' });

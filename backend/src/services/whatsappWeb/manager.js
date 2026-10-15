@@ -307,6 +307,12 @@ function createManager({
     if (session?.status === 'vinculado') {
       return { ...base, status: 'vinculado', phone: session.phone, connected: entry?.state === 'conectado' };
     }
+    // Tras escribir el código, WhatsApp cierra y reabre la conexión un instante antes de
+    // confirmar. En esa ventana todavía no está «vinculado», pero tampoco «desvinculado»:
+    // la pantalla tiene que seguir esperando en vez de volver al formulario.
+    if (session?.status === 'vinculando' && entry && entry.state !== 'caido' && entry.state !== 'cerrado') {
+      return { ...base, status: 'vinculando', phone: session.phone ?? null };
+    }
     // «vinculando» sin conexión viva: el servidor se reinició a mitad de camino.
     return { ...base, status: 'desvinculado' };
   }
