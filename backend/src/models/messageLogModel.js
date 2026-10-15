@@ -24,4 +24,19 @@ async function finish(id, { status, channel, providerId = null, error = null }) 
   );
 }
 
-module.exports = { claim, finish };
+/**
+ * Cuántos mensajes salieron por un canal en los últimos `minutes` minutos. Es lo que
+ * limita el ritmo del WhatsApp vinculado: se cuenta en la base y no en memoria, para
+ * que reiniciar el servidor no reinicie el tope.
+ */
+async function countRecent(userId, channel, minutes) {
+  const { rows } = await pool.query(
+    `SELECT count(*)::int AS n FROM message_log
+      WHERE user_id = $1 AND channel = $2 AND status = 'enviado'
+        AND created_at > now() - make_interval(mins => $3)`,
+    [userId, channel, minutes]
+  );
+  return rows[0].n;
+}
+
+module.exports = { claim, finish, countRecent };

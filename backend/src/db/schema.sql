@@ -454,3 +454,40 @@ CREATE TABLE IF NOT EXISTS message_log (
 );
 
 CREATE INDEX IF NOT EXISTS message_log_session_idx ON message_log (session_id, created_at DESC);
+
+-- ============================================================
+-- WhatsApp vinculado (envío automático gratuito, NO oficial)
+--
+-- El artista vincula su propio WhatsApp como un «dispositivo vinculado» (igual que
+-- WhatsApp Web) y los mensajes a sus clientes salen desde su número, sin pagar la
+-- API de Meta. WhatsApp no permite este uso: ver docs/whatsapp-y-notificaciones.md.
+--
+--   whatsapp_sessions  estado de la vinculación de cada artista
+--   whatsapp_auth      las credenciales de esa sesión (claves de cifrado de
+--                      WhatsApp). EQUIVALEN A ACCESO A SU WHATSAPP, por eso el valor
+--                      va cifrado con WHATSAPP_AUTH_KEY y nunca en claro.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS whatsapp_sessions (
+  user_id    UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  -- vinculando: se pidió el código y aún no lo ingresó; vinculado: ya está listo.
+  status     TEXT NOT NULL CHECK (status IN ('vinculando', 'vinculado')),
+  phone      TEXT,
+  linked_at  TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS whatsapp_auth (
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  type    TEXT NOT NULL,
+  id      TEXT NOT NULL,
+  -- JSON cifrado (ver utils/secretBox.js).
+  value   TEXT NOT NULL,
+  PRIMARY KEY (user_id, type, id)
+);
+
+-- Los mensajes enviados desde el WhatsApp vinculado llevan su propio canal.
+ALTER TABLE message_log DROP CONSTRAINT IF EXISTS message_log_channel_check;
+ALTER TABLE message_log
+  ADD CONSTRAINT message_log_channel_check
+  CHECK (channel IN ('whatsapp', 'whatsapp_web', 'manual'));
