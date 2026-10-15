@@ -159,7 +159,7 @@ describe('configuración de avisos: /api/notification-settings (HU28)', () => {
     const res = await request(app).get('/api/notification-settings').set('Authorization', auth).expect(200);
     expect(res.body.settings).toEqual(settings);
     // Sin credenciales de WhatsApp el canal es manual; con VAPID el push está activo.
-    expect(res.body.channels).toEqual({ whatsapp: 'manual', push: true });
+    expect(res.body.channels).toEqual({ whatsapp: 'manual', push: true, whatsappWeb: false });
   });
 
   test('con credenciales de WhatsApp el canal pasa a automático', async () => {

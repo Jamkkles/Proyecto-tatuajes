@@ -1,6 +1,7 @@
 const notificationSettingsModel = require('../models/notificationSettingsModel');
 const whatsapp = require('../services/whatsapp');
 const pushService = require('../services/pushService');
+const whatsappWeb = require('../services/whatsappWeb');
 const { FieldError, boolean, sendError } = require('../utils/fields');
 
 const MAX_REMINDER_NOTE = 300;
@@ -20,19 +21,27 @@ function singleLine(raw, label, max) {
   return text;
 }
 
-/** Qué canales hay disponibles en el servidor, para que la pantalla lo explique. */
-const channels = () => ({
-  // Con API de WhatsApp los mensajes salen solos; sin ella se le deja al artista
-  // un enlace para que los envíe él.
-  whatsapp: whatsapp.isConfigured() ? 'automatico' : 'manual',
-  push: pushService.isConfigured(),
-});
+/**
+ * Qué canales hay para este artista, para que la pantalla lo explique:
+ *   automatico  la API oficial de WhatsApp (de pago): los mensajes salen solos
+ *   vinculado   su propio WhatsApp vinculado (gratis, no oficial): salen solos desde su número
+ *   manual      se le deja un enlace para que los envíe él
+ * `whatsappWeb` dice si el servidor ofrece vincular el propio WhatsApp.
+ */
+async function channels(userId) {
+  const linked = !whatsapp.isConfigured() && (await whatsappWeb.isReady(userId).catch(() => false));
+  return {
+    whatsapp: whatsapp.isConfigured() ? 'automatico' : linked ? 'vinculado' : 'manual',
+    push: pushService.isConfigured(),
+    whatsappWeb: whatsappWeb.settings().enabled,
+  };
+}
 
 // GET /api/notification-settings
 async function get(req, res) {
   try {
     const settings = await notificationSettingsModel.get(req.user.sub);
-    return res.json({ settings, channels: channels() });
+    return res.json({ settings, channels: await channels(req.user.sub) });
   } catch (err) {
     return sendError(res, err, 'leyendo la configuración de avisos');
   }
@@ -50,7 +59,7 @@ async function save(req, res) {
       aftercareNote: singleLine(body.aftercareNote, 'El texto de cuidados', MAX_AFTERCARE_NOTE),
     };
     const settings = await notificationSettingsModel.save(req.user.sub, fields);
-    return res.json({ settings, channels: channels() });
+    return res.json({ settings, channels: await channels(req.user.sub) });
   } catch (err) {
     return sendError(res, err, 'guardando la configuración de avisos');
   }

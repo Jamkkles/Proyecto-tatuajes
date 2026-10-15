@@ -5,7 +5,13 @@ jest.mock('../src/services/whatsapp', () => ({
   sendTemplate: jest.fn(),
 }));
 
+jest.mock('../src/services/whatsappWeb', () => ({
+  isReady: jest.fn(),
+  sendText: jest.fn(),
+}));
+
 const messageLogModel = require('../src/models/messageLogModel');
+const whatsappWeb = require('../src/services/whatsappWeb');
 const { notify } = require('../src/services/notifier');
 const whatsapp = require('../src/services/whatsapp');
 const { deliver, KINDS, KIND_NAMES, firstName } = require('../src/services/clientMessages');
@@ -30,6 +36,7 @@ beforeEach(() => {
   messageLogModel.claim.mockResolvedValue({ id: 'log1' });
   messageLogModel.finish.mockResolvedValue();
   notify.mockResolvedValue({});
+  whatsappWeb.isReady.mockResolvedValue(false);
   jest.spyOn(console, 'error').mockImplementation(() => {});
 });
 afterEach(() => console.error.mockRestore?.());
@@ -126,6 +133,60 @@ describe('deliver con API de WhatsApp', () => {
     expect(messageLogModel.finish).toHaveBeenCalledWith('log1', expect.objectContaining({ status: 'error', channel: 'manual' }));
     // El cliente no se queda sin aviso: al artista le llega para enviarlo a mano.
     expect(notify.mock.calls[0][1].kind).toBe('mensaje_manual');
+  });
+});
+
+describe('deliver con el WhatsApp vinculado del artista', () => {
+  test('lo envía desde su número, con el texto completo, y lo registra en su canal', async () => {
+    whatsappWeb.isReady.mockResolvedValue(true);
+    whatsappWeb.sendText.mockResolvedValue({ id: 'abc' });
+
+    const result = await deliver(base(), { env: {} });
+
+    expect(result).toMatchObject({ status: 'enviado', channel: 'whatsapp_web' });
+    expect(whatsappWeb.sendText).toHaveBeenCalledWith('u1', '56987654321', expect.stringContaining('Ana'), { env: {} });
+    expect(whatsapp.sendTemplate).not.toHaveBeenCalled();
+    expect(messageLogModel.claim.mock.calls[0][0]).toMatchObject({ channel: 'whatsapp_web' });
+    expect(messageLogModel.finish).toHaveBeenCalledWith('log1', expect.objectContaining({ status: 'enviado', channel: 'whatsapp_web' }));
+    expect(notify.mock.calls[0][1].kind).toBe('mensaje_enviado');
+  });
+
+  test('la API oficial va primero si también está configurada', async () => {
+    whatsappWeb.isReady.mockResolvedValue(true);
+    whatsapp.sendTemplate.mockResolvedValue({ id: 'wamid.1' });
+
+    const result = await deliver(base(), { env: WA_ENV });
+
+    expect(result.channel).toBe('whatsapp');
+    expect(whatsappWeb.sendText).not.toHaveBeenCalled();
+  });
+
+  test('si el envío falla (tope, sin conexión, número sin WhatsApp) cae al camino manual', async () => {
+    whatsappWeb.isReady.mockResolvedValue(true);
+    whatsappWeb.sendText.mockRejectedValue(new Error('Se alcanzó el tope de 15 mensajes por hora.'));
+
+    const result = await deliver(base(), { env: {} });
+
+    expect(result).toMatchObject({ status: 'error', channel: 'manual', error: expect.stringContaining('tope') });
+    expect(result.waLink).toBeTruthy();
+    expect(notify.mock.calls[0][1].kind).toBe('mensaje_manual');
+  });
+
+  test('si no se puede saber si hay sesión, no se rompe: va por el camino manual', async () => {
+    whatsappWeb.isReady.mockRejectedValue(new Error('base caída'));
+
+    const result = await deliver(base(), { env: {} });
+
+    expect(result.channel).toBe('manual');
+    expect(whatsappWeb.sendText).not.toHaveBeenCalled();
+  });
+
+  test('sin teléfono válido no se intenta enviar nada', async () => {
+    whatsappWeb.isReady.mockResolvedValue(true);
+
+    await deliver(base({ client: { id: 'c1', name: 'Luis', phone: '1234' } }), { env: {} });
+
+    expect(whatsappWeb.sendText).not.toHaveBeenCalled();
   });
 });
 

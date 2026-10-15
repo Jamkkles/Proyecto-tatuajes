@@ -10,6 +10,7 @@
 const { normalizePhone, waLink } = require('../utils/phone');
 const { dateLabel, timeLabel } = require('../utils/chileTime');
 const whatsapp = require('./whatsapp');
+const whatsappWeb = require('./whatsappWeb');
 const messageLogModel = require('../models/messageLogModel');
 const { notify } = require('./notifier');
 
@@ -88,9 +89,13 @@ const firstName = (full) => String(full ?? '').trim().split(/\s+/)[0] || 'client
  *
  *   1. Reclama el envío (message_log); si ya estaba reclamado, no hace nada.
  *   2. Sin teléfono válido: lo registra y avisa al artista que lo corrija.
- *   3. Con API de WhatsApp: lo manda. Si falla, cae al camino manual.
- *   4. Sin API (o si falló): deja al artista el enlace de WhatsApp con el mensaje
- *      escrito, para que lo envíe él con un toque.
+ *   3. Canal automático, en este orden de preferencia:
+ *        a. la API oficial de WhatsApp (de pago, plantillas aprobadas);
+ *        b. el WhatsApp que el artista vinculó (gratis, NO oficial: ver
+ *           services/whatsappWeb/manager.js), que manda el texto directamente.
+ *      Si falla el que haya, se sigue con el camino manual.
+ *   4. Sin canal automático (o si falló): deja al artista el enlace de WhatsApp con el
+ *      mensaje escrito, para que lo envíe él con un toque.
  *
  * `silent` es para cuando el artista lo pide desde la pantalla (ya ve el resultado
  * en ella, no necesita además una notificación).
@@ -112,13 +117,19 @@ async function deliver(
     note,
   };
   const text = def.text(context);
-  const auto = whatsapp.isConfigured(env) && phone !== null;
+
+  // El canal oficial manda si está configurado; si no, el WhatsApp vinculado del
+  // artista. Una falla al comprobar el segundo no puede impedir el aviso manual.
+  const official = whatsapp.isConfigured(env) && phone !== null;
+  const linked =
+    !official && phone !== null && (await whatsappWeb.isReady(userId, { env }).catch(() => false));
+  const channel = official ? 'whatsapp' : linked ? 'whatsapp_web' : 'manual';
 
   const claimed = await messageLogModel.claim({
     userId,
     sessionId,
     kind,
-    channel: auto ? 'whatsapp' : 'manual',
+    channel,
     toPhone: phone,
     dedupeKey,
   });
@@ -146,13 +157,15 @@ async function deliver(
   }
 
   let failure = null;
-  if (auto) {
+  if (official || linked) {
     try {
-      const { id } = await whatsapp.sendTemplate(
-        { to: phone, template: def.template(env), params: def.params(context) },
-        { env }
-      );
-      await messageLogModel.finish(claimed.id, { status: 'enviado', channel: 'whatsapp', providerId: id });
+      const { id } = official
+        ? await whatsapp.sendTemplate(
+            { to: phone, template: def.template(env), params: def.params(context) },
+            { env }
+          )
+        : await whatsappWeb.sendText(userId, phone, text, { env });
+      await messageLogModel.finish(claimed.id, { status: 'enviado', channel, providerId: id });
       if (!silent) {
         await notify(
           userId,
@@ -166,10 +179,10 @@ async function deliver(
           { push: false }
         );
       }
-      return { status: 'enviado', channel: 'whatsapp', text };
+      return { status: 'enviado', channel, text };
     } catch (err) {
       failure = err.message;
-      console.error(`Falló el envío de WhatsApp (${kind}):`, err.message);
+      console.error(`Falló el envío de WhatsApp (${kind}, ${channel}):`, err.message);
     }
   }
 
