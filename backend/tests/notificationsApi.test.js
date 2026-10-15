@@ -38,6 +38,8 @@ beforeEach(() => {
   jest.clearAllMocks();
   process.env.VAPID_PUBLIC_KEY = KEYS.publicKey;
   process.env.VAPID_PRIVATE_KEY = KEYS.privateKey;
+  // El .env de quien corre las pruebas puede tener el WhatsApp vinculado encendido; aquí no.
+  delete process.env.WHATSAPP_WEB_ENABLED;
 });
 
 describe('campanita: /api/notifications', () => {
