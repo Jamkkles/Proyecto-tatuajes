@@ -38,6 +38,19 @@ services:
       - key: FRONTEND_URL
         sync: false
 
+      # Clave con la que el programador externo llama a /api/jobs/reminders (ver
+      # docs/whatsapp-y-notificaciones.md). Render la genera; se lee en el panel.
+      - key: CRON_SECRET
+        generateValue: true
+
+      # Las claves de las notificaciones push (VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY) y
+      # las de WhatsApp (WHATSAPP_TOKEN, WHATSAPP_PHONE_NUMBER_ID) NO van aquí: son
+      # opcionales y, declaradas sin valor, Render podría pedirlas y frenar el
+      # despliegue. Se agregan a mano en el panel (Environment).
+      # Igual el WhatsApp vinculado (WHATSAPP_WEB_ENABLED, WHATSAPP_AUTH_KEY): es una
+      # función no oficial que puede costarle a un artista su número, así que se
+      # enciende a conciencia en el panel y no por defecto.
+
       # Registro abierto: cada artista crea su cuenta desde el login y solo ve sus
       # propios datos. OJO: cualquiera en internet puede registrarse y ocupar el
       # espacio de la base de Neon (0,5 GB) y de Cloudinary del plan gratis. Para

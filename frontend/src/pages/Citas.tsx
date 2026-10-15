@@ -39,6 +39,15 @@ const EMPTY_NEW_PROJECT = { title: '', price: '', zone: '' }
  * formulario para agendar. Una cita es una sesión de un proyecto; si el
  * cliente o el proyecto aún no existen, se crean en el mismo paso.
  */
+/** Cómo va el recordatorio de 24 horas de una cita. */
+const reminderLabel = (status: NonNullable<CalendarSession['reminder_status']>) =>
+  ({
+    enviado: 'Recordatorio enviado',
+    pendiente: 'Recordatorio por enviar',
+    error: 'Recordatorio no enviado',
+    omitido: 'Sin recordatorio (falta el teléfono)',
+  })[status]
+
 export default function Citas() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -252,6 +261,11 @@ export default function Citas() {
                             {s.project_title}
                             {s.body_zone ? ` · ${s.body_zone}` : ''}
                           </span>
+                          {s.status === 'agendada' && s.reminder_status && (
+                            <span className={`st-item__meta st-reminder st-reminder--${s.reminder_status}`}>
+                              {reminderLabel(s.reminder_status)}
+                            </span>
+                          )}
                         </span>
                         <span className="st-item__side">
                           <span className={`st-badge st-badge--${s.status}`}>

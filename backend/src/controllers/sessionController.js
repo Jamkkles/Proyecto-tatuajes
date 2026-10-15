@@ -4,6 +4,8 @@ const quoteModel = require('../models/quoteModel');
 const storage = require('../services/storage');
 const { removeFiles } = require('../services/storage/removeFiles');
 const { optimizeImage, readDimensions } = require('../services/imageOptimizer');
+const sessionMessages = require('../services/sessionMessages');
+const { notifyLowStock } = require('../services/stockAlerts');
 const {
   FieldError,
   boolean,
@@ -94,16 +96,29 @@ async function create(req, res) {
 //
 // Al pasar la sesión a `completada`, si tiene una cotización enlazada se
 // descuenta el stock que esa cotización calculó (HU16).
+//
+// Si el cambio le importa al cliente (se canceló, se movió la hora, se terminó la
+// sesión) se le avisa por WhatsApp (HU23, HU28) y la respuesta trae `notice` con
+// lo que pasó, para que la pantalla lo cuente.
 async function update(req, res) {
   if (!isUuid(req.params.id)) return res.status(404).json(NOT_FOUND);
 
   try {
     const fields = parseSession(req.body ?? {}, { partial: true });
+    // Hace falta cómo estaba antes: «reagendada» solo se sabe comparando la hora.
+    const before = await sessionModel.findByIdForUser(req.params.id, req.user.sub);
+    if (!before) return res.status(404).json(NOT_FOUND);
+
     const session = await sessionModel.update(req.params.id, req.user.sub, fields);
     if (!session) return res.status(404).json(NOT_FOUND);
 
     const stock = await consumeQuoteFor(session, fields.status, req.user.sub);
-    return res.json(stock ? { session, stock } : { session });
+    const notice = await sessionMessages.afterUpdate({ userId: req.user.sub, before, after: session });
+
+    const response = { session };
+    if (stock) response.stock = stock;
+    if (notice) response.notice = notice;
+    return res.json(response);
   } catch (err) {
     return sendError(res, err, 'actualizando la sesión');
   }
@@ -131,6 +146,9 @@ async function consumeQuoteFor(session, requestedStatus, userId) {
 
     const result = await quoteModel.consume(quote.id, userId);
     if (!result) return null;
+
+    // HU13/HU25: lo que quedó en nivel crítico también le llega como aviso.
+    await notifyLowStock(userId, result.affected);
 
     return {
       quoteId: result.quote.id,
@@ -244,4 +262,30 @@ async function removePhoto(req, res) {
   }
 }
 
-module.exports = { list, create, update, remove, addPhoto, removePhoto };
+// POST /api/sessions/:id/message  { kind: 'recordatorio' | 'cuidados' }
+//
+// El botón «Recordar por WhatsApp». Con la API configurada lo manda; sin ella
+// devuelve el enlace de WhatsApp con el mensaje escrito para que el artista lo abra.
+const MANUAL_KINDS = ['recordatorio', 'cuidados'];
+
+async function sendMessage(req, res) {
+  if (!isUuid(req.params.id)) return res.status(404).json(NOT_FOUND);
+  const kind = req.body?.kind;
+  if (!MANUAL_KINDS.includes(kind)) {
+    return res.status(400).json({ message: 'Elige qué mensaje enviar.' });
+  }
+
+  try {
+    const result = await sessionMessages.sendNow({
+      userId: req.user.sub,
+      sessionId: req.params.id,
+      kind,
+    });
+    if (!result) return res.status(404).json(NOT_FOUND);
+    return res.json({ result });
+  } catch (err) {
+    return sendError(res, err, 'enviando el mensaje al cliente');
+  }
+}
+
+module.exports = { list, create, update, remove, addPhoto, removePhoto, sendMessage };

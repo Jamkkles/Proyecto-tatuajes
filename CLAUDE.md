@@ -40,7 +40,11 @@ docker compose up postgres # solo la base de datos
 docker exec proyecto-tatuajes-backend-1 npx jest --runInBand
 ```
 Se corren **dentro del contenedor**: en el host `jest` se cuelga cuando el
-proyecto está en una carpeta sincronizada con iCloud.
+proyecto está en una carpeta sincronizada con iCloud. Lo mismo pasa con `tsc` y
+`eslint` del frontend (leen `node_modules` desde iCloud y se quedan bloqueados sin
+usar CPU): córrelos en el contenedor del frontend,
+`docker exec proyecto-tatuajes-frontend-1 npx tsc --noEmit -p tsconfig.app.json` y
+`… npx eslint .`, que además tarda 8 s.
 
 ### Despliegue (gratis, en la nube)
 Frontend en Cloudflare Pages, backend en Render (`render.yaml`), PostgreSQL en
@@ -203,6 +207,70 @@ enteros (base del cálculo de cotizaciones, HU14). Nivel crítico =
   $18.000 son $600 por ml. Cargar el precio del envase multiplica la cotización
   por el contenido entero, que es el error más fácil de cometer aquí
 
+#### Contrato de avisos y recordatorios (HU22, HU23, HU28)
+Hay dos destinatarios distintos: el **artista** (campanita + push) y el **cliente**
+(WhatsApp). Todo filtra por `user_id` del token. Guía de puesta en marcha en
+`docs/whatsapp-y-notificaciones.md`.
+- `GET /api/notifications?limit=` → `{ notifications, unread }`;
+  `POST /api/notifications/read` con `{ ids: [...] }` o `{ all: true }`
+- `GET /api/push/config` → `{ enabled, publicKey }` (la clave pública viaja por aquí y no
+  compilada en el frontend); `POST /api/push/subscribe` (la `PushSubscription` del
+  navegador; el `endpoint` es único, así que otra cuenta en el mismo teléfono se la
+  queda), `POST /api/push/unsubscribe`, `POST /api/push/test`
+- `GET/PUT /api/notification-settings` → los tres interruptores y los dos textos editables
+  (`reminderNote` ≤ 300, `aftercareNote` ≤ 600; una sola línea: se juntan los saltos), más
+  `channels: { whatsapp: 'automatico' | 'vinculado' | 'manual', push, whatsappWeb }`. Los valores por defecto viven
+  en el DEFAULT de `schema.sql` **y** en `DEFAULT_SETTINGS`; un test los compara
+- `POST /api/sessions/:id/message` con `{ kind: 'recordatorio' | 'cuidados' }` (el botón
+  «Recordar por WhatsApp»): sin deduplicar y sin aviso en la campanita
+- `PATCH /api/sessions/:id` ahora trae `notice` si el cambio le importa al cliente
+  (`cancelacion`, `reagendamiento`, `cuidados`). `decideKind` solo avisa de citas futuras
+- `POST /api/jobs/reminders` lo llama un programador externo con `X-Cron-Secret`
+  (= `CRON_SECRET`). **Sin esa variable el endpoint no existe (404)**; sin sesión de
+  usuario a propósito. `services/scheduler.js` hace lo mismo cada
+  `REMINDER_INTERVAL_MINUTES` (10) mientras el servidor esté despierto
+- **Un mensaje al cliente, dos formas** (`services/clientMessages.js`): los parámetros
+  de su plantilla de WhatsApp y el texto equivalente para el enlace `wa.me`. `deliver`
+  reclama el envío en `message_log` (`UNIQUE (user_id, dedupe_key)`) **antes** de
+  mandarlo; sin API de WhatsApp (o si falla) deja al artista un aviso con `data.waLink`.
+  La clave del recordatorio lleva la hora de la cita (`recordatorio:<id>:<segundos>`), así
+  que reagendar genera uno nuevo. `reminderModel.dueForReminder` arma la misma clave en
+  SQL con `floor(extract(epoch …))`: **tienen que coincidir** o se repetirían mensajes
+- WhatsApp (`services/whatsapp.js`) solo manda **plantillas aprobadas**, de pago por
+  mensaje. Los parámetros se limpian (`cleanParam`): Meta rechaza saltos de línea,
+  tabulaciones y parámetros vacíos. Sin `WHATSAPP_TOKEN` + `WHATSAPP_PHONE_NUMBER_ID` no se
+  usa y todo va por el camino manual (gratis)
+- **WhatsApp vinculado** (`services/whatsappWeb/`): canal gratis y **no oficial** (Baileys,
+  `@whiskeysockets/baileys@7.0.0-rc14`, ESM → `import()` dinámico desde CommonJS). El
+  artista enlaza su propio WhatsApp como dispositivo vinculado y los mensajes salen de su
+  número. Va contra los términos de WhatsApp y puede bloquear el número: **apagado por
+  defecto** (`WHATSAPP_WEB_ENABLED=true` + `WHATSAPP_AUTH_KEY` ≥ 32 caracteres, que cifra la
+  sesión con AES-256-GCM en `whatsapp_auth`; `utils/secretBox.js`), y vincular exige
+  `acceptRisk: true` **en el servidor**, no solo en la pantalla. Prioridad en `deliver`:
+  API oficial > WhatsApp vinculado > enlace manual (`message_log.channel`: `whatsapp` |
+  `whatsapp_web` | `manual`); cualquier fallo cae al manual. Reglas que no se quitan: fila
+  por artista, pausa de 4–9 s y «escribiendo…», tope por hora (`countRecent`), solo a
+  números que `onWhatsApp` confirma, conexión al enviar y cierre por inactividad. La
+  fábrica `createManager` recibe todo por parámetro y se prueba con un socket simulado; la
+  librería nunca se ejecutó contra WhatsApp real en las pruebas.
+  - `GET /api/whatsapp-web` (estado), `POST /link` (`{ phone, acceptRisk }` → `{ pairingCode }`),
+    `POST /test`, `POST /unlink`. Se vincula con **código**, no con QR
+  - Como una corrida de recordatorios ahora puede durar minutos, `POST /api/jobs/reminders`
+    responde `202 { status: 'en_curso' }` a los 20 s y `runReminders` es de una sola corrida
+    a la vez
+  - Frontend: `components/WhatsAppLink.tsx` (en Configuración, solo si
+    `channels.whatsappWeb`) y `lib/whatsappWeb.ts`
+- `utils/phone.js` normaliza a dígitos con código de país; solo celulares chilenos (9
+  dígitos con 9) o internacionales escritos con `+`. `utils/chileTime.js` da fechas y horas
+  en `America/Santiago` (el servidor corre en UTC)
+- `services/notifier.js` (`notify`) guarda el aviso y manda el push; **nunca lanza**. Con
+  `dedupeKey` repetido no hace nada. Los insumos en nivel crítico avisan como mucho una
+  vez por insumo y día (`stockAlerts.js`, engancha `adjustStock`, `consume` y la
+  finalización de sesión)
+- Push: `web-push` con claves VAPID (`npm run vapid:generate`, una sola vez: cambiarlas
+  invalida las suscripciones). Los endpoints que el servicio de push da por muertos
+  (404/410) se borran solos. En iPhone solo funciona con la app **instalada**
+
 #### Contrato de las cotizaciones (HU14–HU16)
 Calcula **costo de insumos**, nunca el precio del arte (eso es
 `projects.total_price`). El cálculo vive en `services/quoteEngine.js` y lo hace
@@ -293,6 +361,18 @@ de la calibración está en el comentario de `CM2_POR_HORA`
   `lib/materials.ts` — un módulo por recurso de la API.
   `lib/money.ts` formatea y lee pesos (lo usan agenda e inventario);
   `lib/agendaForms.ts` convierte formularios ↔ API
+- **Campanita y avisos.** `components/NotificationBell.tsx` (+ `.css`) va en el menú de
+  **todas** las pantallas, así que **no puede depender de `Studio.css`** (`st-*` solo lo
+  cargan algunas páginas): tiene sus propios botones (`nb-btn`, `nb-link`).
+  `lib/useNotifications.ts` consulta cada minuto y al volver a la app. `lib/push.ts`
+  maneja el permiso y la suscripción; `syncPushSubscription` se llama al abrir la app para
+  reasignar el dispositivo a la cuenta actual. En desarrollo no hay push (el service worker
+  solo se registra en producción). `sw.js` muestra **siempre** una notificación al recibir un
+  push (iOS no admite avisos silenciosos), usa el `id` del aviso como `tag` para que dos
+  avisos del mismo tipo no se pisen, y al tocarla solo abre rutas de la propia app
+- `/configuracion` — `pages/Configuracion.tsx`: push de este dispositivo, interruptores y
+  textos editables de los mensajes (HU28), con vista previa. La vista previa repite las
+  frases del servidor: si cambia una en `clientMessages.js`, hay que cambiarla allí
 - `/inventario` — insumos con stock, nivel crítico, costo unitario, regla de
   consumo y, en las tintas, su color. Sobre la lista hay dos botones: «Cargar
   insumos básicos» (el kit) y «Eliminar todos» (pide confirmación con

@@ -370,3 +370,124 @@ ALTER TABLE projects
 -- ============================================================
 ALTER TABLE users
   ADD COLUMN IF NOT EXISTS materials_seeded_at TIMESTAMPTZ;
+
+-- ============================================================
+-- Avisos y recordatorios (HU22, HU23, HU28 + notificaciones push)
+--
+-- Cuatro piezas:
+--   notifications          la lista de la campanita del artista
+--   push_subscriptions     los dispositivos que aceptaron recibir push
+--   notification_settings  preferencias y los dos textos editables (HU28)
+--   message_log            cada mensaje al CLIENTE, para no mandar dos veces
+--                          lo mismo y saber qué pasó con cada uno
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind       TEXT NOT NULL,
+  title      TEXT NOT NULL,
+  body       TEXT NOT NULL DEFAULT '',
+  -- Ruta de la app a la que lleva al tocarla.
+  url        TEXT,
+  -- Datos extra de la acción, p. ej. { "waLink": "https://wa.me/…" }.
+  data       JSONB NOT NULL DEFAULT '{}'::jsonb,
+  -- Evita repetir el mismo aviso (un insumo bajo no avisa mil veces al día).
+  dedupe_key TEXT,
+  read_at    TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS notifications_user_created_idx
+  ON notifications (user_id, created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS notifications_dedupe_idx
+  ON notifications (user_id, dedupe_key) WHERE dedupe_key IS NOT NULL;
+
+-- Un dispositivo = un `endpoint`. Si otra cuenta inicia sesión en el mismo
+-- teléfono, la suscripción pasa a ella (ver pushSubscriptionModel.save).
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  endpoint   TEXT NOT NULL UNIQUE,
+  p256dh     TEXT NOT NULL,
+  auth       TEXT NOT NULL,
+  user_agent TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS push_subscriptions_user_idx ON push_subscriptions (user_id);
+
+CREATE TABLE IF NOT EXISTS notification_settings (
+  user_id               UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  -- Recordatorio 24 h antes de cada cita (HU22).
+  reminders_enabled     BOOLEAN NOT NULL DEFAULT true,
+  -- Aviso al cliente cuando se cancela o se cambia la hora (HU23).
+  change_notice_enabled BOOLEAN NOT NULL DEFAULT true,
+  -- Aviso con los cuidados cuando la sesión se da por terminada (HU28).
+  aftercare_enabled     BOOLEAN NOT NULL DEFAULT true,
+  -- Los dos textos que el artista edita (HU28). Una sola línea: la API de
+  -- WhatsApp rechaza saltos de línea dentro de los parámetros de una plantilla.
+  reminder_note         TEXT NOT NULL
+    DEFAULT 'Si no puedes asistir, avísanos con anticipación.',
+  aftercare_note        TEXT NOT NULL
+    DEFAULT 'Mantén la zona limpia y cubierta las primeras horas, lávala con jabón neutro, aplica una capa fina de crema cicatrizante y evita el sol, el mar y la piscina por dos semanas.',
+  updated_at            TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS message_log (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  session_id  UUID REFERENCES project_sessions(id) ON DELETE CASCADE,
+  kind        TEXT NOT NULL
+                CHECK (kind IN ('recordatorio', 'cancelacion', 'reagendamiento', 'cuidados')),
+  -- whatsapp = lo mandó la API; manual = se le dejó el aviso al artista.
+  channel     TEXT NOT NULL CHECK (channel IN ('whatsapp', 'manual')),
+  status      TEXT NOT NULL CHECK (status IN ('pendiente', 'enviado', 'error', 'omitido')),
+  to_phone    TEXT,
+  provider_id TEXT,
+  error       TEXT,
+  -- Se reclama ANTES de enviar: dos corridas simultáneas del programador no
+  -- mandan el mismo mensaje dos veces.
+  dedupe_key  TEXT NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (user_id, dedupe_key)
+);
+
+CREATE INDEX IF NOT EXISTS message_log_session_idx ON message_log (session_id, created_at DESC);
+
+-- ============================================================
+-- WhatsApp vinculado (envío automático gratuito, NO oficial)
+--
+-- El artista vincula su propio WhatsApp como un «dispositivo vinculado» (igual que
+-- WhatsApp Web) y los mensajes a sus clientes salen desde su número, sin pagar la
+-- API de Meta. WhatsApp no permite este uso: ver docs/whatsapp-y-notificaciones.md.
+--
+--   whatsapp_sessions  estado de la vinculación de cada artista
+--   whatsapp_auth      las credenciales de esa sesión (claves de cifrado de
+--                      WhatsApp). EQUIVALEN A ACCESO A SU WHATSAPP, por eso el valor
+--                      va cifrado con WHATSAPP_AUTH_KEY y nunca en claro.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS whatsapp_sessions (
+  user_id    UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  -- vinculando: se pidió el código y aún no lo ingresó; vinculado: ya está listo.
+  status     TEXT NOT NULL CHECK (status IN ('vinculando', 'vinculado')),
+  phone      TEXT,
+  linked_at  TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS whatsapp_auth (
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  type    TEXT NOT NULL,
+  id      TEXT NOT NULL,
+  -- JSON cifrado (ver utils/secretBox.js).
+  value   TEXT NOT NULL,
+  PRIMARY KEY (user_id, type, id)
+);
+
+-- Los mensajes enviados desde el WhatsApp vinculado llevan su propio canal.
+ALTER TABLE message_log DROP CONSTRAINT IF EXISTS message_log_channel_check;
+ALTER TABLE message_log
+  ADD CONSTRAINT message_log_channel_check
+  CHECK (channel IN ('whatsapp', 'whatsapp_web', 'manual'));

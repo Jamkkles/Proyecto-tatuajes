@@ -1116,3 +1116,17 @@ textarea.st-input {
   padding: 3px;
   cursor: pointer;
 }
+
+/* Aviso al cliente que el artista debe enviar él (sin API de WhatsApp). */
+.st-session__wa {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+/* Estado del recordatorio de 24 horas en la agenda. */
+.st-reminder--enviado { color: #6aa386; }
+.st-reminder--pendiente { color: #c9a24a; }
+.st-reminder--error,
+.st-reminder--omitido { color: var(--danger); }

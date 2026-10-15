@@ -9,11 +9,15 @@ jest.mock('../src/models/projectModel');
 jest.mock('../src/models/sessionModel');
 jest.mock('../src/models/sessionPhotoModel');
 jest.mock('../src/services/storage');
+// Los avisos al cliente tienen sus propias pruebas (sessionMessages.test.js); aquí
+// solo se comprueba que el controlador los dispara y los devuelve.
+jest.mock('../src/services/sessionMessages');
 
 const clientModel = require('../src/models/clientModel');
 const projectModel = require('../src/models/projectModel');
 const sessionModel = require('../src/models/sessionModel');
 const photoModel = require('../src/models/sessionPhotoModel');
+const sessionMessages = require('../src/services/sessionMessages');
 const storage = require('../src/services/storage');
 const app = require('../src/app');
 
@@ -295,6 +299,7 @@ describe('Sesiones', () => {
   });
 
   test('cancelar una sesión la actualiza', (done) => {
+    sessionModel.findByIdForUser.mockResolvedValue(session);
     sessionModel.update.mockResolvedValue({ ...session, status: 'cancelada' });
 
     request(app)
@@ -310,6 +315,84 @@ describe('Sesiones', () => {
         );
       })
       .end(done);
+  });
+
+  describe('aviso al cliente al cambiar la sesión (HU23, HU28)', () => {
+    const cancelled = { ...session, status: 'cancelada' };
+
+    test('compara contra cómo estaba antes y pasa los dos estados al aviso', async () => {
+      sessionModel.findByIdForUser.mockResolvedValue(session);
+      sessionModel.update.mockResolvedValue(cancelled);
+      sessionMessages.afterUpdate.mockResolvedValue(null);
+
+      await request(app).patch(`/api/sessions/${SESSION_ID}`).set('Authorization', auth).send({ status: 'cancelada' }).expect(200);
+
+      expect(sessionMessages.afterUpdate).toHaveBeenCalledWith({ userId: USER_ID, before: session, after: cancelled });
+    });
+
+    test('la respuesta cuenta qué pasó con el aviso, para que la pantalla lo diga', async () => {
+      const notice = { kind: 'cancelacion', channel: 'manual', status: 'pendiente', waLink: 'https://wa.me/56912345678?text=x' };
+      sessionModel.findByIdForUser.mockResolvedValue(session);
+      sessionModel.update.mockResolvedValue(cancelled);
+      sessionMessages.afterUpdate.mockResolvedValue(notice);
+
+      const res = await request(app).patch(`/api/sessions/${SESSION_ID}`).set('Authorization', auth).send({ status: 'cancelada' }).expect(200);
+
+      expect(res.body.notice).toEqual(notice);
+      expect(res.body.session.status).toBe('cancelada');
+    });
+
+    test('si no tocaba avisar, la respuesta no trae «notice»', async () => {
+      sessionModel.findByIdForUser.mockResolvedValue(session);
+      sessionModel.update.mockResolvedValue({ ...session, price: 70000 });
+      sessionMessages.afterUpdate.mockResolvedValue(null);
+
+      const res = await request(app).patch(`/api/sessions/${SESSION_ID}`).set('Authorization', auth).send({ price: 70000 }).expect(200);
+
+      expect(res.body).not.toHaveProperty('notice');
+    });
+
+    test('una sesión ajena da 404 y no se actualiza ni se avisa', async () => {
+      sessionModel.findByIdForUser.mockResolvedValue(null);
+
+      await request(app).patch(`/api/sessions/${SESSION_ID}`).set('Authorization', auth).send({ status: 'cancelada' }).expect(404);
+
+      expect(sessionModel.update).not.toHaveBeenCalled();
+      expect(sessionMessages.afterUpdate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('botón «Recordar por WhatsApp»: POST /api/sessions/:id/message', () => {
+    test('manda el mensaje pedido y devuelve el resultado', async () => {
+      const result = { status: 'pendiente', channel: 'manual', waLink: 'https://wa.me/x', text: 'Hola' };
+      sessionMessages.sendNow.mockResolvedValue(result);
+
+      const res = await request(app)
+        .post(`/api/sessions/${SESSION_ID}/message`)
+        .set('Authorization', auth)
+        .send({ kind: 'recordatorio' })
+        .expect(200);
+
+      expect(res.body).toEqual({ result });
+      expect(sessionMessages.sendNow).toHaveBeenCalledWith({ userId: USER_ID, sessionId: SESSION_ID, kind: 'recordatorio' });
+    });
+
+    test('solo recordatorio y cuidados se piden a mano: cancelar y reagendar salen de cambiar la cita', async () => {
+      for (const kind of ['cancelacion', 'reagendamiento', 'inventado', undefined]) {
+        await request(app).post(`/api/sessions/${SESSION_ID}/message`).set('Authorization', auth).send({ kind }).expect(400);
+      }
+      expect(sessionMessages.sendNow).not.toHaveBeenCalled();
+    });
+
+    test('una sesión ajena o inexistente da 404', async () => {
+      sessionMessages.sendNow.mockResolvedValue(null);
+      await request(app).post(`/api/sessions/${SESSION_ID}/message`).set('Authorization', auth).send({ kind: 'cuidados' }).expect(404);
+      await request(app).post('/api/sessions/no-es-uuid/message').set('Authorization', auth).send({ kind: 'cuidados' }).expect(404);
+    });
+
+    test('sin sesión de usuario, 401', async () => {
+      await request(app).post(`/api/sessions/${SESSION_ID}/message`).send({ kind: 'recordatorio' }).expect(401);
+    });
   });
 
   test('un estado de pago que no es booleano devuelve 400', (done) => {

@@ -1,5 +1,6 @@
 import { apiFetch } from './api'
 import { isoLocal } from './dates'
+import type { SessionNotice } from './notifications'
 // Los montos se formatean en `money.ts`, compartido con el inventario.
 export { formatCLP, parseCLP, formatAmountInput } from './money'
 
@@ -141,6 +142,8 @@ export interface CalendarSession extends Omit<ProjectSession, 'photos'> {
   client_id: string
   client_name: string
   client_phone: string | null
+  /** Estado del último recordatorio de 24 horas, si ya se intentó. */
+  reminder_status?: 'pendiente' | 'enviado' | 'error' | 'omitido' | null
 }
 
 export interface SessionInput {
@@ -253,15 +256,20 @@ export function createSession(projectId: string, input: SessionInput): Promise<P
   }).then((r) => r.session)
 }
 
-/** Devuelve la sesión sin fotos: quien la muestre conserva las que ya tenía. */
-export function updateSession(
+/**
+ * Actualiza la sesión. Devuelve la sesión sin fotos (quien la muestre conserva las
+ * que ya tenía) y, si el cambio le importa al cliente —se canceló, se movió la
+ * hora, se terminó la sesión—, qué pasó con el aviso que se le debe: lo mandó
+ * WhatsApp solo, o se le deja al artista un enlace para enviarlo él.
+ */
+export function updateSessionWithNotice(
   id: string,
   input: Partial<SessionInput>,
-): Promise<Omit<ProjectSession, 'photos'>> {
-  return apiFetch<{ session: Omit<ProjectSession, 'photos'> }>(`/api/sessions/${id}`, {
-    method: 'PATCH',
-    body: JSON.stringify(input),
-  }).then((r) => r.session)
+): Promise<{ session: Omit<ProjectSession, 'photos'>; notice: SessionNotice | null }> {
+  return apiFetch<{ session: Omit<ProjectSession, 'photos'>; notice?: SessionNotice }>(
+    `/api/sessions/${id}`,
+    { method: 'PATCH', body: JSON.stringify(input) },
+  ).then((r) => ({ session: r.session, notice: r.notice ?? null }))
 }
 
 export function deleteSession(id: string): Promise<void> {

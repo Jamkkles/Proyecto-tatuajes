@@ -18,7 +18,7 @@ import {
   projectStatusLabel,
   sessionStatusLabel,
   updateProject,
-  updateSession,
+  updateSessionWithNotice,
   whatsappLink,
   type Project,
   type ProjectInput,
@@ -38,6 +38,7 @@ import { formatAmountInput, formatCLP, parseCLP } from '../lib/money'
 import { listPreviews, type Preview } from '../lib/previews'
 import { formatQuantity, listQuotes, quoteStatusLabel, type Quote } from '../lib/quotes'
 import { ALLOWED_MIME, MAX_FILE_BYTES, formatSize, listSketches, type Sketch } from '../lib/sketches'
+import { noticeLabel, sendSessionMessage, type ClientMessageKind, type SessionNotice } from '../lib/notifications'
 import { useAppShellHeader } from '../lib/useAppShellHeader'
 import './Studio.css'
 
@@ -625,6 +626,22 @@ export default function Proyecto() {
    Tarjeta de sesión: cobro, estado, reagendar y fotos del avance
    ============================================================ */
 
+/**
+ * Lo que se le cuenta al artista sobre el aviso al cliente que dejó el cambio. El
+ * caso manual (sin API de WhatsApp) no lleva texto: el botón de WhatsApp que
+ * aparece en la tarjeta ya lo dice.
+ */
+function clientNoticeText(notice: SessionNotice | null) {
+  if (!notice) return ''
+  if (notice.channel === 'whatsapp' && notice.status === 'enviado') {
+    return ` Le avisamos ${noticeLabel(notice.kind)} al cliente por WhatsApp.`
+  }
+  if (notice.status === 'omitido') {
+    return ' No pudimos avisarle al cliente: su teléfono falta o no es válido.'
+  }
+  return ''
+}
+
 interface SessionCardProps {
   session: ProjectSession
   number: number
@@ -640,16 +657,51 @@ function SessionCard({ session, number, onChange, onRemove, onZoom, onNotice }: 
   const [busy, setBusy] = useState(false)
   const [uploading, setUploading] = useState(0)
   const [error, setError] = useState('')
+  // «Ahora» al abrir la tarjeta: decide si la cita es futura (para ofrecer el
+  // recordatorio). El compilador de React no admite `Date.now()` dentro del render.
+  const [openedAt] = useState(() => Date.now())
+  // Enlace de WhatsApp con el mensaje ya escrito, cuando toca enviarlo a mano.
+  const [waAction, setWaAction] = useState<{ link: string; label: string } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  /** Pide el mensaje al cliente (recordatorio o cuidados) y cuenta cómo salió. */
+  async function messageClient(kind: ClientMessageKind) {
+    setBusy(true)
+    setError('')
+    setWaAction(null)
+    try {
+      const result = await sendSessionMessage(session.id, kind)
+      if (result.reason === 'sin_telefono') {
+        setError('El cliente no tiene un teléfono válido. Corrígelo en su ficha para poder escribirle.')
+      } else if (result.status === 'enviado') {
+        onNotice('Mensaje enviado al cliente por WhatsApp.')
+      } else if (result.waLink) {
+        setWaAction({
+          link: result.waLink,
+          label: kind === 'cuidados' ? 'Enviar los cuidados por WhatsApp' : 'Enviar el recordatorio por WhatsApp',
+        })
+        if (result.error) setError(`WhatsApp no pudo enviarlo solo (${result.error}). Puedes enviarlo tú:`)
+      }
+    } catch (err) {
+      setError(apiErrorMessage(err, 'No pudimos preparar el mensaje.'))
+    } finally {
+      setBusy(false)
+    }
+  }
 
   async function patch(input: Partial<SessionInput>, message: string) {
     setBusy(true)
     setError('')
+    setWaAction(null)
     try {
-      const updated = await updateSession(session.id, input)
+      const { session: updated, notice } = await updateSessionWithNotice(session.id, input)
       // La respuesta no trae las fotos: se conservan las que ya había.
       onChange(session.id, (s) => ({ ...s, ...updated }))
-      onNotice(message)
+      onNotice(message + clientNoticeText(notice))
+      // Sin la API de WhatsApp el aviso al cliente lo manda el artista con un toque.
+      if (notice?.waLink) {
+        setWaAction({ link: notice.waLink, label: `Avisar ${noticeLabel(notice.kind)} por WhatsApp` })
+      }
       return true
     } catch (err) {
       setError(apiErrorMessage(err, 'No pudimos actualizar la sesión.'))
@@ -790,6 +842,21 @@ function SessionCard({ session, number, onChange, onRemove, onZoom, onNotice }: 
 
       {error && <p className="st-alert" role="alert">{error}</p>}
 
+      {waAction && (
+        <p className="st-warn st-session__wa" role="status">
+          <a
+            className="st-btn st-btn--sm st-btn--primary"
+            href={waAction.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setWaAction(null)}
+          >
+            {waAction.label}
+          </a>
+          <span>Se abre WhatsApp con el mensaje ya escrito.</span>
+        </p>
+      )}
+
       <div className="st-session__actions">
         <select
           className="st-input st-input--sm"
@@ -805,6 +872,26 @@ function SessionCard({ session, number, onChange, onRemove, onZoom, onNotice }: 
         {!editing && (
           <button type="button" className="st-btn st-btn--sm" onClick={startEdit}>
             Reagendar / editar
+          </button>
+        )}
+        {session.status === 'agendada' && new Date(session.starts_at).getTime() > openedAt && (
+          <button
+            type="button"
+            className="st-btn st-btn--sm"
+            onClick={() => messageClient('recordatorio')}
+            disabled={busy}
+          >
+            Recordar por WhatsApp
+          </button>
+        )}
+        {session.status === 'completada' && (
+          <button
+            type="button"
+            className="st-btn st-btn--sm"
+            onClick={() => messageClient('cuidados')}
+            disabled={busy}
+          >
+            Enviar cuidados
           </button>
         )}
         <button type="button" className="st-btn st-btn--sm st-btn--danger" onClick={() => onRemove(session)}>
