@@ -1,4 +1,5 @@
 const materialModel = require('../models/materialModel');
+const { notifyLowStock } = require('../services/stockAlerts');
 const {
   FieldError,
   decimal,
@@ -141,6 +142,8 @@ async function adjustStock(req, res) {
 
     const material = await materialModel.adjustStock(req.params.id, req.user.sub, delta);
     if (!material) return res.status(404).json(NOT_FOUND);
+    // Solo al descontar: reponer stock nunca es motivo de alerta.
+    if (delta < 0) await notifyLowStock(req.user.sub, [material]);
     return res.json({ material });
   } catch (err) {
     return sendError(res, err, 'ajustando el stock');

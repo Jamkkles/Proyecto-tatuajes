@@ -7,7 +7,8 @@
     "dev": "nodemon src/index.js",
     "db:init": "node src/db/init.js",
     "test": "jest --runInBand",
-    "sketches:analyze": "node src/db/analyzeSketches.js"
+    "sketches:analyze": "node src/db/analyzeSketches.js",
+    "vapid:generate": "node src/db/generateVapidKeys.js"
   },
   "author": "",
   "license": "ISC",
@@ -25,7 +26,8 @@
     "multer": "^2.2.0",
     "nodemailer": "^9.0.1",
     "pg": "^8.11.3",
-    "sharp": "^0.35.3"
+    "sharp": "^0.35.3",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "jest": "^30.4.2",

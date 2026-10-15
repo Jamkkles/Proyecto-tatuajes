@@ -2,6 +2,7 @@ const quoteModel = require('../models/quoteModel');
 const materialModel = require('../models/materialModel');
 const projectModel = require('../models/projectModel');
 const sketchModel = require('../models/sketchModel');
+const { notifyLowStock } = require('../services/stockAlerts');
 const {
   computeQuote,
   itemsCost,
@@ -370,6 +371,7 @@ async function consume(req, res) {
       }
       return res.status(404).json(NOT_FOUND);
     }
+    await notifyLowStock(req.user.sub, result.affected);
     return res.json(result);
   } catch (err) {
     return sendError(res, err, 'descontando el stock');

@@ -14,7 +14,10 @@ async function listByUser(userId, { from, to }) {
     `SELECT ps.id, ps.user_id, ps.project_id, ps.starts_at, ps.duration_minutes,
             ps.price, ps.paid, ps.status, ps.notes, ps.created_at, ps.updated_at,
             p.title AS project_title, p.body_zone,
-            c.id AS client_id, c.name AS client_name, c.phone AS client_phone
+            c.id AS client_id, c.name AS client_name, c.phone AS client_phone,
+            (SELECT m.status FROM message_log m
+              WHERE m.session_id = ps.id AND m.kind = 'recordatorio'
+              ORDER BY m.created_at DESC LIMIT 1) AS reminder_status
        FROM project_sessions ps
        JOIN projects p ON p.id = ps.project_id
        JOIN clients c ON c.id = p.client_id
@@ -48,6 +51,25 @@ async function listByProject(projectId, userId) {
     [projectId, userId]
   );
   return rows;
+}
+
+/**
+ * La sesión con su cliente y el nombre del artista: lo que hace falta para
+ * escribirle al cliente sobre ella (HU22, HU23, HU28).
+ */
+async function findWithClient(id, userId) {
+  const { rows } = await pool.query(
+    `SELECT ps.id, ps.user_id, ps.starts_at, ps.status,
+            c.id AS client_id, c.name AS client_name, c.phone AS client_phone,
+            u.name AS artist_name
+       FROM project_sessions ps
+       JOIN projects p ON p.id = ps.project_id
+       JOIN clients c ON c.id = p.client_id
+       JOIN users u ON u.id = ps.user_id
+      WHERE ps.id = $1 AND ps.user_id = $2`,
+    [id, userId]
+  );
+  return rows[0] ?? null;
 }
 
 async function findByIdForUser(id, userId) {
@@ -123,4 +145,12 @@ async function remove(id, userId) {
   return rows[0] ?? null;
 }
 
-module.exports = { listByUser, listByProject, findByIdForUser, create, update, remove };
+module.exports = {
+  listByUser,
+  listByProject,
+  findByIdForUser,
+  findWithClient,
+  create,
+  update,
+  remove,
+};
