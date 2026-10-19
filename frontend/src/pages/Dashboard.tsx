@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getUser } from '../lib/auth'
-import { listSketches, type Sketch } from '../lib/sketches'
+import { listSketches } from '../lib/sketches'
 import {
   countSessionsByDay,
   formatTime,
@@ -18,16 +18,6 @@ import './Dashboard.css'
 
 /* ---------- Iconos (line, 24px) ---------- */
 const icons: Record<string, ReactNode> = {
-  chevronLeft: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  ),
-  chevronRight: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  ),
   /* ---- iconos de tarjetas de estadística ---- */
   statCitas: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
@@ -86,23 +76,6 @@ function dayLabel(iso: string, today: Date) {
   return shortDayFmt.format(date)
 }
 
-// Imágenes de reserva para el carrusel cuando aún no hay bocetos importados.
-const CAROUSEL_FALLBACK = ['/descarga1.webp', '/descarga2.webp', '/dashboard-bg.webp']
-
-// Cada cuánto avanza solo el carrusel (ms).
-const CAROUSEL_AUTO_MS = 10200
-// Duración de cada desplazamiento animado (ms): mayor = más lento y suave.
-const CAROUSEL_NUDGE_MS = 1000
-
-const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2)
-
-// Paso de una tarjeta (ancho + separación) medido en el DOM del carril.
-function slideStride(el: HTMLElement) {
-  const slides = el.querySelectorAll<HTMLElement>('.slide')
-  if (slides.length >= 2) return slides[1].offsetLeft - slides[0].offsetLeft
-  return el.clientWidth / 3
-}
-
 export default function Dashboard() {
   const navigate = useNavigate()
   const user = getUser()
@@ -110,11 +83,10 @@ export default function Dashboard() {
   // El "Resumen" no pone título en la barra superior compartida.
   useAppShellHeader({})
 
-  const [flash, setFlash] = useState<Sketch[]>([])
   const [sketchCount, setSketchCount] = useState<number | null>(null)
 
   // Tarjetas "Citas este mes" y "Nuevos clientes": conteos reales del mes en
-  // curso (no del mes que esté mirando el calendario de abajo).
+  // curso (no del mes que esté mirando el calendario).
   const [monthStats, setMonthStats] = useState<{ total: number; confirmadas: number } | null>(null)
   const [newClients, setNewClients] = useState<number | null>(null)
 
@@ -126,85 +98,11 @@ export default function Dashboard() {
   /** Descarta la respuesta de un mes si ya se navegó a otro. */
   const monthReqRef = useRef(0)
 
-  // Carrusel "Últimos bocetos": auto-avance por pasos. Las tarjetas se
-  // renderizan dos veces; cada movimiento anima `scrollLeft` y lo mantiene
-  // dentro de una copia con módulo. Como ambas copias son idénticas, el salto
-  // al cerrar el ciclo es invisible: siempre hay recorrido y se ve infinito,
-  // aun con pocos bocetos. Auto avanza una tarjeta; las flechas, una página.
-  const carouselRef = useRef<HTMLDivElement>(null)
-  const pausedRef = useRef(false)
-  // Desplazamiento en curso: { start (t0), from, to } en píxeles absolutos.
-  const nudgeRef = useRef<{ start: number; from: number; to: number } | null>(null)
-
-  function scrollCarousel(dir: -1 | 1) {
-    const el = carouselRef.current
-    if (!el) return
-    const from = el.scrollLeft
-    // Una página ≈ tres tarjetas (lo que se ve a la vez en escritorio).
-    nudgeRef.current = { start: performance.now(), from, to: from + dir * slideStride(el) * 3 }
-  }
-
-  useEffect(() => {
-    const el = carouselRef.current
-    if (!el) return
-    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
-
-    const pause = () => { pausedRef.current = true }
-    const resume = () => { pausedRef.current = false }
-    el.addEventListener('mouseenter', pause)
-    el.addEventListener('mouseleave', resume)
-    el.addEventListener('focusin', pause)
-    el.addEventListener('focusout', resume)
-
-    // Anima el desplazamiento en curso y envuelve la posición dentro de una
-    // copia (período = paso × nº de tarjetas de una copia) con módulo.
-    let raf = 0
-    const loop = (now: number) => {
-      const nudge = nudgeRef.current
-      if (nudge) {
-        const slides = el.querySelectorAll<HTMLElement>('.slide')
-        const stride = slides.length >= 2 ? slides[1].offsetLeft - slides[0].offsetLeft : el.clientWidth / 3
-        const period = stride * (slides.length / 2)
-        const p = Math.min(1, (now - nudge.start) / CAROUSEL_NUDGE_MS)
-        let x = nudge.from + (nudge.to - nudge.from) * easeInOut(p)
-        if (period > 0) x = ((x % period) + period) % period // bucle sin corte
-        el.scrollLeft = x
-        if (p >= 1) nudgeRef.current = null
-      }
-      raf = requestAnimationFrame(loop)
-    }
-    raf = requestAnimationFrame(loop)
-
-    // Auto-avance: una tarjeta cada CAROUSEL_AUTO_MS, salvo pausa (hover/foco),
-    // movimiento en curso o `prefers-reduced-motion`.
-    const id = window.setInterval(() => {
-      if (reduce || pausedRef.current || nudgeRef.current) return
-      const from = el.scrollLeft
-      nudgeRef.current = { start: performance.now(), from, to: from + slideStride(el) }
-    }, CAROUSEL_AUTO_MS)
-
-    return () => {
-      cancelAnimationFrame(raf)
-      window.clearInterval(id)
-      el.removeEventListener('mouseenter', pause)
-      el.removeEventListener('mouseleave', resume)
-      el.removeEventListener('focusin', pause)
-      el.removeEventListener('focusout', resume)
-    }
-  }, [flash.length])
-
-  // Bocetos reales de la galería (T0010): los más recientes para el carrusel y
-  // el total para la tarjeta de estadísticas.
+  // Total de bocetos para la tarjeta de estadísticas.
   useEffect(() => {
     listSketches()
-      .then((list) => {
-        setFlash(list.slice(0, 8))
-        setSketchCount(list.length)
-      })
-      .catch(() => {
-        setFlash([])
-        setSketchCount(null)
-      })
+      .then((list) => setSketchCount(list.length))
+      .catch(() => setSketchCount(null))
   }, [])
 
   useEffect(() => {
@@ -287,11 +185,6 @@ export default function Dashboard() {
     )
   }
 
-  // El carrusel muestra bocetos reales; si no hay, cae a imágenes de reserva.
-  const carousel = flash.length
-    ? flash.map((f) => ({ id: String(f.id), url: f.url, title: f.title, zone: f.body_zone ?? f.status }))
-    : CAROUSEL_FALLBACK.map((url, i) => ({ id: `ph-${i}`, url, title: 'Boceto de ejemplo', zone: 'Importa el primero' }))
-
   const firstName = user?.name?.trim().split(/\s+/)[0] ?? 'artista'
   const now = new Date()
   const today = new Intl.DateTimeFormat('es-CL', {
@@ -310,97 +203,15 @@ export default function Dashboard() {
         <p className="greet__date">{today}</p>
       </section>
 
-      {/* ---- Carrusel: últimos bocetos ---- */}
-      <section className="carousel" aria-labelledby="carousel-h">
-        <div className="carousel__head">
-          <h2 className="carousel__title" id="carousel-h">Últimos bocetos</h2>
-          <div className="carousel__nav">
-            <button
-              type="button"
-              className="carousel__arrow"
-              onClick={() => scrollCarousel(-1)}
-              aria-label="Ver bocetos anteriores"
-            >
-              <span className="navitem__icon">{icons.chevronLeft}</span>
-            </button>
-            <button
-              type="button"
-              className="carousel__arrow"
-              onClick={() => scrollCarousel(1)}
-              aria-label="Ver más bocetos"
-            >
-              <span className="navitem__icon">{icons.chevronRight}</span>
-            </button>
-          </div>
-        </div>
-        <div className="carousel__track" ref={carouselRef}>
-          {/* Dos copias seguidas: la segunda alimenta el bucle sin corte. */}
-          {[...carousel, ...carousel].map((c, i) => {
-            const isClone = i >= carousel.length
-            // Los bocetos reales llevan su id; las imágenes de reserva usan
-            // `ph-N` y solo abren la galería sin destacar ninguno.
-            const real = !c.id.startsWith('ph-')
-            const openInGallery = () =>
-              navigate(real ? `/bocetos?ver=${encodeURIComponent(c.id)}` : '/bocetos')
-            return (
-            <figure
-              className="slide slide--link"
-              key={`${c.id}-${i}`}
-              aria-hidden={isClone ? true : undefined}
-              role="button"
-              tabIndex={isClone ? -1 : 0}
-              onClick={openInGallery}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  openInGallery()
-                }
-              }}
-            >
-              <img className="slide__img" src={c.url} alt={c.title} loading="lazy" width={320} height={180} />
-              <figcaption className="slide__cap">
-                <span className="slide__title">{c.title}</span>
-                <span className="slide__zone">{c.zone}</span>
-              </figcaption>
-            </figure>
-            )
-          })}
-        </div>
-      </section>
-
-      {/* ---- Estadísticas (tarjetas pastel) ---- */}
-      <section className="stats" aria-label="Resumen de actividad">
-        {STATS.map((s) => {
-          // "Citas", "Clientes" y "Bocetos" ya salen de la base de datos;
-          // "Ingresos" sigue siendo maqueta hasta que se implemente su módulo.
-          let value: number | string = s.value
-          // Anotado a propósito: `STATS` es `as const`, así que sin esto `sub`
-          // se estrecha a los literales del arreglo y no acepta los rótulos
-          // que se calculan abajo.
-          let sub: string = s.sub
-          if (s.key === 'bocetos' && sketchCount !== null) {
-            value = sketchCount
-            sub = 'en total'
-          } else if (s.key === 'citas' && monthStats !== null) {
-            value = monthStats.total
-            sub = `${monthStats.confirmadas} confirmadas`
-          } else if (s.key === 'clientes' && newClients !== null) {
-            value = newClients
-            sub = 'este mes'
-          }
-          return (
-            <article className="statcard" key={s.key}>
-              <span className="statcard__icon" aria-hidden="true">{icons[s.icon]}</span>
-              <p className="statcard__value">{value}</p>
-              <p className="statcard__label">{s.label}</p>
-              <p className="statcard__sub">{sub}</p>
-            </article>
-          )
-        })}
-      </section>
-
-      {/* ---- Agenda: próximas citas + calendario del mes ---- */}
+      {/* ---- Agenda: lo principal. Calendario del mes + próximas citas ---- */}
       <div className="split__row">
+        <MonthCalendar
+          appointmentsByDay={apptsByDay}
+          onMonthChange={loadMonth}
+          renderDayPreview={renderDayPreview}
+          onSelectDay={(iso) => navigate(`/citas?dia=${iso}`)}
+        />
+
         <section className="panelbox split__side" aria-labelledby="appt-h">
           <div className="panelbox__head">
             <h3 className="panelbox__title" id="appt-h">Próximas citas</h3>
@@ -449,13 +260,38 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <MonthCalendar
-          appointmentsByDay={apptsByDay}
-          onMonthChange={loadMonth}
-          renderDayPreview={renderDayPreview}
-          onSelectDay={(iso) => navigate(`/citas?dia=${iso}`)}
-        />
       </div>
+
+      {/* ---- Estadísticas (tarjetas pastel) ---- */}
+      <section className="stats" aria-label="Resumen de actividad">
+        {STATS.map((s) => {
+          // "Citas", "Clientes" y "Bocetos" ya salen de la base de datos;
+          // "Ingresos" sigue siendo maqueta hasta que se implemente su módulo.
+          let value: number | string = s.value
+          // Anotado a propósito: `STATS` es `as const`, así que sin esto `sub`
+          // se estrecha a los literales del arreglo y no acepta los rótulos
+          // que se calculan abajo.
+          let sub: string = s.sub
+          if (s.key === 'bocetos' && sketchCount !== null) {
+            value = sketchCount
+            sub = 'en total'
+          } else if (s.key === 'citas' && monthStats !== null) {
+            value = monthStats.total
+            sub = `${monthStats.confirmadas} confirmadas`
+          } else if (s.key === 'clientes' && newClients !== null) {
+            value = newClients
+            sub = 'este mes'
+          }
+          return (
+            <article className="statcard" key={s.key}>
+              <span className="statcard__icon" aria-hidden="true">{icons[s.icon]}</span>
+              <p className="statcard__value">{value}</p>
+              <p className="statcard__label">{s.label}</p>
+              <p className="statcard__sub">{sub}</p>
+            </article>
+          )
+        })}
+      </section>
     </div>
   )
 }

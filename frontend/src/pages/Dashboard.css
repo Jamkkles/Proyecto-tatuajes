@@ -1,8 +1,7 @@
 /* ============================================================
    Panel "Resumen" (/dashboard) — Tattoo Estudio
-   Solo el contenido de la vista: saludo, carrusel de bocetos,
-   tarjetas de métricas y la vista dividida (citas de hoy +
-   calendario del mes, con el visor 3D a ancho completo debajo).
+   Solo el contenido de la vista: saludo, la agenda (calendario del
+   mes + próximas citas, lo principal) y debajo las tarjetas de métricas.
    El chrome (sidebar + barra superior + fondo .dash) vive en
    AppShell.css. Este contenido se monta dentro de .dash__scroll.
    ============================================================ */
@@ -50,96 +49,6 @@
 .greet__date::first-letter {
   text-transform: uppercase;
 }
-
-/* ============ Carrusel: últimos bocetos ============ */
-.carousel {
-  animation: dash-in 0.55s ease both;
-}
-.carousel__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-.carousel__title {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--steel);
-}
-.carousel__nav { display: flex; gap: 8px; }
-.carousel__arrow {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  background: rgba(14, 16, 19, 0.72);
-  color: var(--steel);
-  transition: border-color 0.18s, color 0.18s, background 0.18s, transform 0.12s;
-}
-.carousel__arrow:hover {
-  border-color: var(--steel);
-  color: var(--steel-hi);
-  background: rgba(195, 210, 219, 0.08);
-}
-.carousel__arrow:active { transform: scale(0.94); }
-.carousel__arrow:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(195, 210, 219, 0.3); }
-.carousel__arrow svg { width: 20px; height: 20px; }
-
-.carousel__track {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: min(84%, 420px);
-  gap: 14px;
-  overflow-x: auto;
-  /* Sin scroll-snap: la marquesina controla scrollLeft cada fotograma y el snap
-     lo reajustaría, cortando el movimiento. */
-  scrollbar-width: none;
-  padding-bottom: 4px;
-}
-.carousel__track::-webkit-scrollbar { display: none; }
-
-.slide {
-  position: relative;
-  margin: 0;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--ink-3);
-}
-.slide__img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.5s ease;
-}
-.slide:hover .slide__img { transform: scale(1.04); }
-.slide--link { cursor: pointer; }
-.slide--link:focus-visible {
-  outline: 2px solid var(--steel-hi);
-  outline-offset: 2px;
-}
-.slide__cap {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 30px 16px 14px;
-  background: linear-gradient(180deg, transparent, rgba(7, 8, 10, 0.92));
-}
-.slide__title { font-family: var(--font-display); font-size: 20px; font-weight: 600; color: var(--steel-hi); }
-.slide__zone { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fog); }
 
 /* ============ Estadísticas ============ */
 .stats {
@@ -341,13 +250,11 @@
 /* ============ Desktop ============ */
 @media (min-width: 900px) {
   .stats { grid-template-columns: repeat(4, 1fr); }
-  /* Exactamente 3 tarjetas completas (2 separaciones de 14px = 28px). El bucle
-     con las copias duplicadas da el recorrido para el auto-avance y las flechas. */
-  .carousel__track { grid-auto-columns: calc((100% - 28px) / 3); }
-  /* Fila superior: citas (columna estrecha fija) + calendario (flexible).
-     El minmax(0, 1fr) evita que la rejilla de 7 columnas fuerce scroll. */
+  /* Fila de la agenda: calendario (flexible, es lo principal) + próximas citas
+     (columna estrecha fija). El minmax(0, 1fr) evita que la rejilla de 7
+     columnas fuerce scroll. */
   .split__row {
-    grid-template-columns: minmax(250px, 300px) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(250px, 300px);
     align-items: start;
   }
 }
@@ -363,16 +270,6 @@
 [data-theme="light"] .greet__title { color: #1b1d21; text-shadow: none; }
 [data-theme="light"] .greet__title-em { color: var(--accent); }
 [data-theme="light"] .greet__date { color: #6b6f76; text-shadow: none; }
-
-/* ---- Carrusel ---- */
-[data-theme="light"] .carousel__title { color: #4a4e55; }
-[data-theme="light"] .carousel__arrow {
-  background: rgba(255, 255, 255, 0.72);
-  border-color: #d3cec3;
-  color: #4a4e55;
-}
-[data-theme="light"] .carousel__arrow:hover { color: #1b1d21; border-color: #b7b1a3; }
-[data-theme="light"] .slide { border-color: #d3cec3; background: #e3ded4; }
 
 /* ---- Estadísticas: vidrio esmerilado neutro sobre papel. Sin tintes por
    tarjeta (todas el mismo gris) y con la misma translucidez que el modo
