@@ -327,3 +327,27 @@ export function whatsappLink(phone: string | null) {
   if (digits.length === 9 && digits.startsWith('9')) digits = `56${digits}`
   return digits.length >= 8 ? `https://wa.me/${digits}` : null
 }
+
+/**
+ * Plata de un conjunto de citas (el mes, en el Resumen), en pesos.
+ *
+ * - `collected`: lo ya cobrado, o sea las sesiones marcadas como pagadas.
+ * - `pending`: lo que falta cobrar de sesiones que se harán o ya se hicieron.
+ *
+ * Las canceladas no cuentan en ninguna (se asume que no hubo cobro, o que se devolvió),
+ * y un «no asistió» sin pagar tampoco es plata por cobrar. La sesión no guarda cuándo se
+ * pagó, así que el mes es el de la cita y no el del día en que entró el dinero.
+ */
+export function sessionsIncome(sessions: Pick<CalendarSession, 'price' | 'paid' | 'status'>[]): {
+  collected: number
+  pending: number
+} {
+  let collected = 0
+  let pending = 0
+  for (const s of sessions) {
+    if (s.status === 'cancelada') continue
+    if (s.paid) collected += s.price
+    else if (s.status === 'agendada' || s.status === 'completada') pending += s.price
+  }
+  return { collected, pending }
+}

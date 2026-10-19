@@ -9,9 +9,11 @@ import {
   listClients,
   listSessions,
   sessionStatusLabel,
+  sessionsIncome,
   type CalendarSession,
 } from '../lib/agenda'
 import MonthCalendar from '../components/MonthCalendar'
+import { formatCLP } from '../lib/money'
 import { buildMonthGrid, isSameDay, startOfMonth } from '../lib/dates'
 import { useAppShellHeader } from '../lib/useAppShellHeader'
 import './Dashboard.css'
@@ -43,12 +45,11 @@ const icons: Record<string, ReactNode> = {
 }
 
 // Tarjetas de estadística: todas con el mismo aspecto neutro (sin tintes).
-// "Citas", "Clientes" y "Bocetos" se rellenan con el total real; "Ingresos"
-// sigue siendo maqueta hasta que se implemente su módulo.
+// Todas se rellenan con datos reales del artista; mientras cargan muestran «—».
 const STATS = [
   { key: 'citas', label: 'Citas este mes', value: '—', sub: 'cargando…', icon: 'statCitas' },
   { key: 'clientes', label: 'Nuevos clientes', value: '—', sub: 'cargando…', icon: 'statClientes' },
-  { key: 'ingresos', label: 'Ingresos mensuales', value: '$1,24M', sub: 'CLP', icon: 'statIngresos' },
+  { key: 'ingresos', label: 'Cobrado este mes', value: '—', sub: 'cargando…', icon: 'statIngresos' },
   { key: 'bocetos', label: 'Bocetos creados', value: '—', sub: 'cargando…', icon: 'statBocetos' },
 ] as const
 
@@ -87,7 +88,12 @@ export default function Dashboard() {
 
   // Tarjetas "Citas este mes" y "Nuevos clientes": conteos reales del mes en
   // curso (no del mes que esté mirando el calendario).
-  const [monthStats, setMonthStats] = useState<{ total: number; confirmadas: number } | null>(null)
+  const [monthStats, setMonthStats] = useState<{
+    total: number
+    confirmadas: number
+    collected: number
+    pending: number
+  } | null>(null)
   const [newClients, setNewClients] = useState<number | null>(null)
 
   // Agenda real: próximas sesiones agendadas (null = cargando) y las citas del
@@ -122,6 +128,7 @@ export default function Dashboard() {
         setMonthStats({
           total: list.length,
           confirmadas: list.filter((s) => s.status === 'agendada').length,
+          ...sessionsIncome(list),
         }),
       )
       .catch(() => setMonthStats(null))
@@ -265,8 +272,6 @@ export default function Dashboard() {
       {/* ---- Estadísticas (tarjetas pastel) ---- */}
       <section className="stats" aria-label="Resumen de actividad">
         {STATS.map((s) => {
-          // "Citas", "Clientes" y "Bocetos" ya salen de la base de datos;
-          // "Ingresos" sigue siendo maqueta hasta que se implemente su módulo.
           let value: number | string = s.value
           // Anotado a propósito: `STATS` es `as const`, así que sin esto `sub`
           // se estrecha a los literales del arreglo y no acepta los rótulos
@@ -278,12 +283,15 @@ export default function Dashboard() {
           } else if (s.key === 'citas' && monthStats !== null) {
             value = monthStats.total
             sub = `${monthStats.confirmadas} confirmadas`
+          } else if (s.key === 'ingresos' && monthStats !== null) {
+            value = formatCLP(monthStats.collected)
+            sub = monthStats.pending > 0 ? `${formatCLP(monthStats.pending)} por cobrar` : 'nada por cobrar'
           } else if (s.key === 'clientes' && newClients !== null) {
             value = newClients
             sub = 'este mes'
           }
           return (
-            <article className="statcard" key={s.key}>
+            <article className={`statcard${s.key === 'ingresos' ? ' statcard--money' : ''}`} key={s.key}>
               <span className="statcard__icon" aria-hidden="true">{icons[s.icon]}</span>
               <p className="statcard__value">{value}</p>
               <p className="statcard__label">{s.label}</p>

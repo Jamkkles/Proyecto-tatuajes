@@ -370,6 +370,11 @@ de la calibración está en el comentario de `CM2_POR_HORA`
   solo se registra en producción). `sw.js` muestra **siempre** una notificación al recibir un
   push (iOS no admite avisos silenciosos), usa el `id` del aviso como `tag` para que dos
   avisos del mismo tipo no se pisen, y al tocarla solo abre rutas de la propia app
+- `/dashboard` (Resumen) — saludo, **calendario del mes + próximas citas arriba** (lo principal) y
+  debajo cuatro tarjetas con datos reales. «Cobrado este mes» (`sessionsIncome` en `lib/agenda.ts`)
+  suma el `price` de las sesiones `paid` del mes, sin las canceladas; «por cobrar» es lo no pagado de
+  sesiones agendadas o completadas. **La sesión no guarda cuándo se pagó**: el mes es el de la cita,
+  no el del día en que entró el dinero. Si algún día importa, hace falta una columna `paid_at`
 - `/configuracion` — `pages/Configuracion.tsx`: push de este dispositivo, interruptores y
   textos editables de los mensajes (HU28), con vista previa. La vista previa repite las
   frases del servidor: si cambia una en `clientMessages.js`, hay que cambiarla allí
