@@ -13,6 +13,7 @@ import {
   deleteSessionPhoto,
   formatDate,
   formatDuration,
+  formatPaidOn,
   formatTime,
   getProject,
   projectStatusLabel,
@@ -804,6 +805,9 @@ function SessionCard({ session, number, onChange, onRemove, onZoom, onNotice }: 
             >
               {session.paid ? 'Pagada ✓' : 'Marcar pagada'}
             </button>
+            {session.paid && session.paid_at && (
+              <span className="st-session__paid-on">el {formatPaidOn(session.paid_at)}</span>
+            )}
           </div>
           {session.notes && <p className="st-session__notes">{session.notes}</p>}
         </>

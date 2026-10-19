@@ -129,7 +129,9 @@ lee el `nginx.conf` de Docker.
 > tablas nuevas (`notifications`, `push_subscriptions`, `notification_settings`,
 > `message_log`); `db:init` las agrega sin tocar tus datos. Si despliegas sin correrlo, la app funciona pero el
 > inventario se ve vacío y en el log de Render aparece «column materials_seeded_at
-> does not exist». Para el WhatsApp vinculado agrega además `whatsapp_sessions` y
+> does not exist». **La fecha de pago de las sesiones (`project_sessions.paid_at`) es
+> distinta: sin esa columna fallan las consultas de la agenda**, así que corre `db:init`
+> *antes* (o justo al terminar) de desplegar. Para el WhatsApp vinculado agrega además `whatsapp_sessions` y
 > `whatsapp_auth`, y el valor `whatsapp_web` del canal en `message_log`.
 
 ## 6. Cerrar el círculo

@@ -7,10 +7,11 @@ import {
   formatTime,
   groupSessionsByDay,
   listClients,
+  getIncome,
   listSessions,
   sessionStatusLabel,
-  sessionsIncome,
   type CalendarSession,
+  type Income,
 } from '../lib/agenda'
 import MonthCalendar from '../components/MonthCalendar'
 import { formatCLP } from '../lib/money'
@@ -88,12 +89,9 @@ export default function Dashboard() {
 
   // Tarjetas "Citas este mes" y "Nuevos clientes": conteos reales del mes en
   // curso (no del mes que esté mirando el calendario).
-  const [monthStats, setMonthStats] = useState<{
-    total: number
-    confirmadas: number
-    collected: number
-    pending: number
-  } | null>(null)
+  const [monthStats, setMonthStats] = useState<{ total: number; confirmadas: number } | null>(null)
+  // Lo cobrado en el mes (por fecha de pago) y lo que falta cobrar de sus citas.
+  const [income, setIncome] = useState<Income | null>(null)
   const [newClients, setNewClients] = useState<number | null>(null)
 
   // Agenda real: próximas sesiones agendadas (null = cargando) y las citas del
@@ -128,10 +126,13 @@ export default function Dashboard() {
         setMonthStats({
           total: list.length,
           confirmadas: list.filter((s) => s.status === 'agendada').length,
-          ...sessionsIncome(list),
         }),
       )
       .catch(() => setMonthStats(null))
+
+    getIncome(from, to)
+      .then(setIncome)
+      .catch(() => setIncome(null))
 
     listClients()
       .then((clients) =>
@@ -283,9 +284,9 @@ export default function Dashboard() {
           } else if (s.key === 'citas' && monthStats !== null) {
             value = monthStats.total
             sub = `${monthStats.confirmadas} confirmadas`
-          } else if (s.key === 'ingresos' && monthStats !== null) {
-            value = formatCLP(monthStats.collected)
-            sub = monthStats.pending > 0 ? `${formatCLP(monthStats.pending)} por cobrar` : 'nada por cobrar'
+          } else if (s.key === 'ingresos' && income !== null) {
+            value = formatCLP(income.collected)
+            sub = income.pending > 0 ? `${formatCLP(income.pending)} por cobrar` : 'nada por cobrar'
           } else if (s.key === 'clientes' && newClients !== null) {
             value = newClients
             sub = 'este mes'

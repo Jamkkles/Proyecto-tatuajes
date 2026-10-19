@@ -128,6 +128,8 @@ export interface ProjectSession {
   /** Lo que el cliente paga en esta sesión. */
   price: number
   paid: boolean
+  /** Cuándo se marcó pagada (la sella el servidor); null si no está pagada. */
+  paid_at: string | null
   status: SessionStatus
   notes: string | null
   created_at: string
@@ -318,6 +320,9 @@ const dateFmt = new Intl.DateTimeFormat('es-CL', {
 
 export const formatTime = (iso: string) => timeFmt.format(new Date(iso))
 export const formatDate = (iso: string) => dateFmt.format(new Date(iso))
+const paidOnFmt = new Intl.DateTimeFormat('es-CL', { day: 'numeric', month: 'short', year: 'numeric' })
+/** «15 oct 2026»: el día en que se marcó pagada una sesión. */
+export const formatPaidOn = (iso: string) => paidOnFmt.format(new Date(iso))
 
 /** Enlace de WhatsApp para escribirle al cliente (solo dígitos, con código país). */
 export function whatsappLink(phone: string | null) {
@@ -328,26 +333,15 @@ export function whatsappLink(phone: string | null) {
   return digits.length >= 8 ? `https://wa.me/${digits}` : null
 }
 
-/**
- * Plata de un conjunto de citas (el mes, en el Resumen), en pesos.
- *
- * - `collected`: lo ya cobrado, o sea las sesiones marcadas como pagadas.
- * - `pending`: lo que falta cobrar de sesiones que se harán o ya se hicieron.
- *
- * Las canceladas no cuentan en ninguna (se asume que no hubo cobro, o que se devolvió),
- * y un «no asistió» sin pagar tampoco es plata por cobrar. La sesión no guarda cuándo se
- * pagó, así que el mes es el de la cita y no el del día en que entró el dinero.
- */
-export function sessionsIncome(sessions: Pick<CalendarSession, 'price' | 'paid' | 'status'>[]): {
+/** Plata del rango [from, to), en pesos. La calcula el servidor. */
+export interface Income {
+  /** Lo cobrado en el rango, por la fecha en que se marcó pagada (no la de la cita). */
   collected: number
+  /** Lo que falta cobrar de las citas del rango. */
   pending: number
-} {
-  let collected = 0
-  let pending = 0
-  for (const s of sessions) {
-    if (s.status === 'cancelada') continue
-    if (s.paid) collected += s.price
-    else if (s.status === 'agendada' || s.status === 'completada') pending += s.price
-  }
-  return { collected, pending }
+}
+
+export const getIncome = (from: Date, to: Date): Promise<Income> => {
+  const params = new URLSearchParams({ from: from.toISOString(), to: to.toISOString() })
+  return apiFetch<Income>(`/api/sessions/income?${params}`)
 }

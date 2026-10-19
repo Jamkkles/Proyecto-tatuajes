@@ -145,6 +145,11 @@ padre filtrado por usuario, así que no hay forma de colgar filas de otro artist
 - `GET /api/sessions?from=&to=` (ISO, rango máx. 400 días) → `{ sessions }` con
   proyecto y cliente, para el calendario; `POST` (`projectId`, `startsAt`,
   `durationMinutes`, `price`, `paid`, `status`, `notes`), `PATCH`, `DELETE`
+- `GET /api/sessions/income?from=&to=` → `{ collected, pending }` en pesos (mismo rango máx. que
+  el listado; va antes que las rutas con `:id`). **`paid_at`** la sella el servidor: `paid` →
+  true la pone (si ya estaba pagada conserva la original), → false la borra, y editar otra cosa no
+  la toca. Las sesiones pagadas antes de existir la columna se rellenan en `schema.sql` con
+  `LEAST(starts_at, updated_at)` (solo las que no tienen fecha, así `db:init` es repetible)
 - `POST /api/sessions/:id/photos` — multipart `image` + `caption` → `201 { photo }`;
   `DELETE /api/sessions/:id/photos/:photoId` → `204`
 - Borrar un cliente, proyecto o sesión borra en cascada las filas; el
@@ -371,10 +376,10 @@ de la calibración está en el comentario de `CM2_POR_HORA`
   push (iOS no admite avisos silenciosos), usa el `id` del aviso como `tag` para que dos
   avisos del mismo tipo no se pisen, y al tocarla solo abre rutas de la propia app
 - `/dashboard` (Resumen) — saludo, **calendario del mes + próximas citas arriba** (lo principal) y
-  debajo cuatro tarjetas con datos reales. «Cobrado este mes» (`sessionsIncome` en `lib/agenda.ts`)
-  suma el `price` de las sesiones `paid` del mes, sin las canceladas; «por cobrar» es lo no pagado de
-  sesiones agendadas o completadas. **La sesión no guarda cuándo se pagó**: el mes es el de la cita,
-  no el del día en que entró el dinero. Si algún día importa, hace falta una columna `paid_at`
+  debajo cuatro tarjetas con datos reales. «Cobrado este mes» viene de
+  `GET /api/sessions/income` (`getIncome` en `lib/agenda.ts`): suma el `price` de las sesiones
+  pagadas **cuya `paid_at` cae en el mes**, sin las canceladas; «por cobrar» es lo no pagado de
+  las citas del mes que están agendadas o completadas
 - `/configuracion` — `pages/Configuracion.tsx`: push de este dispositivo, interruptores y
   textos editables de los mensajes (HU28), con vista previa. La vista previa repite las
   frases del servidor: si cambia una en `clientMessages.js`, hay que cambiarla allí
