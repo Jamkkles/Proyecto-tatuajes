@@ -3,6 +3,7 @@ const { requireAuth } = require('../middleware/auth');
 const { imageUpload } = require('../middleware/imageUpload');
 const {
   list,
+  income,
   create,
   update,
   remove,
@@ -16,6 +17,7 @@ const router = express.Router();
 router.use(requireAuth);
 
 router.get('/', list);
+router.get('/income', income);
 router.post('/', create);
 router.patch('/:id', update);
 router.delete('/:id', remove);

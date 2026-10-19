@@ -46,26 +46,44 @@ function parseSession(body, { partial }) {
   return fields;
 }
 
-// GET /api/sessions?from=&to=  → citas del rango, para el calendario (HU18)
-async function list(req, res) {
+/** El rango `from`/`to` de la consulta, o null (y ya respondió 400) si no sirve. */
+function rangeOf(req, res) {
   const from = new Date(String(req.query.from ?? ''));
   const to = new Date(String(req.query.to ?? ''));
 
   if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()) || to <= from) {
-    return res.status(400).json({ message: 'Indica un rango de fechas válido (from y to).' });
+    res.status(400).json({ message: 'Indica un rango de fechas válido (from y to).' });
+    return null;
   }
   if (to - from > MAX_RANGE_MS) {
-    return res.status(400).json({ message: 'El rango de fechas es demasiado amplio.' });
+    res.status(400).json({ message: 'El rango de fechas es demasiado amplio.' });
+    return null;
   }
+  return { from: from.toISOString(), to: to.toISOString() };
+}
+
+// GET /api/sessions?from=&to=  → citas del rango, para el calendario (HU18)
+async function list(req, res) {
+  const range = rangeOf(req, res);
+  if (!range) return undefined;
 
   try {
-    const sessions = await sessionModel.listByUser(req.user.sub, {
-      from: from.toISOString(),
-      to: to.toISOString(),
-    });
+    const sessions = await sessionModel.listByUser(req.user.sub, range);
     return res.json({ sessions });
   } catch (err) {
     return sendError(res, err, 'listando sesiones');
+  }
+}
+
+// GET /api/sessions/income?from=&to=  → { collected, pending } en pesos (Resumen)
+async function income(req, res) {
+  const range = rangeOf(req, res);
+  if (!range) return undefined;
+
+  try {
+    return res.json(await sessionModel.incomeByUser(req.user.sub, range));
+  } catch (err) {
+    return sendError(res, err, 'calculando los ingresos');
   }
 }
 
@@ -288,4 +306,4 @@ async function sendMessage(req, res) {
   }
 }
 
-module.exports = { list, create, update, remove, addPhoto, removePhoto, sendMessage };
+module.exports = { list, income, create, update, remove, addPhoto, removePhoto, sendMessage };

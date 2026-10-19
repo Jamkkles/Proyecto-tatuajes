@@ -1,7 +1,7 @@
 const pool = require('../config/db');
 
 const COLUMNS = `
-  id, user_id, project_id, starts_at, duration_minutes, price, paid, status,
+  id, user_id, project_id, starts_at, duration_minutes, price, paid, paid_at, status,
   notes, created_at, updated_at
 `;
 
@@ -12,7 +12,7 @@ const COLUMNS = `
 async function listByUser(userId, { from, to }) {
   const { rows } = await pool.query(
     `SELECT ps.id, ps.user_id, ps.project_id, ps.starts_at, ps.duration_minutes,
-            ps.price, ps.paid, ps.status, ps.notes, ps.created_at, ps.updated_at,
+            ps.price, ps.paid, ps.paid_at, ps.status, ps.notes, ps.created_at, ps.updated_at,
             p.title AS project_title, p.body_zone,
             c.id AS client_id, c.name AS client_name, c.phone AS client_phone,
             (SELECT m.status FROM message_log m
@@ -28,11 +28,36 @@ async function listByUser(userId, { from, to }) {
   return rows;
 }
 
+/**
+ * Plata del artista en un rango [from, to), en pesos.
+ *
+ * - `collected`: lo que se **cobró** en el rango, por la fecha en que se marcó pagada
+ *   (`paid_at`), sin importar cuándo es la cita. Las canceladas no cuentan.
+ * - `pending`: lo que falta cobrar de las citas del rango (agendadas o ya hechas, aún
+ *   sin pagar). Un «no asistió» sin pagar no es plata por cobrar.
+ */
+async function incomeByUser(userId, { from, to }) {
+  const { rows } = await pool.query(
+    `SELECT
+       COALESCE(SUM(price) FILTER (
+         WHERE paid AND status <> 'cancelada' AND paid_at >= $2 AND paid_at < $3
+       ), 0)::bigint AS collected,
+       COALESCE(SUM(price) FILTER (
+         WHERE NOT paid AND status IN ('agendada', 'completada')
+           AND starts_at >= $2 AND starts_at < $3
+       ), 0)::bigint AS pending
+       FROM project_sessions
+      WHERE user_id = $1`,
+    [userId, from, to]
+  );
+  return { collected: Number(rows[0].collected), pending: Number(rows[0].pending) };
+}
+
 /** Sesiones de un proyecto en orden cronológico, cada una con sus fotos. */
 async function listByProject(projectId, userId) {
   const { rows } = await pool.query(
     `SELECT ps.id, ps.user_id, ps.project_id, ps.starts_at, ps.duration_minutes,
-            ps.price, ps.paid, ps.status, ps.notes, ps.created_at, ps.updated_at,
+            ps.price, ps.paid, ps.paid_at, ps.status, ps.notes, ps.created_at, ps.updated_at,
             COALESCE(
               json_agg(
                 json_build_object(
@@ -84,8 +109,8 @@ async function findByIdForUser(id, userId) {
 async function create(data) {
   const { rows } = await pool.query(
     `INSERT INTO project_sessions
-       (user_id, project_id, starts_at, duration_minutes, price, paid, status, notes)
-     SELECT $1, p.id, $3, $4, $5, $6, $7, $8
+       (user_id, project_id, starts_at, duration_minutes, price, paid, paid_at, status, notes)
+     SELECT $1, p.id, $3, $4, $5, $6::boolean, CASE WHEN $6::boolean THEN now() END, $7, $8
        FROM projects p
       WHERE p.id = $2 AND p.user_id = $1
      RETURNING ${COLUMNS}`,
@@ -108,7 +133,6 @@ const EDITABLE = {
   startsAt: 'starts_at',
   durationMinutes: 'duration_minutes',
   price: 'price',
-  paid: 'paid',
   status: 'status',
   notes: 'notes',
 };
@@ -121,6 +145,14 @@ async function update(id, userId, fields) {
     if (fields[key] === undefined) continue;
     params.push(fields[key]);
     sets.push(`${column} = $${params.length}`);
+  }
+
+  // Pagar o despagar también sella o borra la fecha de pago. Si ya estaba pagada y se
+  // vuelve a marcar, se conserva la fecha original.
+  if (fields.paid !== undefined) {
+    params.push(fields.paid);
+    sets.push(`paid = $${params.length}::boolean`);
+    sets.push(`paid_at = CASE WHEN $${params.length}::boolean THEN COALESCE(paid_at, now()) END`);
   }
 
   if (sets.length === 0) return findByIdForUser(id, userId);
@@ -147,6 +179,7 @@ async function remove(id, userId) {
 
 module.exports = {
   listByUser,
+  incomeByUser,
   listByProject,
   findByIdForUser,
   findWithClient,

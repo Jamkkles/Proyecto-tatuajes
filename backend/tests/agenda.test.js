@@ -241,6 +241,58 @@ describe('Proyectos', () => {
 });
 
 describe('Sesiones', () => {
+  describe('ingresos del mes: GET /api/sessions/income', () => {
+    const RANGE = 'from=2026-10-01T03:00:00.000Z&to=2026-11-01T03:00:00.000Z';
+
+    test('exige sesión', (done) => {
+      request(app).get(`/api/sessions/income?${RANGE}`).expect(401).end(done);
+    });
+
+    test('sin rango, o con uno al revés, es un 400', async () => {
+      await request(app).get('/api/sessions/income').set('Authorization', auth).expect(400);
+      await request(app)
+        .get('/api/sessions/income?from=2026-11-01T00:00:00Z&to=2026-10-01T00:00:00Z')
+        .set('Authorization', auth)
+        .expect(400);
+      expect(sessionModel.incomeByUser).not.toHaveBeenCalled();
+    });
+
+    test('un rango de varios años se rechaza', async () => {
+      await request(app)
+        .get('/api/sessions/income?from=2020-01-01T00:00:00Z&to=2026-01-01T00:00:00Z')
+        .set('Authorization', auth)
+        .expect(400);
+    });
+
+    test('devuelve lo cobrado y lo pendiente del artista del token', async () => {
+      sessionModel.incomeByUser.mockResolvedValue({ collected: 350000, pending: 160000 });
+
+      const res = await request(app).get(`/api/sessions/income?${RANGE}`).set('Authorization', auth).expect(200);
+
+      expect(res.body).toEqual({ collected: 350000, pending: 160000 });
+      expect(sessionModel.incomeByUser).toHaveBeenCalledWith(USER_ID, {
+        from: '2026-10-01T03:00:00.000Z',
+        to: '2026-11-01T03:00:00.000Z',
+      });
+    });
+
+    test('no se confunde con una sesión de id «income»', async () => {
+      sessionModel.incomeByUser.mockResolvedValue({ collected: 0, pending: 0 });
+      await request(app).get(`/api/sessions/income?${RANGE}`).set('Authorization', auth).expect(200);
+      expect(sessionModel.findByIdForUser).not.toHaveBeenCalled();
+    });
+
+    test('si falla la base responde 500 sin filtrar el error', async () => {
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+      sessionModel.incomeByUser.mockRejectedValue(new Error('password authentication failed'));
+
+      const res = await request(app).get(`/api/sessions/income?${RANGE}`).set('Authorization', auth).expect(500);
+
+      expect(JSON.stringify(res.body)).not.toContain('password');
+      console.error.mockRestore();
+    });
+  });
+
   test('listar sin rango de fechas devuelve 400', (done) => {
     request(app).get('/api/sessions').set('Authorization', auth).expect(400).end(done);
   });

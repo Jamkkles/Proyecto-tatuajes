@@ -491,3 +491,11 @@ ALTER TABLE message_log DROP CONSTRAINT IF EXISTS message_log_channel_check;
 ALTER TABLE message_log
   ADD CONSTRAINT message_log_channel_check
   CHECK (channel IN ('whatsapp', 'whatsapp_web', 'manual'));
+
+-- Cuándo se marcó pagada la sesión (el «cobrado del mes» del Resumen cuenta por esta
+-- fecha, no por la de la cita). La sella el servidor al pasar `paid` a true y la borra al
+-- volver a false. Las sesiones que ya estaban pagadas no la tenían: se aproxima con lo más
+-- temprano entre la cita y la última edición (no pudo pagarse después de editarla por
+-- última vez). Solo toca filas sin fecha, así que repetir db:init no pisa nada.
+ALTER TABLE project_sessions ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ;
+UPDATE project_sessions SET paid_at = LEAST(starts_at, updated_at) WHERE paid AND paid_at IS NULL;

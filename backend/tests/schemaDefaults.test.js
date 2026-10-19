@@ -37,3 +37,12 @@ describe('valores por defecto de notification_settings', () => {
     expect(DEFAULT_SETTINGS.aftercareNote).not.toMatch(/\s{2,}|\n/);
   });
 });
+
+describe('fecha de pago de las sesiones', () => {
+  test('el esquema crea paid_at y rellena solo las filas que no la tienen', () => {
+    expect(schema).toMatch(/ALTER TABLE project_sessions ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ;/);
+    // Sin el «paid_at IS NULL» cada db:init pisaría las fechas reales.
+    expect(schema).toMatch(/UPDATE project_sessions SET paid_at = [^;]*WHERE paid AND paid_at IS NULL;/);
+  });
+});
+
