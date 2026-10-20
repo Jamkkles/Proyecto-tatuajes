@@ -1,6 +1,8 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const userModel = require('../models/userModel');
+const studioModel = require('../models/studioModel');
+const accountStatus = require('../services/accountStatus');
 const passwordResetModel = require('../models/passwordResetModel');
 const emailService = require('../services/emailService');
 
@@ -19,7 +21,7 @@ function signToken(user) {
 }
 
 function publicUser(user) {
-  return { id: user.id, name: user.name, email: user.email };
+  return { id: user.id, name: user.name, email: user.email, role: user.role ?? 'tatuador' };
 }
 
 // POST /api/auth/login  (HU02)
@@ -41,6 +43,11 @@ async function login(req, res) {
     if (!ok) {
       return res.status(401).json({ message: 'Correo o contraseña incorrectos.' });
     }
+
+    // Recién con la contraseña correcta se dice si la cuenta está desactivada: así nadie
+    // averigua el estado de una cuenta ajena probando correos (HU32, HU34).
+    const status = accountStatus.decide(user);
+    if (!status.ok) return res.status(403).json({ message: status.message, code: status.reason });
 
     return res.json({ token: signToken(user), user: publicUser(user) });
   } catch (err) {
@@ -72,11 +79,20 @@ async function register(req, res) {
       return res.status(409).json({ message: 'Ya existe una cuenta con ese correo.' });
     }
 
+    // Quien se registra solo queda como su propio estudio, con plan básico: el
+    // administrador lo ve en su listado como cualquier otro.
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await userModel.create({ name, email, passwordHash });
+    const { user } = await studioModel.createWithOwner({
+      studio: { name, email, plan: 'basico' },
+      owner: { name, email, passwordHash },
+    });
 
     return res.status(201).json({ token: signToken(user), user: publicUser(user) });
   } catch (err) {
+    // Dos registros simultáneos con el mismo correo: el segundo choca con el UNIQUE.
+    if (err.code === '23505') {
+      return res.status(409).json({ message: 'Ya existe una cuenta con ese correo.' });
+    }
     console.error('Error en register:', err);
     return res.status(500).json({ message: 'Error interno. Inténtalo de nuevo.' });
   }

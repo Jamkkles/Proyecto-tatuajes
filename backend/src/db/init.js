@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const pool = require('../config/db');
+const studioModel = require('../models/studioModel');
 
 // Credenciales del usuario de prueba: se leen del entorno (.env) para no
 // exponer datos personales en el código fuente.
@@ -56,6 +57,11 @@ async function main() {
   } else {
     console.log('• El usuario de prueba ya existía, sin cambios');
   }
+
+  // Cada tatuador tiene su estudio: las cuentas de antes de los estudios (y el usuario de
+  // prueba recién creado) reciben uno propio con su nombre.
+  const studios = await studioModel.ensureOwnStudios();
+  if (studios > 0) console.log(`✓ ${studios} ${studios === 1 ? 'estudio creado' : 'estudios creados'} para cuentas sin estudio`);
 }
 
 main()

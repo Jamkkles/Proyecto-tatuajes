@@ -506,3 +506,33 @@ UPDATE project_sessions SET paid_at = LEAST(starts_at, updated_at) WHERE paid AN
 ALTER TABLE project_sessions ADD COLUMN IF NOT EXISTS rating SMALLINT CHECK (rating BETWEEN 1 AND 5);
 -- Primera versión de HU30: un puntaje fijo por cliente. Se retiró (nunca se usó en producción).
 ALTER TABLE clients DROP COLUMN IF EXISTS rating;
+
+-- ============ Estudios y administración (HU31–HU36, HU38) ============
+-- Un estudio agrupa las cuentas de sus tatuadores para el administrador de la plataforma:
+-- lo crea, le cambia el plan, lo activa o desactiva y le agrega o quita tatuadores. **Los
+-- datos siguen siendo de cada tatuador** (todo filtra por users.id): el estudio no comparte
+-- clientes, agenda ni inventario entre sus tatuadores.
+-- `plan` es solo una etiqueta comercial: no limita nada en la aplicación.
+CREATE TABLE IF NOT EXISTS studios (
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name           TEXT NOT NULL,
+  email          TEXT NOT NULL,
+  plan           TEXT NOT NULL DEFAULT 'basico'
+                   CHECK (plan IN ('basico', 'profesional', 'estudio')),
+  active         BOOLEAN NOT NULL DEFAULT true,
+  deactivated_at TIMESTAMPTZ,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- role: 'tatuador' (el de siempre) o 'admin' (administra la plataforma; se crea con
+-- `npm run admin:create`, nunca desde la API). active=false bloquea la cuenta: no entra
+-- y sus sesiones abiertas dejan de valer. Cada tatuador pertenece a un estudio; un admin
+-- puede no tener ninguno. `db:init` le crea su propio estudio a cada tatuador que no tenga.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'tatuador';
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
+ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('tatuador', 'admin'));
+ALTER TABLE users ADD COLUMN IF NOT EXISTS active BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS studio_id UUID REFERENCES studios(id) ON DELETE RESTRICT;
+CREATE INDEX IF NOT EXISTS users_studio_idx ON users (studio_id);
+
