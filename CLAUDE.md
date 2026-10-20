@@ -324,6 +324,19 @@ tatuador que no tenga (`ensureOwnStudios`, idempotente). El `plan` es solo una e
   - `PATCH /users/:id` (`active`) — HU34. No se puede desactivar a uno mismo ni al último admin activo.
     **No hay borrado de cuentas**: desactivar conserva los datos y es reversible
   - `POST /users/:id/reset-password` → `{ temporaryPassword }` y anula los enlaces de recuperación — HU38
+- **Dueño del estudio y «Mi estudio».** `studios.owner_id` (por defecto el primer tatuador; el admin lo cambia
+  con `PATCH /studios/:id { ownerId }`, que tiene que ser del mismo estudio). **Solo el dueño** ve
+  `GET /api/studio/summary?from=&to=` (máx. 62 días; 403 a cualquier otro): por tatuador, `collected`
+  (por `paid_at`, sin canceladas), `pending`, `sessions_done` y `appointments` del rango, y los totales.
+  Solo montos y conteos: nada de clientes ni notas, y nada editable. Fue decisión del usuario que el detalle
+  lo vea solo el dueño. `GET /api/studio` → `{ studio, isOwner }`; el menú muestra «Mi estudio»
+  (`pages/MiEstudio.tsx`) solo al dueño de un estudio con más de un tatuador
+- **Cambiar contraseña.** `POST /api/auth/change-password` (con sesión) pide la actual; si no coincide da 400,
+  no 401, para que el frontend no cierre la sesión. `users.must_change_password` queda en true cuando la
+  contraseña la puso el admin (al crear la cuenta o restablecerla) y en false con cualquier otra; el login lo
+  devuelve como `user.mustChangePassword` y `ProtectedRoute` manda a `/cambiar-contrasena` hasta que se cambie.
+  Es un empujón del frontend, no un candado del servidor. El formulario (`components/ChangePasswordForm.tsx`)
+  también está en Configuración
 - **Contraseña temporal** (`utils/tempPassword.js`, «k7mq-x3vt-9pah», sin caracteres ambiguos): se devuelve
   una sola vez en la respuesta y solo se guarda su hash. El admin se la entrega al tatuador. Restablecerla no
   invalida los tokens ya emitidos (para cortar a alguien ya, se desactiva la cuenta)
