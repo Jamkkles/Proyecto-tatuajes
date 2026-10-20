@@ -38,7 +38,8 @@ export default function Login() {
       const { token, user } = await login({ email: email.trim(), password })
       saveToken(token)
       saveUser(user)
-      navigate('/dashboard')
+      // El administrador entra directo a su panel; el tatuador, a su Resumen.
+      navigate(user.role === 'admin' ? '/admin' : '/dashboard')
     } catch (err) {
       setStatus('idle')
       if (err instanceof ApiError) {

@@ -11,7 +11,12 @@ export interface AuthUser {
   id: string
   name: string
   email: string
+  /** `admin` administra la plataforma (HU31–HU38). Las sesiones viejas no lo traen. */
+  role?: 'tatuador' | 'admin'
 }
+
+/** ¿La sesión es del administrador? Solo para mostrar u ocultar; el servidor decide. */
+export const isAdmin = (user: AuthUser | null) => user?.role === 'admin'
 
 export function saveToken(token: string): void {
   localStorage.setItem(TOKEN_KEY, token)

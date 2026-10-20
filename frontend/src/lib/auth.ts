@@ -11,6 +11,7 @@ export {
   getUser,
   logout,
   isAuthenticated,
+  isAdmin,
 } from './token'
 export type { AuthUser } from './token'
 

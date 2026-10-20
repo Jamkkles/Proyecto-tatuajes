@@ -1,6 +1,6 @@
 import { Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import ProtectedRoute from './components/ProtectedRoute'
+import ProtectedRoute, { AdminRoute } from './components/ProtectedRoute'
 import ServerWakeNotice from './components/ServerWakeNotice'
 import { ThemeProvider } from './lib/theme'
 
@@ -19,6 +19,7 @@ const Proyecto = lazy(() => import('./pages/Proyecto'))
 const Inventario = lazy(() => import('./pages/Inventario'))
 const Cotizaciones = lazy(() => import('./pages/Cotizaciones'))
 const Configuracion = lazy(() => import('./pages/Configuracion'))
+const Admin = lazy(() => import('./pages/Admin'))
 
 function App() {
   return (
@@ -50,6 +51,14 @@ function App() {
               <Route path="/inventario" element={<Inventario />} />
               <Route path="/cotizaciones" element={<Cotizaciones />} />
               <Route path="/configuracion" element={<Configuracion />} />
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <Admin />
+                  </AdminRoute>
+                }
+              />
             </Route>
           </Routes>
         </Suspense>

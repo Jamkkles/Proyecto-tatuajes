@@ -1,0 +1,183 @@
+/* Panel del administrador (/admin). Usa las piezas de Studio.css (st-*) y agrega
+   las propias del listado de estudios. */
+.adm {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.adm-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+/* El listado es lo principal: se lleva el ancho, y el alta queda a un lado. */
+@media (min-width: 1100px) {
+  .adm-cols { grid-template-columns: minmax(0, 1fr) 340px; }
+}
+
+.adm-totals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+.adm-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(14, 16, 19, 0.6);
+}
+.adm-tile__value {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--steel-hi);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.adm-tile__label {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+/* La contraseña temporal: bien visible, se copia y se cierra. */
+.adm-secret {
+  padding: 16px 18px;
+  border: 1px solid rgba(201, 162, 74, 0.5);
+  border-left-width: 4px;
+  border-radius: 12px;
+  background: rgba(201, 162, 74, 0.1);
+  color: var(--fog);
+  font-size: 14px;
+}
+.adm-secret p { margin: 0 0 8px; }
+.adm-secret strong { color: var(--steel-hi); }
+.adm-secret__code {
+  display: inline-block;
+  margin: 2px 0 10px;
+  padding: 8px 14px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 20px;
+  letter-spacing: 0.08em;
+  color: var(--steel-hi);
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 8px;
+  user-select: all;
+}
+.adm-secret__hint { font-size: 12.5px; color: var(--ash); }
+
+.adm-studios {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.adm-studio {
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+.adm-studio.is-off { opacity: 0.72; border-style: dashed; }
+.adm-studio__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.adm-studio__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 19px;
+  color: var(--steel-hi);
+}
+.adm-studio__meta,
+.adm-studio__stats {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--ash);
+  overflow-wrap: anywhere;
+}
+.adm-studio__stats { margin-top: 8px; color: var(--fog); }
+
+.adm-studio__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 6px;
+}
+.adm-plan {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ash);
+}
+
+.adm-ok { color: #cfe9d9; border-color: rgba(84, 196, 138, 0.4); background: rgba(84, 196, 138, 0.12); }
+.adm-off { color: #f2c9c9; border-color: rgba(217, 130, 130, 0.45); background: rgba(217, 130, 130, 0.12); }
+.adm-role { margin-left: 6px; }
+
+.adm-people {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+.adm-person {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.adm-person.is-off .adm-person__name { color: var(--ash); }
+.adm-person__main { display: flex; flex-direction: column; min-width: 0; }
+.adm-person__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--steel);
+}
+.adm-person__mail { font-size: 12px; color: var(--ash); overflow-wrap: anywhere; }
+.adm-person__actions { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.adm-add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.adm-add .st-input { flex: 1 1 160px; }
+.adm-link {
+  margin-top: 10px;
+  padding: 0;
+  font: inherit;
+  font-size: 13px;
+  color: var(--steel);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.adm-link:hover { color: var(--steel-hi); text-decoration: underline; text-underline-offset: 3px; }
+
+[data-theme='light'] .adm-tile { background: rgba(255, 255, 255, 0.6); }
+[data-theme='light'] .adm-tile__value,
+[data-theme='light'] .adm-studio__name,
+[data-theme='light'] .adm-secret strong,
+[data-theme='light'] .adm-secret__code { color: #1b1d21; }
+[data-theme='light'] .adm-secret__code { background: rgba(0, 0, 0, 0.06); }
+[data-theme='light'] .adm-ok { color: #2f6b4b; }
+[data-theme='light'] .adm-off { color: #9b2f2f; }

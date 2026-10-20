@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { getUser, logout } from '../lib/auth'
+import { getUser, isAdmin, logout } from '../lib/auth'
 import { syncPushSubscription } from '../lib/push'
 import { useHideOnScroll } from '../lib/useHideOnScroll'
 import type { AppHeader } from '../lib/useAppShellHeader'
@@ -63,6 +63,12 @@ const icons: Record<string, ReactNode> = {
       <path d="M19.4 13a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-1.8-.3 1.6 1.6 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.6 1.6 0 00-1-1.5 1.6 1.6 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00.3-1.8 1.6 1.6 0 00-1.5-1H3a2 2 0 110-4h.1a1.6 1.6 0 001.5-1 1.6 1.6 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 001.8.3H11a1.6 1.6 0 001-1.5V3a2 2 0 114 0v.1a1.6 1.6 0 001 1.5 1.6 1.6 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 00-.3 1.8V11a1.6 1.6 0 001.5 1H21a2 2 0 110 4h-.1a1.6 1.6 0 00-1.5 1z" />
     </svg>
   ),
+  admin: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z" strokeLinejoin="round" />
+      <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
   logout: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
       <path d="M15 4h3a2 2 0 012 2v12a2 2 0 01-2 2h-3M10 17l5-5-5-5M15 12H3" />
@@ -77,7 +83,12 @@ const icons: Record<string, ReactNode> = {
 
 // `to` apunta a la ruta del módulo; los que aún no existen quedan sin ella.
 // `match`: prefijos de ruta que también marcan el ítem como activo (fichas).
-const NAV: { key: string; label: string; to?: string; match?: string[] }[] = [
+type NavItem = { key: string; label: string; to?: string; match?: string[] }
+
+// Solo lo ve el administrador de la plataforma.
+const ADMIN_NAV: NavItem = { key: 'admin', label: 'Administración', to: '/admin' }
+
+const NAV: NavItem[] = [
   { key: 'resumen', label: 'Resumen', to: '/dashboard' },
   { key: 'bocetos', label: 'Bocetos', to: '/bocetos' },
   { key: 'citas', label: 'Citas', to: '/citas' },
@@ -138,7 +149,7 @@ export default function AppShell() {
         </div>
 
         <nav className="dash__nav" aria-label="Secciones del estudio">
-          {NAV.map((item) => {
+          {(isAdmin(user) ? [...NAV, ADMIN_NAV] : NAV).map((item) => {
             const { pathname } = location
             const active = item.match
               ? item.match.some((p) => pathname === p || pathname.startsWith(`${p}/`))
