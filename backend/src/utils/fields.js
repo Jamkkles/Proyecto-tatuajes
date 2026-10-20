@@ -45,6 +45,19 @@ function optionalText(raw, label, max) {
   return text || null;
 }
 
+/**
+ * Puntaje de 1 a 5. `undefined` = no se toca; `null` (o vacío) = quitarlo. Solo enteros:
+ * «3.5» o «bueno» se rechazan en vez de redondearse en silencio.
+ */
+function rating(raw, message = 'El puntaje debe ser un número entero entre 1 y 5.') {
+  if (raw === undefined) return undefined;
+  if (raw === null || raw === '') return null;
+  // `true` valdría 1 con Number(): solo se aceptan números o texto numérico.
+  const n = typeof raw === 'number' || typeof raw === 'string' ? Number(raw) : NaN;
+  if (!Number.isInteger(n) || n < 1 || n > 5) throw new FieldError(message);
+  return n;
+}
+
 /** Monto en pesos: entero, sin decimales, entre 0 y MAX_AMOUNT. */
 function money(raw, label) {
   if (raw === undefined) return undefined;
@@ -124,6 +137,7 @@ module.exports = {
   requiredText,
   optionalText,
   money,
+  rating,
   decimal,
   integerBetween,
   oneOf,

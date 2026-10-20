@@ -16,26 +16,34 @@ export type RatingFilter = 'todos' | 'alto' | 'medio' | 'bajo' | 'sin'
 
 export const RATING_FILTERS: { value: RatingFilter; label: string }[] = [
   { value: 'todos', label: 'Todos' },
-  { value: 'alto', label: 'Confiables (4–5)' },
-  { value: 'medio', label: 'Regulares (3)' },
-  { value: 'bajo', label: 'Poco confiables (1–2)' },
-  { value: 'sin', label: 'Sin puntaje' },
+  { value: 'alto', label: 'Confiables (4 o más)' },
+  { value: 'medio', label: 'Regulares (3 a 4)' },
+  { value: 'bajo', label: 'Poco confiables (menos de 3)' },
+  { value: 'sin', label: 'Sin calificar' },
 ]
 
-export function matchesRating(rating: number | null, filter: RatingFilter): boolean {
+/** ¿Este promedio cae en el filtro? `avg` es null si ninguna de sus sesiones está calificada. */
+export function matchesRating(avg: number | null, filter: RatingFilter): boolean {
   switch (filter) {
     case 'todos':
       return true
     case 'sin':
-      return rating === null
+      return avg === null
     case 'alto':
-      return rating !== null && rating >= 4
+      return avg !== null && avg >= 4
     case 'medio':
-      return rating === 3
+      return avg !== null && avg >= 3 && avg < 4
     case 'bajo':
-      return rating !== null && rating <= 2
+      return avg !== null && avg < 3
   }
 }
+
+const avgFmt = new Intl.NumberFormat('es-CL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+/** 4.3 → «4,3»; siempre con un decimal. */
+export const formatAverage = (avg: number) => avgFmt.format(avg)
+
+/** Las estrellas enteras que se pintan para un promedio: 4,3 → 4 y 4,5 → 5. */
+export const starsFor = (avg: number | null) => (avg === null ? null : Math.min(5, Math.max(1, Math.round(avg))))
 
 type Attendance = Pick<Client, 'sessions_done' | 'no_shows' | 'cancellations'>
 

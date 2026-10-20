@@ -729,6 +729,23 @@ textarea.st-input {
   font-variant-numeric: tabular-nums;
 }
 
+/* Calificación de cada sesión, en la ficha del proyecto. */
+.st-session__rate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-top: 10px;
+}
+.st-session__rate-label {
+  font-size: 12px;
+  color: var(--ash);
+}
+.st-session__rate .stars__btn {
+  font-size: 22px;
+  padding: 2px;
+}
+
 /* Puntaje en la ficha del cliente. */
 .st-rating {
   display: flex;
@@ -737,7 +754,16 @@ textarea.st-input {
   gap: 10px 14px;
   margin: 4px 0 10px;
 }
+.st-rating__avg {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--steel-hi);
+  font-variant-numeric: lining-nums tabular-nums;
+}
 .st-rating__text {
+  margin: 0;
   font-size: 14px;
   color: var(--steel);
 }

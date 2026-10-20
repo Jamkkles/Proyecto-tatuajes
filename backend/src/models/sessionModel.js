@@ -3,7 +3,7 @@ const { ConflictError } = require('../utils/fields');
 const { dateLabel, timeLabel } = require('../utils/chileTime');
 
 const COLUMNS = `
-  id, user_id, project_id, starts_at, duration_minutes, price, paid, paid_at, status,
+  id, user_id, project_id, starts_at, duration_minutes, price, paid, paid_at, rating, status,
   notes, created_at, updated_at
 `;
 
@@ -14,7 +14,7 @@ const COLUMNS = `
 async function listByUser(userId, { from, to }) {
   const { rows } = await pool.query(
     `SELECT ps.id, ps.user_id, ps.project_id, ps.starts_at, ps.duration_minutes,
-            ps.price, ps.paid, ps.paid_at, ps.status, ps.notes, ps.created_at, ps.updated_at,
+            ps.price, ps.paid, ps.paid_at, ps.rating, ps.status, ps.notes, ps.created_at, ps.updated_at,
             p.title AS project_title, p.body_zone,
             c.id AS client_id, c.name AS client_name, c.phone AS client_phone,
             (SELECT m.status FROM message_log m
@@ -59,7 +59,7 @@ async function incomeByUser(userId, { from, to }) {
 async function listByProject(projectId, userId) {
   const { rows } = await pool.query(
     `SELECT ps.id, ps.user_id, ps.project_id, ps.starts_at, ps.duration_minutes,
-            ps.price, ps.paid, ps.paid_at, ps.status, ps.notes, ps.created_at, ps.updated_at,
+            ps.price, ps.paid, ps.paid_at, ps.rating, ps.status, ps.notes, ps.created_at, ps.updated_at,
             COALESCE(
               json_agg(
                 json_build_object(
@@ -201,6 +201,7 @@ const EDITABLE = {
   startsAt: 'starts_at',
   durationMinutes: 'duration_minutes',
   price: 'price',
+  rating: 'rating',
   status: 'status',
   notes: 'notes',
 };

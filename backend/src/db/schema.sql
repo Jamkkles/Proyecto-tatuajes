@@ -500,6 +500,9 @@ ALTER TABLE message_log
 ALTER TABLE project_sessions ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ;
 UPDATE project_sessions SET paid_at = LEAST(starts_at, updated_at) WHERE paid AND paid_at IS NULL;
 
--- Puntaje de 1 a 5 que el artista le da a un cliente según su responsabilidad de llegada
--- (HU30). NULL = sin puntaje. Es una decisión del artista: no se calcula solo.
-ALTER TABLE clients ADD COLUMN IF NOT EXISTS rating SMALLINT CHECK (rating BETWEEN 1 AND 5);
+-- Puntaje de 1 a 5 de cada sesión por la responsabilidad de llegada del cliente (HU30). Lo pone
+-- el artista sesión a sesión; NULL = sin calificar. El puntaje del cliente es el promedio de sus
+-- sesiones calificadas y se calcula al consultar (no se guarda), así nunca queda desactualizado.
+ALTER TABLE project_sessions ADD COLUMN IF NOT EXISTS rating SMALLINT CHECK (rating BETWEEN 1 AND 5);
+-- Primera versión de HU30: un puntaje fijo por cliente. Se retiró (nunca se usó en producción).
+ALTER TABLE clients DROP COLUMN IF EXISTS rating;

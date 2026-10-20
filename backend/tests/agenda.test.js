@@ -53,45 +53,6 @@ beforeEach(() => {
 });
 
 describe('Clientes', () => {
-  describe('puntaje de responsabilidad de llegada (HU30)', () => {
-    const patch = (body) =>
-      request(app).patch(`/api/clients/${CLIENT_ID}`).set('Authorization', auth).send(body);
-
-    test('guarda un puntaje de 1 a 5 (también escrito como texto)', async () => {
-      clientModel.update.mockResolvedValue({ id: CLIENT_ID, rating: 4 });
-
-      await patch({ rating: 4 }).expect(200);
-      await patch({ rating: '5' }).expect(200);
-
-      expect(clientModel.update.mock.calls[0][2]).toMatchObject({ rating: 4 });
-      expect(clientModel.update.mock.calls[1][2]).toMatchObject({ rating: 5 });
-    });
-
-    test('null quita el puntaje', async () => {
-      clientModel.update.mockResolvedValue({ id: CLIENT_ID, rating: null });
-      await patch({ rating: null }).expect(200);
-      expect(clientModel.update.mock.calls[0][2].rating).toBeNull();
-    });
-
-    test('cambiar otro dato no toca el puntaje (llega sin definir, no como null)', async () => {
-      clientModel.update.mockResolvedValue({ id: CLIENT_ID });
-      await patch({ name: 'Ana' }).expect(200);
-      expect(clientModel.update.mock.calls[0][2].rating).toBeUndefined();
-    });
-
-    test.each([[0], [6], [3.5], [-1], ['abc'], [true], [[]]])('el puntaje %p se rechaza', async (rating) => {
-      const res = await patch({ rating }).expect(400);
-      expect(res.body.message).toMatch(/entre 1 y 5/);
-      expect(clientModel.update).not.toHaveBeenCalled();
-    });
-
-    test('se puede dar al crear el cliente', async () => {
-      clientModel.create.mockResolvedValue({ id: CLIENT_ID, rating: 2 });
-      await request(app).post('/api/clients').set('Authorization', auth).send({ name: 'Luis', rating: 2 }).expect(201);
-      expect(clientModel.create).toHaveBeenCalledWith(expect.objectContaining({ rating: 2 }));
-    });
-  });
-
   test('sin token devuelve 401', (done) => {
     request(app).get('/api/clients').expect(401).end(done);
   });
@@ -281,6 +242,49 @@ describe('Proyectos', () => {
 });
 
 describe('Sesiones', () => {
+  describe('calificación de la sesión (HU30)', () => {
+    const patch = (body) =>
+      request(app).patch(`/api/sessions/${SESSION_ID}`).set('Authorization', auth).send(body);
+
+    beforeEach(() => {
+      sessionModel.findByIdForUser.mockResolvedValue(session);
+      sessionModel.update.mockResolvedValue({ ...session, rating: 4 });
+    });
+
+    test('guarda una calificación de 1 a 5 (también escrita como texto)', async () => {
+      await patch({ rating: 4 }).expect(200);
+      await patch({ rating: '5' }).expect(200);
+      expect(sessionModel.update.mock.calls[0][2]).toMatchObject({ rating: 4 });
+      expect(sessionModel.update.mock.calls[1][2]).toMatchObject({ rating: 5 });
+    });
+
+    test('null quita la calificación', async () => {
+      await patch({ rating: null }).expect(200);
+      expect(sessionModel.update.mock.calls[0][2].rating).toBeNull();
+    });
+
+    test('cambiar otro dato no toca la calificación (llega sin definir, no como null)', async () => {
+      await patch({ price: 5000 }).expect(200);
+      expect(sessionModel.update.mock.calls[0][2].rating).toBeUndefined();
+    });
+
+    test.each([[0], [6], [3.5], [-1], ['abc'], [true], [[]]])('la calificación %p se rechaza', async (rating) => {
+      const res = await patch({ rating }).expect(400);
+      expect(res.body.message).toMatch(/entre 1 y 5/);
+      expect(sessionModel.update).not.toHaveBeenCalled();
+    });
+
+    test('calificar no le manda ningún aviso al cliente por WhatsApp', async () => {
+      sessionMessages.afterUpdate.mockResolvedValue(null);
+      await patch({ rating: 5 }).expect(200);
+      // Solo se avisa de cancelaciones, cambios de hora y cuidados: eso lo decide
+      // afterUpdate comparando antes y después, y calificar no cambia nada de eso.
+      expect(sessionMessages.afterUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ before: session })
+      );
+    });
+  });
+
   describe('ingresos del mes: GET /api/sessions/income', () => {
     const RANGE = 'from=2026-10-01T03:00:00.000Z&to=2026-11-01T03:00:00.000Z';
 

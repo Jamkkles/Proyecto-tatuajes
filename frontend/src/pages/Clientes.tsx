@@ -5,11 +5,21 @@ import RatingStars from '../components/RatingStars'
 import { apiErrorMessage } from '../lib/api'
 import { createClient, formatDate, listClients, type Client } from '../lib/agenda'
 import { EMPTY_CLIENT_FORM, formToClientInput } from '../lib/agendaForms'
-import { RATING_FILTERS, attendanceText, matchesRating, type RatingFilter } from '../lib/ratings'
+import {
+  RATING_FILTERS,
+  attendanceText,
+  formatAverage,
+  matchesRating,
+  starsFor,
+  type RatingFilter,
+} from '../lib/ratings'
 import { useAppShellHeader } from '../lib/useAppShellHeader'
 import './Studio.css'
 
-/** Cartera de clientes: alta con sus datos de contacto, buscador y filtro por puntaje (HU30). */
+/**
+ * Cartera de clientes: alta con sus datos de contacto, buscador y filtro por puntaje (HU30). El
+ * servidor ya los entrega del mejor promedio al peor, y los sin calificar al final.
+ */
 export default function Clientes() {
   const navigate = useNavigate()
 
@@ -25,9 +35,9 @@ export default function Clientes() {
 
   // El filtro por puntaje se aplica aquí: la lista de un artista es corta y así cambiar de
   // filtro es instantáneo. El buscador sí consulta al servidor.
-  const visible = useMemo(() => clients.filter((c) => matchesRating(c.rating, ratingFilter)), [clients, ratingFilter])
+  const visible = useMemo(() => clients.filter((c) => matchesRating(c.rating_avg, ratingFilter)), [clients, ratingFilter])
   const filterCounts = useMemo(
-    () => Object.fromEntries(RATING_FILTERS.map((f) => [f.value, clients.filter((c) => matchesRating(c.rating, f.value)).length])),
+    () => Object.fromEntries(RATING_FILTERS.map((f) => [f.value, clients.filter((c) => matchesRating(c.rating_avg, f.value)).length])),
     [clients],
   )
 
@@ -113,7 +123,7 @@ export default function Clientes() {
             </div>
 
             {clients.length > 0 && (
-              <div className="st-chips" role="group" aria-label="Filtrar por puntaje">
+              <div className="st-chips" role="group" aria-label="Filtrar por puntaje promedio">
                 {RATING_FILTERS.map((f) => (
                   <button
                     key={f.value}
@@ -139,7 +149,7 @@ export default function Clientes() {
                   : 'Todavía no tienes clientes. Crea el primero.'}
               </p>
             ) : visible.length === 0 ? (
-              <p className="st-empty">Ningún cliente tiene ese puntaje.</p>
+              <p className="st-empty">Ningún cliente está en ese grupo.</p>
             ) : (
               <ul className="st-list">
                 {visible.map((c) => (
@@ -155,7 +165,12 @@ export default function Clientes() {
                         {attendanceText(c) && <span className="st-item__meta">{attendanceText(c)}</span>}
                       </span>
                       <span className="st-item__side">
-                        <RatingStars value={c.rating} />
+                        <RatingStars value={starsFor(c.rating_avg)} />
+                        {c.rating_avg !== null && (
+                          <span title={`Promedio de ${c.rating_count} ${c.rating_count === 1 ? 'sesión calificada' : 'sesiones calificadas'}`}>
+                            {formatAverage(c.rating_avg)} · {c.rating_count} calif.
+                          </span>
+                        )}
                         <span className="st-badge">
                           {c.projects_count} {c.projects_count === 1 ? 'proyecto' : 'proyectos'}
                         </span>

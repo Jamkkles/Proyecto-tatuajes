@@ -15,6 +15,7 @@ const {
   money,
   oneOf,
   optionalText,
+  rating,
   sendError,
 } = require('../utils/fields');
 
@@ -37,6 +38,8 @@ function parseSession(body, { partial }) {
     ),
     price: money(body.price, 'El monto de la sesión'),
     paid: boolean(body.paid, 'El estado de pago no es válido.'),
+    // Cómo llegó el cliente a esta sesión, de 1 a 5 (HU30); su promedio es el puntaje del cliente.
+    rating: rating(body.rating),
     status: oneOf(body.status, VALID_STATUS, 'Estado de sesión no válido.'),
     notes: optionalText(body.notes, 'Las notas', 2000),
   };

@@ -1,18 +1,20 @@
 const pool = require('../config/db');
 
-const COLUMNS = 'id, user_id, name, phone, email, instagram, notes, rating, created_at, updated_at';
+const COLUMNS = 'id, user_id, name, phone, email, instagram, notes, created_at, updated_at';
 
 // Resumen para la lista de clientes: cuántos proyectos tiene, cuándo es su próxima cita
 // agendada y cómo ha cumplido (sesiones hechas, «no asistió» y canceladas), que es lo que
 // el artista mira para ponerle puntaje (HU30).
 const SELECT_WITH_SUMMARY = `
-  SELECT c.id, c.user_id, c.name, c.phone, c.email, c.instagram, c.notes, c.rating,
+  SELECT c.id, c.user_id, c.name, c.phone, c.email, c.instagram, c.notes,
          c.created_at, c.updated_at,
          COALESCE(x.projects_count, 0)::int AS projects_count,
          x.next_session_at,
          COALESCE(x.sessions_done, 0)::int AS sessions_done,
          COALESCE(x.no_shows, 0)::int AS no_shows,
-         COALESCE(x.cancellations, 0)::int AS cancellations
+         COALESCE(x.cancellations, 0)::int AS cancellations,
+         x.rating_avg,
+         COALESCE(x.rating_count, 0)::int AS rating_count
     FROM clients c
     LEFT JOIN LATERAL (
       SELECT count(DISTINCT p.id) AS projects_count,
@@ -21,7 +23,10 @@ const SELECT_WITH_SUMMARY = `
              ) AS next_session_at,
              count(ps.id) FILTER (WHERE ps.status = 'completada') AS sessions_done,
              count(ps.id) FILTER (WHERE ps.status = 'no_asistio') AS no_shows,
-             count(ps.id) FILTER (WHERE ps.status = 'cancelada') AS cancellations
+             count(ps.id) FILTER (WHERE ps.status = 'cancelada') AS cancellations,
+             -- Puntaje del cliente: promedio de las sesiones que el artista calificó (HU30).
+             round(avg(ps.rating), 1)::float8 AS rating_avg,
+             count(ps.rating) AS rating_count
         FROM projects p
         LEFT JOIN project_sessions ps ON ps.project_id = p.id
        WHERE p.client_id = c.id
@@ -39,7 +44,9 @@ async function listByUser(userId, { q } = {}) {
     sql += ` AND (c.name ILIKE $2 OR c.phone ILIKE $2 OR c.email ILIKE $2 OR c.instagram ILIKE $2)`;
   }
 
-  sql += ' ORDER BY lower(c.name)';
+  // Primero los de mejor promedio; a igualdad, el que tiene más sesiones calificadas (su
+  // promedio es más firme); los sin calificar al final, por nombre.
+  sql += ' ORDER BY x.rating_avg DESC NULLS LAST, x.rating_count DESC, lower(c.name)';
   const { rows } = await pool.query(sql, params);
   return rows;
 }
@@ -55,8 +62,8 @@ async function findByIdForUser(id, userId) {
 
 async function create(data) {
   const { rows } = await pool.query(
-    `INSERT INTO clients (user_id, name, phone, email, instagram, notes, rating)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `INSERT INTO clients (user_id, name, phone, email, instagram, notes)
+     VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING ${COLUMNS}`,
     [
       data.userId,
@@ -65,7 +72,6 @@ async function create(data) {
       data.email ?? null,
       data.instagram ?? null,
       data.notes ?? null,
-      data.rating ?? null,
     ]
   );
   // Un cliente recién creado no tiene proyectos: se completa el resumen aquí
@@ -77,6 +83,8 @@ async function create(data) {
     sessions_done: 0,
     no_shows: 0,
     cancellations: 0,
+    rating_avg: null,
+    rating_count: 0,
   };
 }
 
@@ -87,7 +95,6 @@ const EDITABLE = {
   email: 'email',
   instagram: 'instagram',
   notes: 'notes',
-  rating: 'rating',
 };
 
 /** Actualiza el contacto. Null si no existe o es de otro artista. */

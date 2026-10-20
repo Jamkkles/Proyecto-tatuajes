@@ -50,14 +50,16 @@ export interface Client {
   email: string | null
   instagram: string | null
   notes: string | null
-  /** Puntaje de 1 a 5 por responsabilidad de llegada (HU30); null = sin puntaje. */
-  rating: number | null
   projects_count: number
   next_session_at: string | null
   /** Cómo ha cumplido: sesiones hechas, «no asistió» y canceladas. */
   sessions_done: number
   no_shows: number
   cancellations: number
+  /** Promedio (con un decimal) de las sesiones que el artista calificó (HU30); null = ninguna. */
+  rating_avg: number | null
+  /** Cuántas sesiones calificadas componen ese promedio. */
+  rating_count: number
   created_at: string
   updated_at: string
 }
@@ -68,8 +70,6 @@ export interface ClientInput {
   email?: string | null
   instagram?: string | null
   notes?: string | null
-  /** 1 a 5, o null para quitarlo. Sin definir, no se toca. */
-  rating?: number | null
 }
 
 export interface Project {
@@ -138,6 +138,8 @@ export interface ProjectSession {
   paid: boolean
   /** Cuándo se marcó pagada (la sella el servidor); null si no está pagada. */
   paid_at: string | null
+  /** Cómo llegó el cliente a esta sesión, de 1 a 5 (HU30); null = sin calificar. */
+  rating: number | null
   status: SessionStatus
   notes: string | null
   created_at: string
@@ -161,6 +163,8 @@ export interface SessionInput {
   durationMinutes?: number
   price?: number
   paid?: boolean
+  /** 1 a 5, o null para quitar la calificación. Sin definir, no se toca. */
+  rating?: number | null
   status?: SessionStatus
   notes?: string | null
 }

@@ -16,7 +16,7 @@ import {
 } from '../lib/agenda'
 import { EMPTY_CLIENT_FORM, clientToForm, formToClientInput } from '../lib/agendaForms'
 import { formatCLP, parseCLP } from '../lib/money'
-import { RATING_TEXT, attendanceText } from '../lib/ratings'
+import { RATING_TEXT, attendanceText, formatAverage, starsFor } from '../lib/ratings'
 import { useAppShellHeader } from '../lib/useAppShellHeader'
 import './Studio.css'
 
@@ -80,23 +80,6 @@ export default function Cliente() {
       setContactError(apiErrorMessage(err, 'No pudimos guardar los datos.'))
     } finally {
       setSavingContact(false)
-    }
-  }
-
-  // El puntaje se guarda al pulsar la estrella, sin pasar por el botón «Guardar» de los datos.
-  const [ratingBusy, setRatingBusy] = useState(false)
-  async function saveRating(rating: number | null) {
-    if (!client) return
-    setRatingBusy(true)
-    try {
-      // Solo se actualiza lo que cambió: los datos de contacto sin guardar no se pisan.
-      const updated = await updateClient(client.id, { rating })
-      setClient((c) => (c ? { ...c, rating: updated.rating } : c))
-      setNotice(rating === null ? 'Puntaje quitado.' : `Puntaje guardado: ${RATING_TEXT[rating]}.`)
-    } catch (err) {
-      setNotice(apiErrorMessage(err, 'No pudimos guardar el puntaje.'))
-    } finally {
-      setRatingBusy(false)
     }
   }
 
@@ -204,20 +187,21 @@ export default function Cliente() {
                 {/* ---------- Responsabilidad de llegada (HU30) ---------- */}
                 <section className="st-panel" aria-labelledby="rt-h">
                   <h2 className="st-h" id="rt-h">Responsabilidad de llegada</h2>
-                  <div className="st-rating">
-                    <RatingStars
-                      value={client.rating}
-                      onChange={saveRating}
-                      disabled={ratingBusy}
-                      label="Puntaje del cliente"
-                    />
-                    <span className="st-rating__text">
-                      {client.rating ? RATING_TEXT[client.rating] : 'Sin puntaje todavía'}
-                    </span>
-                  </div>
+                  {client.rating_avg !== null ? (
+                    <div className="st-rating">
+                      <RatingStars value={starsFor(client.rating_avg)} />
+                      <span className="st-rating__avg">{formatAverage(client.rating_avg)}</span>
+                      <span className="st-rating__text">
+                        {RATING_TEXT[starsFor(client.rating_avg) ?? 3]} · promedio de {client.rating_count}{' '}
+                        {client.rating_count === 1 ? 'sesión calificada' : 'sesiones calificadas'}
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="st-rating__text">Sin calificar todavía.</p>
+                  )}
                   <p className="st-hint">
-                    {attendanceText(client) ?? 'Aún no tiene sesiones en su historial.'} Tú decides el puntaje:
-                    pulsa una estrella, y la misma otra vez para quitarlo.
+                    {attendanceText(client) ?? 'Aún no tiene sesiones en su historial.'} El puntaje es el
+                    promedio de las estrellas que le pones a cada sesión, en la ficha de su proyecto.
                   </p>
                 </section>
 

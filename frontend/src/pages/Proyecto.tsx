@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { MoneyInput, SessionFields } from '../components/AgendaFields'
+import RatingStars from '../components/RatingStars'
 import { viewerIcons } from '../components/icons'
 import { apiErrorMessage } from '../lib/api'
 import {
@@ -36,6 +37,7 @@ import {
   type SessionFormValue,
 } from '../lib/agendaForms'
 import { formatAmountInput, formatCLP, parseCLP } from '../lib/money'
+import { RATING_TEXT } from '../lib/ratings'
 import { listPreviews, type Preview } from '../lib/previews'
 import { formatQuantity, listQuotes, quoteStatusLabel, type Quote } from '../lib/quotes'
 import { ALLOWED_MIME, MAX_FILE_BYTES, formatSize, listSketches, type Sketch } from '../lib/sketches'
@@ -809,6 +811,24 @@ function SessionCard({ session, number, onChange, onRemove, onZoom, onNotice }: 
               <span className="st-session__paid-on">el {formatPaidOn(session.paid_at)}</span>
             )}
           </div>
+          {/* Cómo llegó el cliente a esta sesión (HU30). Su promedio es el puntaje del cliente.
+              Una cita que aún está por venir no se califica: primero se marca como hecha o no asistió. */}
+          {session.status !== 'agendada' && (
+            <div className="st-session__rate">
+              <span className="st-session__rate-label">Cómo llegó</span>
+              <RatingStars
+                value={session.rating}
+                disabled={busy}
+                label={`Calificación de la sesión ${number}`}
+                onChange={(rating) =>
+                  patch(
+                    { rating },
+                    rating === null ? 'Calificación quitada.' : `Sesión calificada: ${RATING_TEXT[rating]}.`,
+                  )
+                }
+              />
+            </div>
+          )}
           {session.notes && <p className="st-session__notes">{session.notes}</p>}
         </>
       )}

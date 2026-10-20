@@ -35,6 +35,8 @@ describe('decideKind: qué mensaje le toca al cliente', () => {
     ['guardar otra vez una sesión ya terminada', session('completada', PAST), session('completada', PAST)],
     ['reactivar una cita cancelada', session('cancelada', FUTURE), session('agendada', FUTURE)],
     ['cancelar una cita ya cancelada', session('cancelada', FUTURE), session('cancelada', FUTURE)],
+    ['calificar una sesión ya terminada (HU30)', session('completada', PAST), session('completada', PAST, { rating: 5 })],
+    ['calificar una cita que no asistió', session('no_asistio', PAST), session('no_asistio', PAST, { rating: 1 })],
   ])('no avisa al %s', (_, before, after) => {
     expect(decideKind(before, after, NOW)).toBeNull();
   });
