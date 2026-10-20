@@ -1,5 +1,56 @@
 const nodemailer = require('nodemailer');
 
+/*
+ * Envío de correos (por ahora, la recuperación de contraseña, HU03). Dos caminos:
+ *
+ * - **API de Brevo** (si hay `BREVO_API_KEY`): va por HTTPS. Es el que sirve en la nube,
+ *   porque el plan gratuito de Render bloquea los puertos de correo (25, 465 y 587) desde
+ *   septiembre de 2025, así que el SMTP de Gmail allá nunca conecta.
+ * - **SMTP** (si hay `SMTP_HOST`, p. ej. Gmail en local) o, sin nada, Ethereal: un buzón de
+ *   pruebas cuyos correos no le llegan a nadie (la URL de vista previa sale en la consola).
+ *
+ * El remitente sale de `EMAIL_FROM` (o `SMTP_FROM`): «Tattoo Estudio <tu@gmail.com>». Con
+ * Brevo, ese correo tiene que estar verificado como remitente en la cuenta de Brevo.
+ */
+
+const BREVO_URL = 'https://api.brevo.com/v3/smtp/email';
+const BREVO_TIMEOUT_MS = 15_000;
+
+/** «"Tattoo Estudio" <hola@x.cl>», «Tattoo Estudio <hola@x.cl>» o «hola@x.cl» → { name, email }. */
+function parseAddress(raw, fallbackName) {
+  const text = String(raw ?? '').trim();
+  const match = /^"?([^"<]*?)"?\s*<([^>]+)>$/.exec(text);
+  if (match) return { name: match[1].trim() || fallbackName, email: match[2].trim() };
+  return { name: fallbackName, email: text };
+}
+
+/** Manda el correo por la API de Brevo. Lanza un Error con lo que respondió Brevo si falla. */
+async function sendWithBrevo({ from, to, subject, html, text }, { apiKey, fetchImpl = fetch } = {}) {
+  const res = await fetchImpl(BREVO_URL, {
+    method: 'POST',
+    headers: { 'api-key': apiKey, 'content-type': 'application/json', accept: 'application/json' },
+    body: JSON.stringify({
+      sender: from,
+      to: [{ email: to }],
+      subject,
+      htmlContent: html,
+      textContent: text,
+    }),
+    signal: AbortSignal.timeout(BREVO_TIMEOUT_MS),
+  });
+  if (!res.ok) {
+    let detail = '';
+    try {
+      const body = await res.json();
+      detail = body.message || body.code || '';
+    } catch {
+      /* sin cuerpo legible */
+    }
+    throw new Error(`Brevo respondió ${res.status}${detail ? `: ${detail}` : ''}`);
+  }
+  return res.json().catch(() => ({}));
+}
+
 let transporter = null;
 
 async function getTransporter() {
@@ -32,13 +83,11 @@ async function getTransporter() {
   return transporter;
 }
 
-async function sendPasswordReset({ to, resetUrl }) {
-  const t = await getTransporter();
-  const appName = process.env.APP_NAME || 'Tattoo Platform';
-  const fromAddress = process.env.SMTP_FROM || `"${appName}" <noreply@tattoo.app>`;
+async function sendPasswordReset({ to, resetUrl }, { env = process.env, fetchImpl } = {}) {
+  const appName = env.APP_NAME || 'Tattoo Estudio';
+  const fromRaw = env.EMAIL_FROM || env.SMTP_FROM || `"${appName}" <noreply@tattoo.app>`;
 
-  const info = await t.sendMail({
-    from: fromAddress,
+  const message = {
     to,
     subject: `Recupera tu contraseña — ${appName}`,
     html: `<!DOCTYPE html>
@@ -112,12 +161,22 @@ async function sendPasswordReset({ to, resetUrl }) {
 </body>
 </html>`,
     text: `Recupera tu contraseña\n\nHaz clic en el siguiente enlace (válido por 1 hora):\n${resetUrl}\n\nSi no solicitaste este cambio, ignora este correo.`,
-  });
+  };
 
+  if (env.BREVO_API_KEY) {
+    await sendWithBrevo(
+      { ...message, from: parseAddress(fromRaw, appName) },
+      { apiKey: env.BREVO_API_KEY, fetchImpl }
+    );
+    return;
+  }
+
+  const t = await getTransporter();
+  const info = await t.sendMail({ ...message, from: fromRaw });
   const previewUrl = nodemailer.getTestMessageUrl(info);
   if (previewUrl) {
     console.log('📧 Vista previa Ethereal:', previewUrl);
   }
 }
 
-module.exports = { sendPasswordReset };
+module.exports = { sendPasswordReset, sendWithBrevo, parseAddress };
