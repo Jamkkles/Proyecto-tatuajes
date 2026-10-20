@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useNavigate } from 'react-router-dom'
 import { getUser } from '../lib/auth'
 import { listSketches } from '../lib/sketches'
+import { listMaterials, type Material } from '../lib/materials'
 import {
   countSessionsByDay,
   formatTime,
@@ -57,6 +58,8 @@ const STATS = [
 // "Próximas citas": las siguientes sesiones agendadas dentro de este plazo.
 const UPCOMING_DAYS = 60
 const UPCOMING_MAX = 5
+// "Stock bajo": cuántos insumos en nivel crítico se listan (el resto, en Inventario).
+const LOW_STOCK_MAX = 5
 
 const shortDayFmt = new Intl.DateTimeFormat('es-CL', {
   weekday: 'short',
@@ -101,6 +104,16 @@ export default function Dashboard() {
   const [monthSessions, setMonthSessions] = useState<CalendarSession[]>([])
   /** Descarta la respuesta de un mes si ya se navegó a otro. */
   const monthReqRef = useRef(0)
+
+  // Insumos en nivel crítico (HU13/HU25): null = cargando.
+  const [lowStock, setLowStock] = useState<Material[] | null>(null)
+  const [lowStockError, setLowStockError] = useState(false)
+
+  useEffect(() => {
+    listMaterials({ low: true })
+      .then(setLowStock)
+      .catch(() => setLowStockError(true))
+  }, [])
 
   // Total de bocetos para la tarjeta de estadísticas.
   useEffect(() => {
@@ -220,53 +233,98 @@ export default function Dashboard() {
           onSelectDay={(iso) => navigate(`/citas?dia=${iso}`)}
         />
 
-        <section className="panelbox split__side" aria-labelledby="appt-h">
-          <div className="panelbox__head">
-            <h3 className="panelbox__title" id="appt-h">Próximas citas</h3>
-            {upcoming && <span className="panelbox__count">{upcoming.length}</span>}
-          </div>
+        <div className="split__aside">
+          <section className="panelbox split__side" aria-labelledby="appt-h">
+            <div className="panelbox__head">
+              <h3 className="panelbox__title" id="appt-h">Próximas citas</h3>
+              {upcoming && <span className="panelbox__count">{upcoming.length}</span>}
+            </div>
 
-          {!upcoming ? (
-            <p className="appt-empty">
-              {upcomingError ? 'No pudimos cargar las citas.' : 'Cargando citas…'}
-            </p>
-          ) : upcoming.length === 0 ? (
-            <p className="appt-empty">No tienes citas agendadas.</p>
-          ) : (
-            <ul className="appt-list">
-              {upcoming.map((a) => {
-                const label = dayLabel(a.starts_at, now)
-                return (
-                  <li key={a.id}>
-                    <button
-                      type="button"
-                      className="appt appt--link"
-                      onClick={() => navigate(`/proyectos/${a.project_id}`)}
-                    >
-                      <span className="appt__time">{formatTime(a.starts_at)}</span>
+            {!upcoming ? (
+              <p className="appt-empty">
+                {upcomingError ? 'No pudimos cargar las citas.' : 'Cargando citas…'}
+              </p>
+            ) : upcoming.length === 0 ? (
+              <p className="appt-empty">No tienes citas agendadas.</p>
+            ) : (
+              <ul className="appt-list">
+                {upcoming.map((a) => {
+                  const label = dayLabel(a.starts_at, now)
+                  return (
+                    <li key={a.id}>
+                      <button
+                        type="button"
+                        className="appt appt--link"
+                        onClick={() => navigate(`/proyectos/${a.project_id}`)}
+                      >
+                        <span className="appt__time">{formatTime(a.starts_at)}</span>
+                        <span className="appt__body">
+                          <span className="appt__client">{a.client_name}</span>
+                          <span className="appt__detail">
+                            {a.project_title}
+                            {a.body_zone ? ` · ${a.body_zone}` : ''}
+                          </span>
+                        </span>
+                        <span className={`appt__badge${label === 'Hoy' ? ' appt__badge--live' : ''}`}>
+                          {label}
+                        </span>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+
+            <div className="appt-foot">
+              <button type="button" className="panelbox__link" onClick={() => navigate('/citas')}>
+                {upcoming?.length === 0 ? 'Agendar una cita' : 'Ver agenda completa'}
+              </button>
+            </div>
+          </section>
+
+          <section className="panelbox split__side" aria-labelledby="stock-h">
+            <div className="panelbox__head">
+              <h3 className="panelbox__title" id="stock-h">Stock bajo</h3>
+              {lowStock && lowStock.length > 0 && (
+                <span className="panelbox__count">{lowStock.length}</span>
+              )}
+            </div>
+
+            {!lowStock ? (
+              <p className="appt-empty">
+                {lowStockError ? 'No pudimos cargar el inventario.' : 'Cargando inventario…'}
+              </p>
+            ) : lowStock.length === 0 ? (
+              <p className="appt-empty">Todo en orden: ningún insumo en nivel crítico.</p>
+            ) : (
+              <ul className="appt-list">
+                {lowStock.slice(0, LOW_STOCK_MAX).map((m) => (
+                  <li key={m.id}>
+                    <button type="button" className="appt appt--link" onClick={() => navigate('/inventario')}>
                       <span className="appt__body">
-                        <span className="appt__client">{a.client_name}</span>
+                        <span className="appt__client">{m.name}</span>
                         <span className="appt__detail">
-                          {a.project_title}
-                          {a.body_zone ? ` · ${a.body_zone}` : ''}
+                          Quedan {m.quantity} · crítico desde {m.min_quantity}
                         </span>
                       </span>
-                      <span className={`appt__badge${label === 'Hoy' ? ' appt__badge--live' : ''}`}>
-                        {label}
+                      <span className="appt__badge appt__badge--warn">
+                        {m.quantity === 0 ? 'Agotado' : 'Crítico'}
                       </span>
                     </button>
                   </li>
-                )
-              })}
-            </ul>
-          )}
+                ))}
+              </ul>
+            )}
 
-          <div className="appt-foot">
-            <button type="button" className="panelbox__link" onClick={() => navigate('/citas')}>
-              {upcoming?.length === 0 ? 'Agendar una cita' : 'Ver agenda completa'}
-            </button>
-          </div>
-        </section>
+            <div className="appt-foot">
+              <button type="button" className="panelbox__link" onClick={() => navigate('/inventario')}>
+                {lowStock && lowStock.length > LOW_STOCK_MAX
+                  ? `Ver los ${lowStock.length} en Inventario`
+                  : 'Ver inventario'}
+              </button>
+            </div>
+          </section>
+        </div>
 
       </div>
 

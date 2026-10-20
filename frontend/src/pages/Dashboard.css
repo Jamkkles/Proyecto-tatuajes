@@ -246,6 +246,18 @@
 }
 .appt--link:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(195, 210, 219, 0.35); }
 
+.appt__badge--warn {
+  color: #f1d9b0;
+  border-color: rgba(201, 162, 74, 0.45);
+  background: rgba(201, 162, 74, 0.14);
+}
+/* Columna derecha del Resumen: próximas citas y stock bajo, una sobre otra. */
+.split__aside {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(18px, 3vw, 24px);
+  min-width: 0;
+}
 .appt-empty { margin: 0; padding: 22px 20px 12px; font-size: 13.5px; color: var(--ash); }
 .appt-foot { padding: 4px 20px 16px; }
 
@@ -317,4 +329,5 @@
 [data-theme="light"] .appt__detail { color: #6b6f76; }
 [data-theme="light"] .appt__badge { color: #3f434a; border-color: #d3cec3; }
 [data-theme="light"] .appt__badge--live { color: #1f6b45; border-color: rgba(84, 196, 138, 0.5); background: rgba(84, 196, 138, 0.18); }
+[data-theme="light"] .appt__badge--warn { color: #6b4a08; background: rgba(201, 162, 74, 0.2); }
 [data-theme="light"] .appt-empty { color: #6b6f76; }

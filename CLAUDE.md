@@ -167,7 +167,7 @@ enteros (base del cálculo de cotizaciones, HU14). Nivel crítico =
 - `PATCH /api/materials/:id`, `DELETE /api/materials/:id` → `204`
 - **Inventario inicial.** Todo artista —nuevo o ya existente— recibe el catálogo
   completo (42 insumos, `data/defaultMaterials.js`) **la primera vez que entra a
-  Inventario o a Cotizaciones**. Lo hace el middleware `starterKit`
+  Inventario, a Cotizaciones o al Resumen** (que pide los insumos en nivel crítico). Lo hace el middleware `starterKit`
   (`materialModel.ensureStarterKit`), no el registro: así alcanza también a las
   cuentas que ya existían. Reglas:
   - `users.materials_seeded_at` marca que ya se le ofreció. Se sella con un
@@ -379,7 +379,9 @@ de la calibración está en el comentario de `CM2_POR_HORA`
   debajo cuatro tarjetas con datos reales. «Cobrado este mes» viene de
   `GET /api/sessions/income` (`getIncome` en `lib/agenda.ts`): suma el `price` de las sesiones
   pagadas **cuya `paid_at` cae en el mes**, sin las canceladas; «por cobrar» es lo no pagado de
-  las citas del mes que están agendadas o completadas
+  las citas del mes que están agendadas o completadas. Junto a las próximas citas
+  hay un panel «Stock bajo» (HU25) con los insumos en nivel crítico, que sale de
+  `GET /api/materials?low=true`
 - `/configuracion` — `pages/Configuracion.tsx`: push de este dispositivo, interruptores y
   textos editables de los mensajes (HU28), con vista previa. La vista previa repite las
   frases del servidor: si cambia una en `clientMessages.js`, hay que cambiarla allí
