@@ -13,6 +13,8 @@ export interface AuthUser {
   email: string
   /** `admin` administra la plataforma (HU31–HU38). Las sesiones viejas no lo traen. */
   role?: 'tatuador' | 'admin'
+  /** Entró con una contraseña temporal del administrador: hay que cambiarla antes de seguir. */
+  mustChangePassword?: boolean
 }
 
 /** ¿La sesión es del administrador? Solo para mostrar u ocultar; el servidor decide. */

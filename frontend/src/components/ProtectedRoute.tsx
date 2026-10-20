@@ -1,11 +1,20 @@
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { getUser, isAdmin, isAuthenticated } from '../lib/auth'
 import type { ReactNode } from 'react'
 
-/** Redirige al login si no hay sesión activa. */
+const CHANGE_PASSWORD = '/cambiar-contrasena'
+
+/**
+ * Redirige al login si no hay sesión activa, y a cambiar la contraseña si la cuenta entró
+ * con una temporal del administrador (hasta que la cambie, no hay otra pantalla).
+ */
 export default function ProtectedRoute({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation()
   if (!isAuthenticated()) {
     return <Navigate to="/" replace />
+  }
+  if (getUser()?.mustChangePassword && pathname !== CHANGE_PASSWORD) {
+    return <Navigate to={CHANGE_PASSWORD} replace />
   }
   return <>{children}</>
 }

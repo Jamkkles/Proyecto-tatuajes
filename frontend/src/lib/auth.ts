@@ -62,3 +62,11 @@ export function resetPassword(token: string, password: string): Promise<{ messag
     body: JSON.stringify({ token, password }),
   })
 }
+
+/** Cambia la contraseña de la propia cuenta (con sesión). */
+export function changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>('/api/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify({ currentPassword, newPassword }),
+  })
+}

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { getUser, isAdmin, logout } from '../lib/auth'
+import { getMyStudio } from '../lib/studio'
 import { syncPushSubscription } from '../lib/push'
 import { useHideOnScroll } from '../lib/useHideOnScroll'
 import type { AppHeader } from '../lib/useAppShellHeader'
@@ -63,6 +64,12 @@ const icons: Record<string, ReactNode> = {
       <path d="M19.4 13a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-1.8-.3 1.6 1.6 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.6 1.6 0 00-1-1.5 1.6 1.6 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00.3-1.8 1.6 1.6 0 00-1.5-1H3a2 2 0 110-4h.1a1.6 1.6 0 001.5-1 1.6 1.6 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 001.8.3H11a1.6 1.6 0 001-1.5V3a2 2 0 114 0v.1a1.6 1.6 0 001 1.5 1.6 1.6 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 00-.3 1.8V11a1.6 1.6 0 001.5 1H21a2 2 0 110 4h-.1a1.6 1.6 0 00-1.5 1z" />
     </svg>
   ),
+  estudio: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <circle cx="9" cy="8" r="3" /><circle cx="17" cy="9" r="2.4" />
+      <path d="M3.5 19a5.5 5.5 0 0111 0M14 19a4 4 0 017 0" strokeLinecap="round" />
+    </svg>
+  ),
   admin: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
       <path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6z" strokeLinejoin="round" />
@@ -87,6 +94,8 @@ type NavItem = { key: string; label: string; to?: string; match?: string[] }
 
 // Solo lo ve el administrador de la plataforma.
 const ADMIN_NAV: NavItem = { key: 'admin', label: 'Administración', to: '/admin' }
+// Solo lo ve el dueño de un estudio con más de un tatuador (si está solo, es su Resumen).
+const STUDIO_NAV: NavItem = { key: 'estudio', label: 'Mi estudio', to: '/mi-estudio' }
 
 const NAV: NavItem[] = [
   { key: 'resumen', label: 'Resumen', to: '/dashboard' },
@@ -103,6 +112,20 @@ export default function AppShell() {
   const navigate = useNavigate()
   const location = useLocation()
   const user = getUser()
+
+  // ¿Es dueño de un estudio con varios tatuadores? Decide si aparece «Mi estudio».
+  const [ownsStudio, setOwnsStudio] = useState(false)
+  useEffect(() => {
+    let cancelled = false
+    getMyStudio()
+      .then((r) => {
+        if (!cancelled) setOwnsStudio(r.isOwner && (r.studio?.tattooists_count ?? 0) > 1)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const [navOpen, setNavOpen] = useState(
     () => typeof window !== 'undefined' && window.innerWidth >= 900,
@@ -149,7 +172,7 @@ export default function AppShell() {
         </div>
 
         <nav className="dash__nav" aria-label="Secciones del estudio">
-          {(isAdmin(user) ? [...NAV, ADMIN_NAV] : NAV).map((item) => {
+          {[...NAV, ...(ownsStudio ? [STUDIO_NAV] : []), ...(isAdmin(user) ? [ADMIN_NAV] : [])].map((item) => {
             const { pathname } = location
             const active = item.match
               ? item.match.some((p) => pathname === p || pathname.startsWith(`${p}/`))

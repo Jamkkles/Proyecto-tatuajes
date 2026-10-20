@@ -20,6 +20,8 @@ const Inventario = lazy(() => import('./pages/Inventario'))
 const Cotizaciones = lazy(() => import('./pages/Cotizaciones'))
 const Configuracion = lazy(() => import('./pages/Configuracion'))
 const Admin = lazy(() => import('./pages/Admin'))
+const MiEstudio = lazy(() => import('./pages/MiEstudio'))
+const CambiarContrasena = lazy(() => import('./pages/CambiarContrasena'))
 
 function App() {
   return (
@@ -51,6 +53,8 @@ function App() {
               <Route path="/inventario" element={<Inventario />} />
               <Route path="/cotizaciones" element={<Cotizaciones />} />
               <Route path="/configuracion" element={<Configuracion />} />
+              <Route path="/mi-estudio" element={<MiEstudio />} />
+              <Route path="/cambiar-contrasena" element={<CambiarContrasena />} />
               <Route
                 path="/admin"
                 element={

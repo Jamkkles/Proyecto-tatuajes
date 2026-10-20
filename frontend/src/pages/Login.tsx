@@ -38,8 +38,9 @@ export default function Login() {
       const { token, user } = await login({ email: email.trim(), password })
       saveToken(token)
       saveUser(user)
-      // El administrador entra directo a su panel; el tatuador, a su Resumen.
-      navigate(user.role === 'admin' ? '/admin' : '/dashboard')
+      // Con contraseña temporal, lo primero es cambiarla. Si no, el administrador entra
+      // directo a su panel y el tatuador a su Resumen.
+      navigate(user.mustChangePassword ? '/cambiar-contrasena' : user.role === 'admin' ? '/admin' : '/dashboard')
     } catch (err) {
       setStatus('idle')
       if (err instanceof ApiError) {

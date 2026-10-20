@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import ChangePasswordForm from '../components/ChangePasswordForm'
 import PushControl from '../components/PushControl'
 import WhatsAppLink from '../components/WhatsAppLink'
 import { apiErrorMessage } from '../lib/api'
@@ -231,6 +232,12 @@ export default function Configuracion() {
             />
           </section>
         )}
+
+        {/* ---------- Contraseña ---------- */}
+        <section className="st-panel" aria-labelledby="cfg-pw-h">
+          <h2 className="st-h" id="cfg-pw-h">Cambiar contraseña</h2>
+          <ChangePasswordForm />
+        </section>
       </div>
     </div>
   )

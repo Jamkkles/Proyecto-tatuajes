@@ -21,6 +21,8 @@ export interface AdminTattooist {
   email: string
   role: 'tatuador' | 'admin'
   active: boolean
+  /** Dueño del estudio: el único que ve «Mi estudio». */
+  is_owner: boolean
   created_at: string
 }
 
@@ -31,6 +33,7 @@ export interface AdminStudio {
   plan: StudioPlan
   active: boolean
   deactivated_at: string | null
+  owner_id: string | null
   created_at: string
   tattooists: AdminTattooist[]
   /** Métricas de uso sumando a todos sus tatuadores (HU36). */
@@ -61,6 +64,7 @@ export interface AdminUser {
   active: boolean
   created_at: string
   studio_id: string | null
+  is_owner: boolean
   studio_name: string | null
   studio_plan: StudioPlan | null
   studio_active: boolean | null
@@ -92,7 +96,10 @@ export const createAdminStudio = (input: NewStudioInput) =>
     body: JSON.stringify(input),
   })
 
-export const updateAdminStudio = (id: string, input: Partial<Pick<AdminStudio, 'name' | 'email' | 'plan' | 'active'>>) =>
+export const updateAdminStudio = (
+  id: string,
+  input: Partial<Pick<AdminStudio, 'name' | 'email' | 'plan' | 'active'>> & { ownerId?: string },
+) =>
   apiFetch<{ studio: AdminStudio }>(`/api/admin/studios/${id}`, { method: 'PATCH', body: JSON.stringify(input) })
 
 export const addAdminTattooist = (studioId: string, input: { name: string; email: string }) =>

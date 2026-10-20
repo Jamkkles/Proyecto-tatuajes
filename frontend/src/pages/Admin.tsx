@@ -288,6 +288,7 @@ export default function Admin() {
                         {u.name}
                         {u.id === me?.id && <span className="st-badge">Tú</span>}
                         {u.role === 'admin' && <span className="st-badge adm-role">Admin</span>}
+                        {u.is_owner && <span className="st-badge">Dueño</span>}
                         {!u.active && <span className="st-badge adm-off">Desactivado</span>}
                         {u.active && u.studio_active === false && <span className="st-badge adm-off">Estudio desactivado</span>}
                       </span>
@@ -496,6 +497,11 @@ function StudioCard({
     act(`user-${t.id}`, async () => void (await setAdminUserActive(t.id, !t.active)), 'No pudimos cambiar el estado de la cuenta.')
   }
 
+  const makeOwner = (t: AdminTattooist) => {
+    if (!window.confirm(`¿Hacer a ${t.name} dueño de «${studio.name}»? Verá cuánto cobra cada tatuador del estudio, y el dueño actual dejará de verlo.`)) return
+    act(`owner-${studio.id}`, async () => void (await updateAdminStudio(studio.id, { ownerId: t.id })), 'No pudimos cambiar el dueño.')
+  }
+
   const resetPassword = (t: AdminTattooist) => {
     if (!window.confirm(`¿Restablecer la contraseña de ${t.name}? La actual dejará de servir.`)) return
     act(
@@ -576,11 +582,17 @@ function StudioCard({
               <span className="adm-person__name">
                 {t.name}
                 {t.role === 'admin' && <span className="st-badge adm-role">Admin</span>}
+                {t.is_owner && <span className="st-badge">Dueño</span>}
                 {!t.active && <span className="st-badge adm-off">Desactivado</span>}
               </span>
               <span className="adm-person__mail">{t.email}</span>
             </span>
             <span className="adm-person__actions">
+              {!t.is_owner && studio.tattooists.length > 1 && (
+                <button type="button" className="st-btn st-btn--sm" disabled={busy !== null} onClick={() => makeOwner(t)}>
+                  Hacer dueño
+                </button>
+              )}
               <button type="button" className="st-btn st-btn--sm" disabled={busy !== null} onClick={() => resetPassword(t)}>
                 Restablecer contraseña
               </button>
