@@ -1,4 +1,6 @@
 const pool = require('../config/db');
+const { ConflictError } = require('../utils/fields');
+const { dateLabel, timeLabel } = require('../utils/chileTime');
 
 const COLUMNS = `
   id, user_id, project_id, starts_at, duration_minutes, price, paid, paid_at, status,
@@ -105,27 +107,93 @@ async function findByIdForUser(id, userId) {
   return rows[0] ?? null;
 }
 
-/** Agenda la sesión solo si el proyecto es del artista. Null si no lo es. */
-async function create(data) {
-  const { rows } = await pool.query(
-    `INSERT INTO project_sessions
-       (user_id, project_id, starts_at, duration_minutes, price, paid, paid_at, status, notes)
-     SELECT $1, p.id, $3, $4, $5, $6::boolean, CASE WHEN $6::boolean THEN now() END, $7, $8
-       FROM projects p
-      WHERE p.id = $2 AND p.user_id = $1
-     RETURNING ${COLUMNS}`,
-    [
-      data.userId,
-      data.projectId,
-      data.startsAt,
-      data.durationMinutes ?? 120,
-      data.price ?? 0,
-      data.paid ?? false,
-      data.status ?? 'agendada',
-      data.notes ?? null,
-    ]
+/*
+ * Un horario ocupado no se puede volver a agendar: dos citas del mismo artista no
+ * pueden solaparse. Cuentan las agendadas y las ya hechas; una cancelada o un «no
+ * asistió» dejan libre la hora. Las citas contiguas (una termina a las 15:00 y la
+ * otra empieza a las 15:00) no se solapan.
+ *
+ * La revisión y el guardado van juntos bajo un candado por artista: sin él, dos
+ * peticiones simultáneas (doble clic, dos pestañas) pasarían la revisión a la vez y
+ * quedarían las dos.
+ */
+const OCCUPYING = ['agendada', 'completada'];
+const occupies = (status) => OCCUPYING.includes(status);
+
+/** Ejecuta `work(client)` en una transacción con el candado del artista. */
+async function withArtistLock(userId, work) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1::text, 0))', [userId]);
+    const result = await work(client);
+    await client.query('COMMIT');
+    return result;
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+/** Lanza ConflictError si [startsAt, startsAt + duración) pisa otra cita del artista. */
+async function assertSlotFree(db, userId, startsAt, durationMinutes, excludeId = null) {
+  const { rows } = await db.query(
+    `SELECT ps.starts_at, ps.duration_minutes, c.name AS client_name
+       FROM project_sessions ps
+       JOIN projects p ON p.id = ps.project_id
+       JOIN clients c ON c.id = p.client_id
+      WHERE ps.user_id = $1
+        AND ps.status IN ('agendada', 'completada')
+        AND ($4::uuid IS NULL OR ps.id <> $4::uuid)
+        AND ps.starts_at < $2::timestamptz + make_interval(mins => $3::int)
+        AND ps.starts_at + make_interval(mins => ps.duration_minutes) > $2::timestamptz
+      ORDER BY ps.starts_at
+      LIMIT 1`,
+    [userId, startsAt, durationMinutes, excludeId]
   );
-  return rows[0] ?? null;
+  if (rows.length === 0) return;
+
+  const other = rows[0];
+  const from = new Date(other.starts_at);
+  const to = new Date(from.getTime() + other.duration_minutes * 60_000);
+  throw new ConflictError(
+    `Ese horario se cruza con la cita de ${other.client_name} del ${dateLabel(from)}, de ${timeLabel(from)} a ${timeLabel(to)}. Elige otra hora.`
+  );
+}
+
+/**
+ * Agenda la sesión solo si el proyecto es del artista. Null si no lo es. Lanza
+ * ConflictError si la hora ya está ocupada.
+ */
+async function create(data) {
+  const durationMinutes = data.durationMinutes ?? 120;
+  const status = data.status ?? 'agendada';
+
+  return withArtistLock(data.userId, async (db) => {
+    if (occupies(status)) await assertSlotFree(db, data.userId, data.startsAt, durationMinutes);
+
+    const { rows } = await db.query(
+      `INSERT INTO project_sessions
+         (user_id, project_id, starts_at, duration_minutes, price, paid, paid_at, status, notes)
+       SELECT $1, p.id, $3, $4, $5, $6::boolean, CASE WHEN $6::boolean THEN now() END, $7, $8
+         FROM projects p
+        WHERE p.id = $2 AND p.user_id = $1
+       RETURNING ${COLUMNS}`,
+      [
+        data.userId,
+        data.projectId,
+        data.startsAt,
+        durationMinutes,
+        data.price ?? 0,
+        data.paid ?? false,
+        status,
+        data.notes ?? null,
+      ]
+    );
+    return rows[0] ?? null;
+  });
 }
 
 // Solo estos campos son editables; la lista evita inyección al construir el SET.
@@ -160,13 +228,39 @@ async function update(id, userId, fields) {
   sets.push('updated_at = now()');
   params.push(id, userId);
 
-  const { rows } = await pool.query(
-    `UPDATE project_sessions SET ${sets.join(', ')}
-      WHERE id = $${params.length - 1} AND user_id = $${params.length}
-      RETURNING ${COLUMNS}`,
-    params
-  );
-  return rows[0] ?? null;
+  return withArtistLock(userId, async (db) => {
+    // Solo se revisa el horario si el cambio puede crear un choque: se movió la hora, se
+    // alargó la cita, o una cancelada vuelve a ocupar su lugar. Cambiar el monto o las
+    // notas de una cita que (por datos antiguos) ya se solapaba no debe quedar bloqueado.
+    const { rows: current } = await db.query(
+      `SELECT starts_at, duration_minutes, status FROM project_sessions
+        WHERE id = $1 AND user_id = $2 FOR UPDATE`,
+      [id, userId]
+    );
+    if (current.length === 0) return null;
+
+    const before = current[0];
+    const next = {
+      startsAt: fields.startsAt ?? before.starts_at,
+      durationMinutes: fields.durationMinutes ?? before.duration_minutes,
+      status: fields.status ?? before.status,
+    };
+    const moved =
+      new Date(next.startsAt).getTime() !== new Date(before.starts_at).getTime() ||
+      next.durationMinutes !== before.duration_minutes;
+    const reoccupies = occupies(next.status) && !occupies(before.status);
+    if (occupies(next.status) && (moved || reoccupies)) {
+      await assertSlotFree(db, userId, next.startsAt, next.durationMinutes, id);
+    }
+
+    const { rows } = await db.query(
+      `UPDATE project_sessions SET ${sets.join(', ')}
+        WHERE id = $${params.length - 1} AND user_id = $${params.length}
+        RETURNING ${COLUMNS}`,
+      params
+    );
+    return rows[0] ?? null;
+  });
 }
 
 async function remove(id, userId) {

@@ -145,6 +145,14 @@ padre filtrado por usuario, así que no hay forma de colgar filas de otro artist
 - `GET /api/sessions?from=&to=` (ISO, rango máx. 400 días) → `{ sessions }` con
   proyecto y cliente, para el calendario; `POST` (`projectId`, `startsAt`,
   `durationMinutes`, `price`, `paid`, `status`, `notes`), `PATCH`, `DELETE`
+- **Una hora ocupada no se vuelve a agendar.** `POST` y `PATCH /api/sessions` responden `409 { message }`
+  (`ConflictError` en `utils/fields.js`) si la cita se solapa con otra del mismo artista, nombrando con
+  quién y a qué hora (en hora de Chile). Cuentan las `agendada` y `completada`; una `cancelada` o un
+  `no_asistio` dejan libre la hora, y las contiguas (una termina a las 15:00, otra empieza a las 15:00) no
+  chocan. En `PATCH` solo se revisa si el cambio puede crear un choque (mover la hora, alargar, o reactivar
+  una cancelada): editar monto, notas o el pago de una cita nunca se bloquea. La revisión y el guardado van
+  bajo `pg_advisory_xact_lock` por artista, así dos peticiones simultáneas no agendan la misma hora (probado
+  con 10 a la vez). **No hay bloqueo por día/hora de trabajo (HU27 se descartó a propósito)**
 - `GET /api/sessions/income?from=&to=` → `{ collected, pending }` en pesos (mismo rango máx. que
   el listado; va antes que las rutas con `:id`). **`paid_at`** la sella el servidor: `paid` →
   true la pone (si ya estaba pagada conserva la original), → false la borra, y editar otra cosa no

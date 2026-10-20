@@ -19,6 +19,15 @@ class FieldError extends Error {
   }
 }
 
+/** La petición es válida pero choca con algo que ya existe (un horario ocupado): 409. */
+class ConflictError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'ConflictError';
+    this.status = 409;
+  }
+}
+
 const isUuid = (value) => typeof value === 'string' && UUID_RE.test(value);
 
 function requiredText(raw, label, max) {
@@ -103,12 +112,14 @@ function dateTime(raw, message) {
  */
 function sendError(res, err, action) {
   if (err instanceof FieldError) return res.status(400).json({ message: err.message });
+  if (err instanceof ConflictError) return res.status(409).json({ message: err.message });
   console.error(`Error ${action}:`, err);
   return res.status(500).json({ message: 'Error interno. Inténtalo de nuevo.' });
 }
 
 module.exports = {
   FieldError,
+  ConflictError,
   isUuid,
   requiredText,
   optionalText,

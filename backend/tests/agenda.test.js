@@ -19,6 +19,7 @@ const sessionModel = require('../src/models/sessionModel');
 const photoModel = require('../src/models/sessionPhotoModel');
 const sessionMessages = require('../src/services/sessionMessages');
 const storage = require('../src/services/storage');
+const { ConflictError } = require('../src/utils/fields');
 const app = require('../src/app');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_changeme';
@@ -321,6 +322,36 @@ describe('Sesiones', () => {
       .expect(400)
       .expect(() => expect(sessionModel.create).not.toHaveBeenCalled())
       .end(done);
+  });
+
+  describe('horario ocupado', () => {
+    const taken = () => new ConflictError('Ese horario se cruza con la cita de Ana del viernes 16 de octubre, de 15:00 a 17:00. Elige otra hora.');
+
+    test('agendar sobre una cita existente responde 409 con quién la ocupa', async () => {
+      sessionModel.create.mockRejectedValue(taken());
+
+      const res = await request(app)
+        .post('/api/sessions')
+        .set('Authorization', auth)
+        .send({ projectId: PROJECT_ID, startsAt: '2026-10-16T15:30:00-03:00', durationMinutes: 60 })
+        .expect(409);
+
+      expect(res.body.message).toMatch(/se cruza con la cita de Ana/);
+    });
+
+    test('mover una cita a una hora ocupada responde 409 y no avisa al cliente', async () => {
+      sessionModel.findByIdForUser.mockResolvedValue(session);
+      sessionModel.update.mockRejectedValue(taken());
+
+      const res = await request(app)
+        .patch(`/api/sessions/${SESSION_ID}`)
+        .set('Authorization', auth)
+        .send({ startsAt: '2026-10-16T15:30:00-03:00' })
+        .expect(409);
+
+      expect(res.body.message).toMatch(/Elige otra hora/);
+      expect(sessionMessages.afterUpdate).not.toHaveBeenCalled();
+    });
   });
 
   test('agenda la sesión con lo que se cobra en ella', (done) => {
