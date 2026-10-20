@@ -64,8 +64,10 @@ STORAGE_DRIVER=local          # local | cloudinary
 PUBLIC_URL=http://localhost:3000
 ```
 
-Lista completa en `backend/.env.example` (SMTP para HU03, credenciales de
-Cloudinary, usuario semilla).
+Lista completa en `backend/.env.example` (correo para HU03, credenciales de
+Cloudinary, usuario semilla). **El correo en la nube va por la API de Brevo**
+(`BREVO_API_KEY` + `EMAIL_FROM`, `services/emailService.js`): el plan gratuito de Render
+bloquea los puertos SMTP desde septiembre de 2025, así que `SMTP_*` solo sirve en local.
 
 **Con `NODE_ENV=production` el backend cambia de comportamiento a propósito:**
 se niega a arrancar si `JWT_SECRET` falta, es el de ejemplo o tiene menos de 32

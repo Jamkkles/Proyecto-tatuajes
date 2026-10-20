@@ -205,10 +205,23 @@ docker run --rm postgres:18-alpine pg_dump \
   > respaldo-$(date +%F).sql
 ```
 
-**Correo de recuperación de contraseña.** Sin `SMTP_*` el backend usa un buzón de
-pruebas (Ethereal) y los correos no llegan a nadie. Con SMTP real hay que
-comprobar que Render no bloquee esos puertos en el plan gratuito; si lo hace,
-sirve un proveedor con API web.
+**Correo de recuperación de contraseña: Brevo.** Desde septiembre de 2025 el plan gratuito
+de Render **bloquea los puertos de correo (25, 465 y 587)**, así que el SMTP de Gmail no
+conecta desde la nube. Por eso en la nube el correo sale por la API web de Brevo (HTTPS),
+que es gratis hasta unos 300 correos al día y no exige dominio propio:
+
+1. Crea una cuenta gratuita en brevo.com.
+2. Verifica tu correo como remitente (*Senders, Domains & Dedicated IPs → Senders → Add a
+   sender*): Brevo te manda un código a ese correo.
+3. Crea una clave en *SMTP & API → API keys → Generate a new API key*. Empieza con
+   `xkeysib-` y se ve una sola vez.
+4. En Render → *Environment*: `BREVO_API_KEY` = esa clave y `EMAIL_FROM` =
+   `Tattoo Estudio <el-correo-que-verificaste@gmail.com>`. Comprueba que `FRONTEND_URL` sea
+   la dirección de Cloudflare Pages: es la que va en el enlace del correo.
+
+Con un remitente `@gmail.com` enviado por Brevo, los primeros correos pueden caer en
+**spam**: revísalo al probar. Un dominio propio lo evita, pero no hace falta para que
+funcione. En local sigue sirviendo `SMTP_*` (o Ethereal si no hay nada).
 
 **Datos locales.** Esta guía empieza con una base vacía. Migrar la de desarrollo
 exigiría reescribir las URLs de los bocetos (guardan `http://localhost:3000/…`) y
