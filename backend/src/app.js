@@ -16,6 +16,7 @@ const pushRoutes = require('./routes/pushRoutes');
 const jobRoutes = require('./routes/jobRoutes');
 const whatsappWebRoutes = require('./routes/whatsappWebRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const studioRoutes = require('./routes/studioRoutes');
 const { requireAuth } = require('./middleware/auth');
 const localDriver = require('./services/storage/localDriver');
 const { corsOptions, trustProxy } = require('./middleware/security');
@@ -67,6 +68,7 @@ app.use('/api/push', pushRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/whatsapp-web', whatsappWebRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/studio', studioRoutes);
 
 // Ruta protegida de ejemplo: devuelve el usuario del token.
 app.get('/api/me', requireAuth, (req, res) => {

@@ -4,7 +4,7 @@ const pool = require('../config/db');
 async function findByEmail(email) {
   const { rows } = await pool.query(
     `SELECT u.id, u.name, u.email, u.password_hash, u.role, u.active, u.studio_id,
-            s.active AS studio_active
+            u.must_change_password, s.active AS studio_active
        FROM users u
        LEFT JOIN studios s ON s.id = u.studio_id
       WHERE lower(u.email) = lower($1)
@@ -56,6 +56,7 @@ async function setActive(id, active) {
 async function listAllWithStats() {
   const { rows } = await pool.query(
     `SELECT u.id, u.name, u.email, u.role, u.active, u.created_at, u.studio_id,
+            COALESCE(u.id = s.owner_id, false) AS is_owner,
             s.name AS studio_name, s.plan AS studio_plan, s.active AS studio_active,
             COALESCE(m.sessions_total, 0)::int AS sessions_total,
             COALESCE(m.upcoming_appointments, 0)::int AS upcoming_appointments,
@@ -99,12 +100,21 @@ async function create({ name, email, passwordHash }) {
   return rows[0];
 }
 
-/** Actualiza el hash de contraseña de un usuario. */
-async function updatePassword(userId, passwordHash) {
+/**
+ * Actualiza el hash de contraseña de un usuario. `mustChange`: es una contraseña temporal
+ * del administrador y la app pedirá cambiarla al entrar; cualquier otra la deja en false.
+ */
+async function updatePassword(userId, passwordHash, { mustChange = false } = {}) {
   await pool.query(
-    'UPDATE users SET password_hash = $1 WHERE id = $2',
-    [passwordHash, userId],
+    'UPDATE users SET password_hash = $1, must_change_password = $3 WHERE id = $2',
+    [passwordHash, userId, mustChange],
   );
+}
+
+/** Lo justo para comprobar la contraseña actual de una cuenta. Null si no existe. */
+async function findAuthById(id) {
+  const { rows } = await pool.query('SELECT id, password_hash FROM users WHERE id = $1', [id]);
+  return rows[0] ?? null;
 }
 
 module.exports = {
@@ -116,4 +126,5 @@ module.exports = {
   countActiveAdmins,
   create,
   updatePassword,
+  findAuthById,
 };

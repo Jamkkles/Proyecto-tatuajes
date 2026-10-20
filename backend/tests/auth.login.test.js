@@ -7,6 +7,7 @@ require('dotenv').config();
 jest.mock('../src/models/userModel');
 jest.mock('../src/models/studioModel');
 jest.mock('../src/models/passwordResetModel');
+const passwordResetModel = require('../src/models/passwordResetModel');
 jest.mock('../src/services/emailService');
 
 const userModel = require('../src/models/userModel');
@@ -133,7 +134,7 @@ describe('POST /api/auth/register (HU01): cada cuenta nueva es su propio estudio
       .expect(201);
 
     expect(res.body.token).toBeTruthy();
-    expect(res.body.user).toEqual({ id: 'u1', name: 'Ana Rojas', email: 'ana@estudio.cl', role: 'tatuador' });
+    expect(res.body.user).toEqual({ id: 'u1', name: 'Ana Rojas', email: 'ana@estudio.cl', role: 'tatuador', mustChangePassword: false });
     const arg = studioModel.createWithOwner.mock.calls[0][0];
     expect(arg.studio).toEqual({ name: 'Ana Rojas', email: 'ana@estudio.cl', plan: 'basico' });
     expect(arg.owner).toMatchObject({ name: 'Ana Rojas', email: 'ana@estudio.cl' });
@@ -148,6 +149,65 @@ describe('POST /api/auth/register (HU01): cada cuenta nueva es su propio estudio
       .post('/api/auth/register')
       .send({ name: 'Ana', email: 'ana@estudio.cl', password: 'una-clave-larga' })
       .expect(409);
+  });
+});
+
+describe('el login avisa si hay que cambiar la contraseña temporal', () => {
+  test('una cuenta con contraseña del administrador llega con mustChangePassword', async () => {
+    const hash = await bcrypt.hash('k7mq-x3vt-9pah', 10);
+    userModel.findByEmail.mockResolvedValue({
+      id: 'u1', name: 'Beto', email: 'beto@x.cl', password_hash: hash,
+      role: 'tatuador', active: true, studio_active: true, must_change_password: true,
+    });
+    const res = await request(app).post('/api/auth/login').send({ email: 'beto@x.cl', password: 'k7mq-x3vt-9pah' }).expect(200);
+    expect(res.body.user.mustChangePassword).toBe(true);
+  });
+});
+
+describe('POST /api/auth/change-password', () => {
+  const jwt = require('jsonwebtoken');
+  const SECRET = process.env.JWT_SECRET || 'dev_secret_changeme';
+  const auth = `Bearer ${jwt.sign({ sub: 'u1', email: 'a@b.cl' }, SECRET)}`;
+  const change = (body) => request(app).post('/api/auth/change-password').set('Authorization', auth).send(body);
+  let hash;
+
+  beforeAll(async () => {
+    hash = await bcrypt.hash('clave-actual-1', 10);
+  });
+  beforeEach(() => {
+    jest.clearAllMocks();
+    userModel.findAuthById.mockResolvedValue({ id: 'u1', password_hash: hash });
+  });
+
+  test('sin sesión: 401', async () => {
+    await request(app).post('/api/auth/change-password').send({ currentPassword: 'x', newPassword: 'yyyyyyyy' }).expect(401);
+  });
+
+  test('con la actual correcta guarda el hash de la nueva, limpia la marca y anula enlaces pendientes', async () => {
+    const res = await change({ currentPassword: 'clave-actual-1', newPassword: 'clave-nueva-22' }).expect(200);
+    expect(res.body.message).toMatch(/actualizada/);
+    const [id, newHash, opts] = userModel.updatePassword.mock.calls[0];
+    expect(id).toBe('u1');
+    expect(await bcrypt.compare('clave-nueva-22', newHash)).toBe(true);
+    // Sin { mustChange: true }: la marca de contraseña temporal queda en false.
+    expect(opts).toBeUndefined();
+    expect(passwordResetModel.deleteByUserId).toHaveBeenCalledWith('u1');
+  });
+
+  test('con la actual equivocada: 400 (no 401, para no cerrar la sesión) y no cambia nada', async () => {
+    const res = await change({ currentPassword: 'otra', newPassword: 'clave-nueva-22' }).expect(400);
+    expect(res.body.message).toMatch(/actual no es correcta/);
+    expect(userModel.updatePassword).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    [{ newPassword: 'clave-nueva-22' }, /actual y la nueva/],
+    [{ currentPassword: 'clave-actual-1', newPassword: 'corta' }, /al menos 8/],
+    [{ currentPassword: 'clave-actual-1', newPassword: 'clave-actual-1' }, /distinta/],
+  ])('datos inválidos → 400 (%j)', async (body, message) => {
+    const res = await change(body).expect(400);
+    expect(res.body.message).toMatch(message);
+    expect(userModel.updatePassword).not.toHaveBeenCalled();
   });
 });
 

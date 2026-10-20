@@ -88,7 +88,7 @@ async function createStudio(req, res) {
     const password = await newPassword();
     const created = await studioModel.createWithOwner({
       studio,
-      owner: { ...owner, passwordHash: password.hash },
+      owner: { ...owner, passwordHash: password.hash, mustChange: true },
     });
     return res.status(201).json({ ...created, temporaryPassword: password.plain });
   } catch (err) {
@@ -97,7 +97,7 @@ async function createStudio(req, res) {
   }
 }
 
-// PATCH /api/admin/studios/:id  { name?, email?, plan?, active? }  (HU32)
+// PATCH /api/admin/studios/:id  { name?, email?, plan?, active?, ownerId? }  (HU32)
 async function updateStudio(req, res) {
   if (!isUuid(req.params.id)) return res.status(404).json(STUDIO_NOT_FOUND);
   const body = req.body ?? {};
@@ -107,7 +107,16 @@ async function updateStudio(req, res) {
       email: body.email === undefined ? undefined : email(body.email, 'El correo del estudio'),
       plan: oneOf(body.plan, PLANS, 'Plan no válido.'),
       active: boolean(body.active, 'El estado del estudio no es válido.'),
+      ownerId: undefined,
     };
+    // El dueño tiene que ser uno de los tatuadores del estudio.
+    if (body.ownerId !== undefined) {
+      const owner = isUuid(body.ownerId) ? await userModel.findById(body.ownerId) : null;
+      if (!owner || owner.studio_id !== req.params.id) {
+        throw new FieldError('El dueño tiene que ser uno de los tatuadores de este estudio.');
+      }
+      fields.ownerId = owner.id;
+    }
     const studio = await studioModel.update(req.params.id, fields);
     if (!studio) return res.status(404).json(STUDIO_NOT_FOUND);
 
@@ -130,7 +139,12 @@ async function addTattooist(req, res) {
     if (await userModel.findByEmail(mail)) return res.status(409).json(EMAIL_TAKEN);
 
     const password = await newPassword();
-    const user = await studioModel.addTattooist(req.params.id, { name, email: mail, passwordHash: password.hash });
+    const user = await studioModel.addTattooist(req.params.id, {
+      name,
+      email: mail,
+      passwordHash: password.hash,
+      mustChange: true,
+    });
     if (!user) return res.status(404).json(STUDIO_NOT_FOUND);
     return res.status(201).json({ user, temporaryPassword: password.plain });
   } catch (err) {
@@ -171,7 +185,8 @@ async function resetPassword(req, res) {
     if (!target) return res.status(404).json(USER_NOT_FOUND);
 
     const password = await newPassword();
-    await userModel.updatePassword(target.id, password.hash);
+    // Es temporal: la próxima vez que entre, la app le pedirá cambiarla.
+    await userModel.updatePassword(target.id, password.hash, { mustChange: true });
     // Un enlace de «olvidé mi contraseña» pendiente ya no debe servir.
     await passwordResetModel.deleteByUserId(target.id);
     return res.json({ temporaryPassword: password.plain });

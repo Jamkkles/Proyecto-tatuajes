@@ -536,3 +536,15 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS active BOOLEAN NOT NULL DEFAULT true;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS studio_id UUID REFERENCES studios(id) ON DELETE RESTRICT;
 CREATE INDEX IF NOT EXISTS users_studio_idx ON users (studio_id);
 
+-- Dueño del estudio: el único que ve cuánto cobró cada tatuador del estudio en el mes
+-- («Mi estudio»). Es solo lectura y solo montos y conteos: no ve los clientes ni los datos
+-- de trabajo de los demás. Por defecto, el primer tatuador del estudio; el admin lo cambia.
+ALTER TABLE studios ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES users(id) ON DELETE SET NULL;
+UPDATE studios s
+   SET owner_id = (SELECT u.id FROM users u WHERE u.studio_id = s.id ORDER BY u.created_at LIMIT 1)
+ WHERE s.owner_id IS NULL;
+
+-- La cuenta entra con una contraseña temporal que le dio el administrador (al crearla o al
+-- restablecerla): la app le pide cambiarla antes de seguir. Se limpia al cambiarla.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN NOT NULL DEFAULT false;
+

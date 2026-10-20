@@ -21,7 +21,14 @@ function signToken(user) {
 }
 
 function publicUser(user) {
-  return { id: user.id, name: user.name, email: user.email, role: user.role ?? 'tatuador' };
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role ?? 'tatuador',
+    // Entró con una contraseña temporal del administrador: la app le pide cambiarla.
+    mustChangePassword: user.must_change_password === true,
+  };
 }
 
 // POST /api/auth/login  (HU02)
@@ -148,4 +155,38 @@ async function resetPassword(req, res) {
   }
 }
 
-module.exports = { login, register, forgotPassword, resetPassword };
+// POST /api/auth/change-password  { currentPassword, newPassword }  (con sesión)
+//
+// Cada usuario cambia su propia contraseña. Sirve sobre todo a quien entró con la temporal
+// que le dio el administrador, y no depende del correo (en la nube no hay SMTP).
+async function changePassword(req, res) {
+  const { currentPassword, newPassword } = req.body ?? {};
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ message: 'Escribe tu contraseña actual y la nueva.' });
+  }
+  if (typeof newPassword !== 'string' || newPassword.length < 8) {
+    return res.status(400).json({ message: 'La contraseña nueva debe tener al menos 8 caracteres.' });
+  }
+  if (newPassword === currentPassword) {
+    return res.status(400).json({ message: 'La contraseña nueva tiene que ser distinta de la actual.' });
+  }
+
+  try {
+    const user = await userModel.findAuthById(req.user.sub);
+    if (!user) return res.status(404).json({ message: 'Usuario no encontrado.' });
+
+    const ok = await bcrypt.compare(String(currentPassword), user.password_hash);
+    // 400 y no 401: un 401 haría que el frontend cerrara la sesión.
+    if (!ok) return res.status(400).json({ message: 'La contraseña actual no es correcta.' });
+
+    await userModel.updatePassword(user.id, await bcrypt.hash(newPassword, 10));
+    // Un enlace de «olvidé mi contraseña» pendiente ya no debe servir.
+    await passwordResetModel.deleteByUserId(user.id);
+    return res.json({ message: 'Contraseña actualizada.' });
+  } catch (err) {
+    console.error('Error en changePassword:', err);
+    return res.status(500).json({ message: 'Error interno. Inténtalo de nuevo.' });
+  }
+}
+
+module.exports = { login, register, forgotPassword, resetPassword, changePassword };

@@ -108,6 +108,7 @@ describe('POST /api/admin/studios (HU31)', () => {
     expect(res.body.temporaryPassword).toMatch(TEMP_RE);
     // Lo guardado es el hash de esa misma contraseña, nunca el texto.
     const { owner } = studioModel.createWithOwner.mock.calls[0][0];
+    expect(owner.mustChange).toBe(true); // tendrá que cambiarla al entrar
     expect(owner.passwordHash).not.toContain(res.body.temporaryPassword);
     expect(await bcrypt.compare(res.body.temporaryPassword, owner.passwordHash)).toBe(true);
   });
@@ -154,6 +155,23 @@ describe('PATCH /api/admin/studios/:id (HU32)', () => {
     expect(accountStatus.invalidate).not.toHaveBeenCalled();
   });
 
+  test('cambiar el dueño a un tatuador del estudio', async () => {
+    userModel.findById.mockResolvedValue({ id: USER_ID, studio_id: STUDIO_ID });
+    studioModel.update.mockResolvedValue({ id: STUDIO_ID, owner_id: USER_ID });
+    await patch({ ownerId: USER_ID }).expect(200);
+    expect(studioModel.update).toHaveBeenCalledWith(STUDIO_ID, expect.objectContaining({ ownerId: USER_ID }));
+  });
+
+  test('el dueño no puede ser alguien de otro estudio, ni alguien que no existe', async () => {
+    userModel.findById.mockResolvedValue({ id: USER_ID, studio_id: 'otro-estudio' });
+    const res = await patch({ ownerId: USER_ID }).expect(400);
+    expect(res.body.message).toMatch(/tatuadores de este estudio/);
+    userModel.findById.mockResolvedValue(null);
+    await patch({ ownerId: USER_ID }).expect(400);
+    await patch({ ownerId: 'no-es-uuid' }).expect(400);
+    expect(studioModel.update).not.toHaveBeenCalled();
+  });
+
   test('estudio inexistente → 404; plan inválido → 400', async () => {
     studioModel.update.mockResolvedValue(null);
     await patch({ plan: 'basico' }).expect(404);
@@ -173,7 +191,10 @@ describe('POST /api/admin/studios/:id/tattooists (HU33)', () => {
 
     expect(res.body.user.name).toBe('Caro');
     expect(res.body.temporaryPassword).toMatch(TEMP_RE);
-    expect(studioModel.addTattooist).toHaveBeenCalledWith(STUDIO_ID, expect.objectContaining({ name: 'Caro', email: 'caro@x.cl' }));
+    expect(studioModel.addTattooist).toHaveBeenCalledWith(
+      STUDIO_ID,
+      expect.objectContaining({ name: 'Caro', email: 'caro@x.cl', mustChange: true })
+    );
   });
 
   test('estudio inexistente → 404; correo ocupado → 409', async () => {
@@ -233,8 +254,9 @@ describe('POST /api/admin/users/:id/reset-password (HU38)', () => {
     const res = await request(app).post(`/api/admin/users/${USER_ID}/reset-password`).set('Authorization', auth).expect(200);
 
     expect(res.body.temporaryPassword).toMatch(TEMP_RE);
-    const [id, hash] = userModel.updatePassword.mock.calls[0];
+    const [id, hash, opts] = userModel.updatePassword.mock.calls[0];
     expect(id).toBe(USER_ID);
+    expect(opts).toEqual({ mustChange: true });
     expect(await bcrypt.compare(res.body.temporaryPassword, hash)).toBe(true);
     expect(passwordResetModel.deleteByUserId).toHaveBeenCalledWith(USER_ID);
   });
