@@ -145,6 +145,13 @@ padre filtrado por usuario, así que no hay forma de colgar filas de otro artist
 - `GET /api/sessions?from=&to=` (ISO, rango máx. 400 días) → `{ sessions }` con
   proyecto y cliente, para el calendario; `POST` (`projectId`, `startsAt`,
   `durationMinutes`, `price`, `paid`, `status`, `notes`), `PATCH`, `DELETE`
+- **Puntaje de clientes (HU30).** `clients.rating` (1 a 5, NULL = sin puntaje) lo pone el artista, no se
+  calcula solo. `PATCH`/`POST /api/clients` aceptan `rating`: `null` lo quita, sin definir no lo toca (guardar
+  los datos de contacto no borra el puntaje) y todo lo que no sea un entero de 1 a 5 da 400. La lista y la
+  ficha traen además `sessions_done`, `no_shows` y `cancellations` (conteos por estado de sus sesiones) para
+  que el artista decida con datos. El filtro por puntaje (Confiables 4–5, Regulares 3, Poco confiables 1–2,
+  Sin puntaje) se aplica en el navegador sobre la lista ya cargada (`lib/ratings.ts`); las estrellas son
+  `components/RatingStars.tsx`
 - **Una hora ocupada no se vuelve a agendar.** `POST` y `PATCH /api/sessions` responden `409 { message }`
   (`ConflictError` en `utils/fields.js`) si la cita se solapa con otra del mismo artista, nombrando con
   quién y a qué hora (en hora de Chile). Cuentan las `agendada` y `completada`; una `cancelada` o un

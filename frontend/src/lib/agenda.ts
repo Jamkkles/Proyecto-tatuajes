@@ -50,8 +50,14 @@ export interface Client {
   email: string | null
   instagram: string | null
   notes: string | null
+  /** Puntaje de 1 a 5 por responsabilidad de llegada (HU30); null = sin puntaje. */
+  rating: number | null
   projects_count: number
   next_session_at: string | null
+  /** Cómo ha cumplido: sesiones hechas, «no asistió» y canceladas. */
+  sessions_done: number
+  no_shows: number
+  cancellations: number
   created_at: string
   updated_at: string
 }
@@ -62,6 +68,8 @@ export interface ClientInput {
   email?: string | null
   instagram?: string | null
   notes?: string | null
+  /** 1 a 5, o null para quitarlo. Sin definir, no se toca. */
+  rating?: number | null
 }
 
 export interface Project {

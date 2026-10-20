@@ -1,20 +1,27 @@
 const pool = require('../config/db');
 
-const COLUMNS = 'id, user_id, name, phone, email, instagram, notes, created_at, updated_at';
+const COLUMNS = 'id, user_id, name, phone, email, instagram, notes, rating, created_at, updated_at';
 
-// Resumen para la lista de clientes: cuántos proyectos tiene y cuándo es su
-// próxima cita agendada.
+// Resumen para la lista de clientes: cuántos proyectos tiene, cuándo es su próxima cita
+// agendada y cómo ha cumplido (sesiones hechas, «no asistió» y canceladas), que es lo que
+// el artista mira para ponerle puntaje (HU30).
 const SELECT_WITH_SUMMARY = `
-  SELECT c.id, c.user_id, c.name, c.phone, c.email, c.instagram, c.notes,
+  SELECT c.id, c.user_id, c.name, c.phone, c.email, c.instagram, c.notes, c.rating,
          c.created_at, c.updated_at,
          COALESCE(x.projects_count, 0)::int AS projects_count,
-         x.next_session_at
+         x.next_session_at,
+         COALESCE(x.sessions_done, 0)::int AS sessions_done,
+         COALESCE(x.no_shows, 0)::int AS no_shows,
+         COALESCE(x.cancellations, 0)::int AS cancellations
     FROM clients c
     LEFT JOIN LATERAL (
       SELECT count(DISTINCT p.id) AS projects_count,
              min(ps.starts_at) FILTER (
                WHERE ps.status = 'agendada' AND ps.starts_at >= now()
-             ) AS next_session_at
+             ) AS next_session_at,
+             count(ps.id) FILTER (WHERE ps.status = 'completada') AS sessions_done,
+             count(ps.id) FILTER (WHERE ps.status = 'no_asistio') AS no_shows,
+             count(ps.id) FILTER (WHERE ps.status = 'cancelada') AS cancellations
         FROM projects p
         LEFT JOIN project_sessions ps ON ps.project_id = p.id
        WHERE p.client_id = c.id
@@ -48,8 +55,8 @@ async function findByIdForUser(id, userId) {
 
 async function create(data) {
   const { rows } = await pool.query(
-    `INSERT INTO clients (user_id, name, phone, email, instagram, notes)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO clients (user_id, name, phone, email, instagram, notes, rating)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING ${COLUMNS}`,
     [
       data.userId,
@@ -58,11 +65,19 @@ async function create(data) {
       data.email ?? null,
       data.instagram ?? null,
       data.notes ?? null,
+      data.rating ?? null,
     ]
   );
   // Un cliente recién creado no tiene proyectos: se completa el resumen aquí
   // para que la respuesta tenga la misma forma que la lista.
-  return { ...rows[0], projects_count: 0, next_session_at: null };
+  return {
+    ...rows[0],
+    projects_count: 0,
+    next_session_at: null,
+    sessions_done: 0,
+    no_shows: 0,
+    cancellations: 0,
+  };
 }
 
 // Solo estos campos son editables; la lista evita inyección al construir el SET.
@@ -72,6 +87,7 @@ const EDITABLE = {
   email: 'email',
   instagram: 'instagram',
   notes: 'notes',
+  rating: 'rating',
 };
 
 /** Actualiza el contacto. Null si no existe o es de otro artista. */

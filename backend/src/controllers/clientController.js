@@ -17,6 +17,21 @@ const NOT_FOUND = { message: 'Cliente no encontrado.' };
 const PHONE_RE = /^\+?[\d\s().-]{6,20}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/**
+ * Puntaje de 1 a 5 (HU30). `undefined` = no se toca; `null` (o vacío) = quitar el puntaje.
+ * Solo enteros: «3.5» o «bueno» se rechazan en vez de redondearse en silencio.
+ */
+function parseRating(raw) {
+  if (raw === undefined) return undefined;
+  if (raw === null || raw === '') return null;
+  // `true` valdría 1 con Number(): solo se aceptan números o texto numérico.
+  const n = typeof raw === 'number' || typeof raw === 'string' ? Number(raw) : NaN;
+  if (!Number.isInteger(n) || n < 1 || n > 5) {
+    throw new FieldError('El puntaje debe ser un número entero entre 1 y 5.');
+  }
+  return n;
+}
+
 /** Valida los datos de contacto. En un PATCH (`partial`) todo es opcional. */
 function parseClient(body, { partial }) {
   const fields = {};
@@ -42,6 +57,7 @@ function parseClient(body, { partial }) {
     ? instagram
     : instagram.replace(/^@+/, '') || null;
   fields.notes = optionalText(body.notes, 'Las notas', 2000);
+  fields.rating = parseRating(body.rating);
 
   return fields;
 }

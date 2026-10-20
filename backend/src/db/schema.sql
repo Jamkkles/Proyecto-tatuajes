@@ -499,3 +499,7 @@ ALTER TABLE message_log
 -- última vez). Solo toca filas sin fecha, así que repetir db:init no pisa nada.
 ALTER TABLE project_sessions ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ;
 UPDATE project_sessions SET paid_at = LEAST(starts_at, updated_at) WHERE paid AND paid_at IS NULL;
+
+-- Puntaje de 1 a 5 que el artista le da a un cliente según su responsabilidad de llegada
+-- (HU30). NULL = sin puntaje. Es una decisión del artista: no se calcula solo.
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS rating SMALLINT CHECK (rating BETWEEN 1 AND 5);

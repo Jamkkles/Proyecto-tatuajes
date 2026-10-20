@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ClientFields } from '../components/AgendaFields'
+import RatingStars from '../components/RatingStars'
 import { apiErrorMessage } from '../lib/api'
 import { createClient, formatDate, listClients, type Client } from '../lib/agenda'
 import { EMPTY_CLIENT_FORM, formToClientInput } from '../lib/agendaForms'
+import { RATING_FILTERS, attendanceText, matchesRating, type RatingFilter } from '../lib/ratings'
 import { useAppShellHeader } from '../lib/useAppShellHeader'
 import './Studio.css'
 
-/** Cartera de clientes: alta con sus datos de contacto y buscador. */
+/** Cartera de clientes: alta con sus datos de contacto, buscador y filtro por puntaje (HU30). */
 export default function Clientes() {
   const navigate = useNavigate()
 
@@ -15,10 +17,19 @@ export default function Clientes() {
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
+  const [ratingFilter, setRatingFilter] = useState<RatingFilter>('todos')
 
   const [form, setForm] = useState(EMPTY_CLIENT_FORM)
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState('')
+
+  // El filtro por puntaje se aplica aquí: la lista de un artista es corta y así cambiar de
+  // filtro es instantáneo. El buscador sí consulta al servidor.
+  const visible = useMemo(() => clients.filter((c) => matchesRating(c.rating, ratingFilter)), [clients, ratingFilter])
+  const filterCounts = useMemo(
+    () => Object.fromEntries(RATING_FILTERS.map((f) => [f.value, clients.filter((c) => matchesRating(c.rating, f.value)).length])),
+    [clients],
+  )
 
   useAppShellHeader({
     title: 'Clientes',
@@ -89,7 +100,7 @@ export default function Clientes() {
           <section className="st-panel" aria-labelledby="cl-list-h">
             <div className="st-panel__head">
               <h2 className="st-h" id="cl-list-h">
-                Mis clientes <span className="st-count">{clients.length}</span>
+                Mis clientes <span className="st-count">{visible.length}</span>
               </h2>
               <input
                 className="st-input st-input--search"
@@ -101,6 +112,22 @@ export default function Clientes() {
               />
             </div>
 
+            {clients.length > 0 && (
+              <div className="st-chips" role="group" aria-label="Filtrar por puntaje">
+                {RATING_FILTERS.map((f) => (
+                  <button
+                    key={f.value}
+                    type="button"
+                    className={`st-chip${ratingFilter === f.value ? ' is-active' : ''}`}
+                    aria-pressed={ratingFilter === f.value}
+                    onClick={() => setRatingFilter(f.value)}
+                  >
+                    {f.label} <span className="st-chip__n">{filterCounts[f.value]}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
             {loading ? (
               <p className="st-empty">Cargando clientes…</p>
             ) : loadError ? (
@@ -111,9 +138,11 @@ export default function Clientes() {
                   ? 'Ningún cliente coincide con la búsqueda.'
                   : 'Todavía no tienes clientes. Crea el primero.'}
               </p>
+            ) : visible.length === 0 ? (
+              <p className="st-empty">Ningún cliente tiene ese puntaje.</p>
             ) : (
               <ul className="st-list">
-                {clients.map((c) => (
+                {visible.map((c) => (
                   <li key={c.id}>
                     <Link className="st-item" to={`/clientes/${c.id}`}>
                       <span className="st-item__main">
@@ -123,8 +152,10 @@ export default function Clientes() {
                             .filter(Boolean)
                             .join(' · ') || 'Sin datos de contacto'}
                         </span>
+                        {attendanceText(c) && <span className="st-item__meta">{attendanceText(c)}</span>}
                       </span>
                       <span className="st-item__side">
+                        <RatingStars value={c.rating} />
                         <span className="st-badge">
                           {c.projects_count} {c.projects_count === 1 ? 'proyecto' : 'proyectos'}
                         </span>
