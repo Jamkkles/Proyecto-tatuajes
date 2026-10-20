@@ -20,8 +20,8 @@ npm start          # producción
 ```
 
 Usuario de prueba sembrado por `db:init`: `hola@hectortattoos.cl` / `tatuajes123`.
-Administrador local de pruebas: `admin@estudio.test`, con la contraseña en `ADMIN_PASSWORD` de
-`backend/.env` (lo crea `npm run admin:create`).
+El administrador es la cuenta del propio Pablo (`pablonixty@gmail.com`, con su contraseña de siempre),
+promovida con `ADMIN_EMAIL=… npm run admin:create`; no hay un admin de prueba aparte.
 
 ### Frontend
 ```bash

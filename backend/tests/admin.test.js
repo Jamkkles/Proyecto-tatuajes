@@ -71,6 +71,26 @@ describe('GET /api/admin/studios (HU35, HU36)', () => {
   });
 });
 
+describe('GET /api/admin/users (HU35, HU36)', () => {
+  test('lista todas las cuentas con su estudio y su uso', async () => {
+    userModel.listAllWithStats.mockResolvedValue([
+      { id: USER_ID, name: 'Ana', email: 'ana@x.cl', role: 'tatuador', active: true, studio_name: 'Tinta', sessions_total: 4 },
+      { id: ADMIN_ID, name: 'Pablo', email: 'p@x.cl', role: 'admin', active: true, studio_name: null, sessions_total: 0 },
+    ]);
+
+    const res = await request(app).get('/api/admin/users').set('Authorization', auth).expect(200);
+
+    expect(res.body.users).toHaveLength(2);
+    expect(res.body.users[0]).toMatchObject({ name: 'Ana', studio_name: 'Tinta', sessions_total: 4 });
+  });
+
+  test('un tatuador no puede ver la lista de usuarios', async () => {
+    accountStatus.check.mockResolvedValue({ ok: true, role: 'tatuador' });
+    await request(app).get('/api/admin/users').set('Authorization', auth).expect(403);
+    expect(userModel.listAllWithStats).not.toHaveBeenCalled();
+  });
+});
+
 describe('POST /api/admin/studios (HU31)', () => {
   const create = (body) => request(app).post('/api/admin/studios').set('Authorization', auth).send(body);
 

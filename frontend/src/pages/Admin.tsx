@@ -5,12 +5,15 @@ import {
   addAdminTattooist,
   createAdminStudio,
   listAdminStudios,
+  listAdminUsers,
+  planLabel,
   resetAdminUserPassword,
   setAdminUserActive,
   updateAdminStudio,
   type AdminStudio,
   type AdminTattooist,
   type AdminTotals,
+  type AdminUser,
   type StudioPlan,
 } from '../lib/admin'
 import { formatDate } from '../lib/agenda'
@@ -28,6 +31,15 @@ interface Secret {
 }
 
 type StatusFilter = 'todos' | 'activos' | 'desactivados'
+type Tab = 'usuarios' | 'estudios'
+type UserFilter = 'todos' | 'activos' | 'desactivados' | 'admins'
+
+const USER_FILTERS: { value: UserFilter; label: string }[] = [
+  { value: 'todos', label: 'Todos' },
+  { value: 'activos', label: 'Activos' },
+  { value: 'desactivados', label: 'Desactivados' },
+  { value: 'admins', label: 'Administradores' },
+]
 
 const EMPTY_STUDIO = { name: '', email: '', plan: 'basico' as StudioPlan, ownerName: '', ownerEmail: '' }
 
@@ -37,9 +49,12 @@ const EMPTY_STUDIO = { name: '', email: '', plan: 'basico' as StudioPlan, ownerN
  * cuentas y acceso.
  */
 export default function Admin() {
-  useAppShellHeader({ title: 'Administración', subtitle: 'Estudios y tatuadores' })
+  useAppShellHeader({ title: 'Administración', subtitle: 'Usuarios y estudios' })
   const me = getUser()
 
+  const [tab, setTab] = useState<Tab>('usuarios')
+  const [users, setUsers] = useState<AdminUser[] | null>(null)
+  const [userFilter, setUserFilter] = useState<UserFilter>('todos')
   const [studios, setStudios] = useState<AdminStudio[] | null>(null)
   const [totals, setTotals] = useState<AdminTotals | null>(null)
   const [loadError, setLoadError] = useState('')
@@ -52,18 +67,23 @@ export default function Admin() {
   const [form, setForm] = useState(EMPTY_STUDIO)
   const [formError, setFormError] = useState('')
 
-  const apply = useCallback((data: { studios: AdminStudio[]; totals: AdminTotals }) => {
+  // Usuarios y estudios se piden juntos: un cambio en uno se refleja en el otro.
+  const fetchAll = () =>
+    Promise.all([listAdminStudios(), listAdminUsers()]).then(([data, list]) => ({ ...data, users: list }))
+
+  const apply = useCallback((data: { studios: AdminStudio[]; totals: AdminTotals; users: AdminUser[] }) => {
     setStudios(data.studios)
     setTotals(data.totals)
+    setUsers(data.users)
     setLoadError('')
   }, [])
 
-  /** Vuelve a pedir el listado tras un cambio, para que las métricas queden al día. */
-  const reload = useCallback(() => listAdminStudios().then(apply), [apply])
+  /** Vuelve a pedir los listados tras un cambio, para que las métricas queden al día. */
+  const reload = useCallback(() => fetchAll().then(apply), [apply])
 
   useEffect(() => {
     let cancelled = false
-    listAdminStudios()
+    fetchAll()
       .then((data) => {
         if (!cancelled) apply(data)
       })
@@ -114,6 +134,37 @@ export default function Admin() {
         setForm(EMPTY_STUDIO)
       },
       'No pudimos crear el estudio.',
+    )
+  }
+
+  const visibleUsers = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return (users ?? []).filter((u) => {
+      if (userFilter === 'activos' && !u.active) return false
+      if (userFilter === 'desactivados' && u.active) return false
+      if (userFilter === 'admins' && u.role !== 'admin') return false
+      if (!q) return true
+      return [u.name, u.email, u.studio_name ?? ''].some((v) => v.toLowerCase().includes(q))
+    })
+  }, [users, query, userFilter])
+
+  const toggleUser = (u: AdminUser) => {
+    const question = u.active
+      ? `¿Desactivar la cuenta de ${u.name}? No podrá entrar y su sesión abierta se cerrará. Sus datos se conservan.`
+      : `¿Reactivar la cuenta de ${u.name}?`
+    if (!window.confirm(question)) return
+    act(`user-${u.id}`, async () => void (await setAdminUserActive(u.id, !u.active)), 'No pudimos cambiar el estado de la cuenta.')
+  }
+
+  const resetUserPassword = (u: AdminUser) => {
+    if (!window.confirm(`¿Restablecer la contraseña de ${u.name}? La actual dejará de servir.`)) return
+    act(
+      `reset-${u.id}`,
+      async () => {
+        const { temporaryPassword } = await resetAdminUserPassword(u.id)
+        setSecret({ studioId: u.studio_id ?? '', email: u.email, password: temporaryPassword, reason: 'Contraseña restablecida.' })
+      },
+      'No pudimos restablecer la contraseña.',
     )
   }
 
@@ -172,6 +223,104 @@ export default function Admin() {
           </p>
         )}
 
+        <div className="adm-tabs" role="tablist" aria-label="Qué administrar">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'usuarios'}
+            className={`adm-tab${tab === 'usuarios' ? ' is-active' : ''}`}
+            onClick={() => setTab('usuarios')}
+          >
+            Usuarios {users && <span className="st-chip__n">{users.length}</span>}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'estudios'}
+            className={`adm-tab${tab === 'estudios' ? ' is-active' : ''}`}
+            onClick={() => setTab('estudios')}
+          >
+            Estudios {studios && <span className="st-chip__n">{studios.length}</span>}
+          </button>
+        </div>
+
+        {tab === 'usuarios' ? (
+          <section className="st-panel" aria-labelledby="adm-users-h">
+            <div className="st-panel__head">
+              <h2 className="st-h" id="adm-users-h">
+                Todos los usuarios <span className="st-count">{visibleUsers.length}</span>
+              </h2>
+              <input
+                className="st-input st-input--search"
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Buscar por nombre, correo o estudio…"
+                aria-label="Buscar usuarios"
+              />
+            </div>
+            <div className="st-chips" role="group" aria-label="Filtrar usuarios">
+              {USER_FILTERS.map((f) => (
+                <button
+                  key={f.value}
+                  type="button"
+                  className={`st-chip${userFilter === f.value ? ' is-active' : ''}`}
+                  aria-pressed={userFilter === f.value}
+                  onClick={() => setUserFilter(f.value)}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
+            {loadError ? (
+              <p className="st-empty st-empty--error" role="alert">{loadError}</p>
+            ) : !users ? (
+              <p className="st-empty">Cargando usuarios…</p>
+            ) : visibleUsers.length === 0 ? (
+              <p className="st-empty">Ningún usuario coincide.</p>
+            ) : (
+              <ul className="adm-people adm-people--all">
+                {visibleUsers.map((u) => (
+                  <li key={u.id} className={`adm-person${u.active ? '' : ' is-off'}`}>
+                    <span className="adm-person__main">
+                      <span className="adm-person__name">
+                        {u.name}
+                        {u.id === me?.id && <span className="st-badge">Tú</span>}
+                        {u.role === 'admin' && <span className="st-badge adm-role">Admin</span>}
+                        {!u.active && <span className="st-badge adm-off">Desactivado</span>}
+                        {u.active && u.studio_active === false && <span className="st-badge adm-off">Estudio desactivado</span>}
+                      </span>
+                      <span className="adm-person__mail">
+                        {u.email} · {u.studio_name ? `${u.studio_name} (${planLabel(u.studio_plan ?? 'basico')})` : 'sin estudio'}
+                      </span>
+                      <span className="adm-person__mail">
+                        {u.sessions_total} sesiones · {u.upcoming_appointments} citas por venir · {u.sketches_total} bocetos ·{' '}
+                        {u.clients_total} clientes · desde {formatDate(u.created_at)}
+                        {u.last_activity_at ? ` · última actividad ${formatDate(u.last_activity_at)}` : ''}
+                      </span>
+                    </span>
+                    <span className="adm-person__actions">
+                      <button type="button" className="st-btn st-btn--sm" disabled={busy !== null} onClick={() => resetUserPassword(u)}>
+                        Restablecer contraseña
+                      </button>
+                      {u.id !== me?.id && (
+                        <button
+                          type="button"
+                          className={`st-btn st-btn--sm${u.active ? ' st-btn--danger' : ''}`}
+                          disabled={busy !== null}
+                          onClick={() => toggleUser(u)}
+                        >
+                          {u.active ? 'Desactivar' : 'Reactivar'}
+                        </button>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ) : (
         <div className="adm-cols">
           {/* ---------- Estudios y tatuadores (HU32–HU36, HU38) ---------- */}
           <section className="st-panel" aria-labelledby="adm-list-h">
@@ -276,6 +425,7 @@ export default function Admin() {
           </section>
 
         </div>
+        )}
       </div>
     </div>
   )

@@ -2,6 +2,7 @@ const express = require('express');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
 const {
   listStudios,
+  listUsers,
   createStudio,
   updateStudio,
   addTattooist,
@@ -15,6 +16,7 @@ const router = express.Router();
 router.use(requireAuth, requireAdmin);
 
 router.get('/studios', listStudios);
+router.get('/users', listUsers);
 router.post('/studios', createStudio);
 router.patch('/studios/:id', updateStudio);
 router.post('/studios/:id/tattooists', addTattooist);

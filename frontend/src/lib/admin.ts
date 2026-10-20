@@ -52,6 +52,27 @@ export interface AdminTotals {
   clients: number
 }
 
+/** Una cuenta de la plataforma, con su estudio y su uso (HU35, HU36). */
+export interface AdminUser {
+  id: string
+  name: string
+  email: string
+  role: 'tatuador' | 'admin'
+  active: boolean
+  created_at: string
+  studio_id: string | null
+  studio_name: string | null
+  studio_plan: StudioPlan | null
+  studio_active: boolean | null
+  sessions_total: number
+  upcoming_appointments: number
+  sketches_total: number
+  clients_total: number
+  last_activity_at: string | null
+}
+
+export const listAdminUsers = () => apiFetch<{ users: AdminUser[] }>('/api/admin/users').then((r) => r.users)
+
 export const listAdminStudios = () =>
   apiFetch<{ studios: AdminStudio[]; totals: AdminTotals }>('/api/admin/studios')
 

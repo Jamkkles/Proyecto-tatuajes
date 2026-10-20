@@ -59,6 +59,15 @@ async function listStudios(req, res) {
   }
 }
 
+// GET /api/admin/users  → todas las cuentas con su estudio y su uso (HU35, HU36)
+async function listUsers(req, res) {
+  try {
+    return res.json({ users: await userModel.listAllWithStats() });
+  } catch (err) {
+    return sendError(res, err, 'listando usuarios');
+  }
+}
+
 // POST /api/admin/studios  { name, email, plan, ownerName, ownerEmail? }  (HU31)
 // → 201 { studio, user, temporaryPassword }
 async function createStudio(req, res) {
@@ -171,4 +180,4 @@ async function resetPassword(req, res) {
   }
 }
 
-module.exports = { listStudios, createStudio, updateStudio, addTattooist, updateUser, resetPassword, PLANS };
+module.exports = { listStudios, listUsers, createStudio, updateStudio, addTattooist, updateUser, resetPassword, PLANS };
