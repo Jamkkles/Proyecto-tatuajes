@@ -78,6 +78,22 @@ docker exec \
 Debe terminar con `✓ Esquema aplicado` y `✓ Usuario de prueba creado`. Es
 idempotente: se puede repetir (por ejemplo tras cambios en `schema.sql`).
 
+**El administrador de la plataforma** (crea estudios, desactiva cuentas, restablece
+contraseñas) no se puede crear desde la página: nace con este comando, igual que el paso
+anterior. Si el correo ya tiene cuenta, solo la convierte en administradora y conserva su
+contraseña; si no, la crea con la que indiques (al menos 12 caracteres):
+
+```bash
+docker exec \
+  -e DATABASE_URL="$(grep '^DATABASE_URL_UNPOOLED=' .env.local | cut -d= -f2- | tr -d '"')" \
+  -e ADMIN_EMAIL='tu-correo-de-admin@correo.cl' \
+  -e ADMIN_NAME='Tu Nombre' \
+  -e ADMIN_PASSWORD='otra-contraseña-larga-y-propia' \
+  proyecto-tatuajes-backend-1 npm run admin:create
+```
+
+Al entrar con esa cuenta, la app va directo a **Administración**.
+
 ## 4. Render (backend)
 
 1. Crea una cuenta en render.com e inicia sesión con GitHub.

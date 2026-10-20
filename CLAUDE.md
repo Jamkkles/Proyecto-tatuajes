@@ -14,11 +14,14 @@ cd backend
 npm install
 npm run db:init    # crea tablas + usuario de prueba (requiere PostgreSQL arriba)
 npm run sketches:analyze   # mide tinta y colores de los bocetos ya subidos
+npm run admin:create       # crea el administrador de la plataforma (ADMIN_EMAIL/NAME/PASSWORD)
 npm run dev        # nodemon, hot-reload en puerto 3000
 npm start          # producción
 ```
 
 Usuario de prueba sembrado por `db:init`: `hola@hectortattoos.cl` / `tatuajes123`.
+Administrador local de pruebas: `admin@estudio.test`, con la contraseña en `ADMIN_PASSWORD` de
+`backend/.env` (lo crea `npm run admin:create`).
 
 ### Frontend
 ```bash
@@ -91,7 +94,12 @@ Frontend lee `VITE_API_URL` (default en docker-compose: `http://localhost:3000`)
 - `controllers/` — lógica de cada recurso (`authController.js`: login + register)
 - `routes/` — Express Router montado en `app.js` (`/api/auth`, `/api/sketches`,
   `/api/previews`, `/api/clients`, `/api/projects`, `/api/sessions`)
-- `middleware/auth.js` — `requireAuth`: valida `Authorization: Bearer <token>` y deja el payload en `req.user`
+- `middleware/auth.js` — `requireAuth`: valida `Authorization: Bearer <token>`, deja el payload en `req.user`
+  y **en cada petición comprueba que la cuenta y su estudio sigan activos** (`services/accountStatus.js`,
+  con 30 s de memoria que el admin limpia al cambiar un estado); si no, 401 con `{ message, code }` y el
+  frontend cierra la sesión. Deja el rol **leído de la base** en `req.account.role` (el token no lo trae,
+  así degradar a alguien tiene efecto inmediato). `requireAdmin` va después y da 403 a quien no sea admin.
+  En jest `tests/setup.js` da todas las cuentas por activas; `accountStatus.test.js` prueba el módulo real
 - `middleware/security.js` — CORS por `CORS_ORIGIN`, `registrationOpen`,
   límite de intentos de login por IP (`createAuthLimiter`, 20 cada 15 min, se
   salta bajo jest) y `trustProxy` (1 salto en producción: sin él, detrás de
@@ -113,8 +121,11 @@ Frontend lee `VITE_API_URL` (default en docker-compose: `http://localhost:3000`)
   con el driver con que se subió cada uno
 
 #### Contrato de autenticación (consumido por el frontend)
-- `POST /api/auth/login` → `{ token, user: { id, name, email } }`; 401 con `{ message }` si falla
-- `POST /api/auth/register` → igual respuesta; 409 si el correo ya existe
+- `POST /api/auth/login` → `{ token, user: { id, name, email, role } }`; 401 con `{ message }` si falla;
+  **403** con `{ message, code: 'user_inactive' | 'studio_inactive' }` si la cuenta o su estudio están
+  desactivados (solo se dice con la contraseña correcta)
+- `POST /api/auth/register` → igual respuesta; 409 si el correo ya existe. Quien se registra queda como
+  **su propio estudio** con plan básico (`studioModel.createWithOwner`, en una transacción)
 - JWT firmado con `JWT_SECRET`, expira en 7 días, payload `{ sub, email }`
 
 #### Contrato de la galería de bocetos (T0010)
@@ -294,6 +305,31 @@ Hay dos destinatarios distintos: el **artista** (campanita + push) y el **client
 - Push: `web-push` con claves VAPID (`npm run vapid:generate`, una sola vez: cambiarlas
   invalida las suscripciones). Los endpoints que el servicio de push da por muertos
   (404/410) se borran solos. En iPhone solo funciona con la app **instalada**
+
+#### Contrato de administración (HU31–HU36, HU38)
+Un **estudio** (`studios`: nombre, correo, `plan` `basico|profesional|estudio`, `active`) agrupa cuentas de
+tatuadores. **Los datos siguen siendo de cada tatuador**: el estudio no comparte clientes, agenda ni
+inventario (fue una decisión del usuario; compartirlos obligaría a rehacer la propiedad en todo el backend).
+`users` ganó `role` (`tatuador` | `admin`), `active` y `studio_id`. `db:init` le crea su estudio a cada
+tatuador que no tenga (`ensureOwnStudios`, idempotente). El `plan` es solo una etiqueta: no limita nada.
+- El administrador **solo nace con `npm run admin:create`** (con acceso a la base; nunca desde la API). Si el
+  correo ya tiene cuenta, la convierte en admin y conserva su contraseña. Un admin puede no tener estudio
+- Todo `/api/admin/*` exige `requireAuth` + `requireAdmin`:
+  - `GET /studios` → `{ studios, totals }`: cada estudio con `tattooists` y métricas sumando a sus
+    tatuadores (`sessions_total`, `upcoming_appointments`, `sketches_total`, `clients_total`,
+    `last_activity_at`) — HU35, HU36
+  - `POST /studios` (`name`, `email`, `plan`, `ownerName`, `ownerEmail?`) → `201 { studio, user,
+    temporaryPassword }` — HU31. `PATCH /studios/:id` (`name`, `email`, `plan`, `active`) — HU32
+  - `POST /studios/:id/tattooists` (`name`, `email`) → `201 { user, temporaryPassword }` — HU33
+  - `PATCH /users/:id` (`active`) — HU34. No se puede desactivar a uno mismo ni al último admin activo.
+    **No hay borrado de cuentas**: desactivar conserva los datos y es reversible
+  - `POST /users/:id/reset-password` → `{ temporaryPassword }` y anula los enlaces de recuperación — HU38
+- **Contraseña temporal** (`utils/tempPassword.js`, «k7mq-x3vt-9pah», sin caracteres ambiguos): se devuelve
+  una sola vez en la respuesta y solo se guarda su hash. El admin se la entrega al tatuador. Restablecerla no
+  invalida los tokens ya emitidos (para cortar a alguien ya, se desactiva la cuenta)
+- Frontend: `/admin` (`pages/Admin.tsx` + `Admin.css`, clases `adm-*`, más las `st-*` de Studio.css), con
+  `AdminRoute` y el ítem «Administración» del menú solo si `user.role === 'admin'` (comodidad: el servidor
+  decide). El login lleva al admin directo a `/admin`. HU37 (modelos 3D) queda pendiente a propósito
 
 #### Contrato de las cotizaciones (HU14–HU16)
 Calcula **costo de insumos**, nunca el precio del arte (eso es
