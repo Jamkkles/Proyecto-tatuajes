@@ -24,8 +24,24 @@ function parseAddress(raw, fallbackName) {
   return { name: fallbackName, email: text };
 }
 
+/**
+ * La clave tal como se usa: sin espacios ni comillas pegados por error al copiarla en el
+ * panel de Render. Una clave SMTP de Brevo (`xsmtpsib-…`) no sirve para la API: se avisa
+ * con un mensaje claro en vez del «Key not found» de Brevo.
+ */
+function cleanApiKey(raw) {
+  const key = String(raw ?? '').trim().replace(/^["']+|["']+$/g, '').trim();
+  if (key.startsWith('xsmtpsib-')) {
+    throw new Error(
+      'BREVO_API_KEY es una clave SMTP de Brevo (xsmtpsib-…); se necesita una clave API (xkeysib-…), de SMTP & API → API Keys.'
+    );
+  }
+  return key;
+}
+
 /** Manda el correo por la API de Brevo. Lanza un Error con lo que respondió Brevo si falla. */
-async function sendWithBrevo({ from, to, subject, html, text }, { apiKey, fetchImpl = fetch } = {}) {
+async function sendWithBrevo({ from, to, subject, html, text }, { apiKey: rawKey, fetchImpl = fetch } = {}) {
+  const apiKey = cleanApiKey(rawKey);
   const res = await fetchImpl(BREVO_URL, {
     method: 'POST',
     headers: { 'api-key': apiKey, 'content-type': 'application/json', accept: 'application/json' },
@@ -179,4 +195,4 @@ async function sendPasswordReset({ to, resetUrl }, { env = process.env, fetchImp
   }
 }
 
-module.exports = { sendPasswordReset, sendWithBrevo, parseAddress };
+module.exports = { sendPasswordReset, sendWithBrevo, parseAddress, cleanApiKey };

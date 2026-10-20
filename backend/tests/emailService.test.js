@@ -1,4 +1,4 @@
-const { sendPasswordReset, parseAddress } = require('../src/services/emailService');
+const { sendPasswordReset, parseAddress, cleanApiKey } = require('../src/services/emailService');
 
 const RESET = 'https://tattoo-estudio.pages.dev/nueva-contrasena?token=abc';
 const okResponse = { ok: true, status: 201, json: async () => ({ messageId: '<m1@brevo>' }) };
@@ -54,3 +54,33 @@ describe('con BREVO_API_KEY el correo sale por la API de Brevo (HTTPS), no por S
     );
   });
 });
+
+describe('la clave de Brevo tal como se pega en Render', () => {
+  test('quita espacios y comillas pegados por error', () => {
+    expect(cleanApiKey('  xkeysib-abc  ')).toBe('xkeysib-abc');
+    expect(cleanApiKey('"xkeysib-abc"')).toBe('xkeysib-abc');
+    expect(cleanApiKey("'xkeysib-abc'\n")).toBe('xkeysib-abc');
+  });
+
+  test('una clave SMTP (xsmtpsib-) se rechaza con un mensaje que dice cuál usar', () => {
+    expect(() => cleanApiKey('xsmtpsib-123')).toThrow(/clave API \(xkeysib-/);
+  });
+
+  test('la clave limpia es la que viaja a Brevo', async () => {
+    const fetchImpl = jest.fn().mockResolvedValue(okResponse);
+    await sendPasswordReset(
+      { to: 'ana@x.cl', resetUrl: RESET },
+      { env: { BREVO_API_KEY: ' "xkeysib-real" ', EMAIL_FROM: 'a@b.cl' }, fetchImpl }
+    );
+    expect(fetchImpl.mock.calls[0][1].headers['api-key']).toBe('xkeysib-real');
+  });
+
+  test('con una clave SMTP no se llega a llamar a Brevo', async () => {
+    const fetchImpl = jest.fn();
+    await expect(
+      sendPasswordReset({ to: 'ana@x.cl', resetUrl: RESET }, { env: { BREVO_API_KEY: 'xsmtpsib-1' }, fetchImpl })
+    ).rejects.toThrow(/clave SMTP/);
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+});
+
