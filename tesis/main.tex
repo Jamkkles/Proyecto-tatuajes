@@ -1,0 +1,198 @@
+% =====================================================================
+%  Memoria de título — Plataforma web para la gestión integral y
+%  asistencia de diseño en estudios de tatuaje
+%  Pablo Nicolás Correa Mella — Universidad de Talca
+%
+%  Reconstruido a partir de Correa_Pablo_2021407028.pdf (Memoria Avance 2).
+%  Compilar con pdfLaTeX + Biber:
+%      pdflatex main && biber main && pdflatex main && pdflatex main
+%  (En Overleaf basta con «Recompilar»: detecta Biber solo.)
+%
+%  Las imágenes van en la carpeta imagenes/ con los nombres que se usan en
+%  cada \includegraphics (la lista completa está en imagenes/LEEME.txt).
+% =====================================================================
+\documentclass[12pt,letterpaper,oneside]{report}
+
+% ---------- Idioma y codificación ----------
+% Sin fontenc: el original usa las fuentes Computer Modern clásicas (OT1).
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage{csquotes}
+
+% ---------- Página ----------
+\usepackage[left=4cm,right=2.5cm,top=4cm,bottom=2.5cm,
+            headheight=12pt,headsep=59.4pt,footskip=30pt]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\setlength{\parskip}{2mm plus 2pt}
+
+% ---------- Matemática, figuras y tablas ----------
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\graphicspath{{imagenes/}}
+\usepackage{caption}
+\usepackage{longtable}
+\setlength{\LTpost}{7.12pt plus 4pt minus 4pt}
+\usepackage{booktabs}
+\usepackage{array}
+
+% ---------- Títulos ----------
+\usepackage{titlesec}
+\titleformat{\chapter}[hang]
+  {\normalfont\Huge\bfseries}{\thechapter.}{\dimexpr1.5em+2pt\relax}{}[\vspace{8.7pt}{\titlerule[2pt]}]
+\titleformat{name=\chapter,numberless}[hang]
+  {\normalfont\Huge\bfseries}{}{0pt}{}
+\titlespacing*{\chapter}{0pt}{65.44pt}{29.92pt}
+\titlespacing*{name=\chapter,numberless}{0pt}{65.95pt}{31pt}
+% Secciones y subsecciones con el mecanismo estándar de LaTeX (no titlesec):
+% así el espacio antes del título se combina con el que deja una lista igual
+% que en el original.
+\makeatletter
+\renewcommand\section{\@startsection{section}{1}{\z@}%
+  {-12.37pt \@plus -1ex \@minus -.2ex}{6.20pt \@plus.2ex}{\normalfont\large\bfseries}}
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+  {-11.11pt\@plus -1ex \@minus -.2ex}{2.06pt \@plus .2ex}{\normalfont\normalsize\bfseries}}
+\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+  {-11.11pt\@plus -1ex \@minus -.2ex}{2.06pt \@plus .2ex}{\normalfont\normalsize\bfseries}}
+\makeatother
+
+% Listas: espaciado medido sobre el original. El nivel es la profundidad total
+% (una lista de viñetas dentro de una numerada es de nivel 2). Las listas de
+% descripción (glosario) se quedan con la definición estándar de LaTeX.
+\let\descripcionlatex\description
+\let\enddescripcionlatex\enddescription
+\usepackage{enumitem}
+\setlist[1]{topsep=4.31pt plus 4pt minus 6pt,partopsep=3pt plus 2pt minus 2pt}
+\setlist[2]{topsep=4.96pt plus 2.5pt minus 1pt}
+\let\description\descripcionlatex
+\let\enddescription\enddescripcionlatex
+
+% ---------- Bibliografía ----------
+\usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
+\addbibresource{bibliografia.bib}
+% La bibliografía empieza más arriba que los demás capítulos sin número.
+\defbibheading{bibintoc}[\bibname]{%
+  {\titlespacing*{name=\chapter,numberless}{0pt}{44.38pt}{31pt}\chapter*{#1}}%
+  \addcontentsline{toc}{chapter}{#1}\markboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+
+% ---------- Enlaces (invisibles al imprimir, como en el original) ----------
+\usepackage[hidelinks]{hyperref}
+
+% ---------- Encabezados de las páginas preliminares ----------
+% «AGRADECIMIENTOS», «RESUMEN», etc.: centrados, en negrita y del tamaño del texto.
+\newcommand{\titulopreliminar}[1]{%
+  \begin{center}\textbf{#1}\end{center}}
+
+% Tabla de contenidos e índices con el rótulo «página» sobre los números.
+\makeatletter
+% Los índices van sin espacio entre párrafos (solo el texto lo lleva).
+% En los índices de figuras y tablas el espacio que deja el primer capítulo se
+% absorbe en el del rótulo (\vskip en vez de \vspace), como en el original.
+\newcommand{\rotulopagina}[1]{\par\vspace{-5.69pt}\hfill página\par#1}
+\newcommand{\indice}[3]{%
+  \titulopreliminar{#1}\rotulopagina{#3}{\setlength{\parskip}{0pt}\@starttoc{#2}}}
+\renewcommand{\tableofcontents}{\indice{TABLA DE CONTENIDOS}{toc}{\vspace{13pt}}}
+\renewcommand{\listoffigures}{\indice{ÍNDICE DE FIGURAS}{lof}{\vskip13pt}}
+\renewcommand{\listoftables}{\indice{ÍNDICE DE TABLAS}{lot}{\vskip13pt}}
+\makeatother
+
+% Títulos de párrafo en negrita y con sangría («Historias de usuario»,
+% «Inicio de iteración», …). La versión «pegada» no deja espacio con el texto.
+\newcommand{\titulopar}[1]{\par\textbf{#1}\par}
+\newcommand{\tituloparpegado}[1]{\par\textbf{#1}\\\indent\ignorespaces}
+
+% =====================================================================
+\begin{document}
+
+% ---------- Portadas ----------
+% Cada línea va en su coordenada medida sobre el original: \posy{y} convierte
+% la distancia desde el borde superior de la hoja (en pt) a la coordenada del
+% entorno picture, cuyo origen queda en la primera línea base del área de texto.
+\newcommand{\centrox}{214.65}
+\newcommand{\izqx}{17.6}
+\newcommand{\posy}[1]{\fpeval{\origenportada-(#1)}}
+\newcommand{\origenportada}{125.4}
+\newcommand{\linea}[2]{\put(\izqx,\posy{#1}){\makebox(0,0)[bl]{#2}}}
+\newenvironment{portada}{%
+  \begin{titlepage}\setlength{\unitlength}{1pt}\noindent\begin{picture}(0,0)\input{portada}}%
+  {\end{picture}\end{titlepage}}
+
+\begin{portada}
+  \linea{598.76}{Profesor Guía: FRANCISCO ARIAS}
+  \linea{660.92}{Memoria para optar al título de}
+  \linea{675.42}{Ingeniero Civil en Computación}
+  \linea{708.93}{Curicó -- Chile}
+  \linea{725.75}{mes: Mayo, año: 2026}
+\end{portada}
+
+% ---------- Portada con profesores informantes ----------
+\begin{portada}
+  \linea{489.43}{Profesor Guía: FRANCISCO ARIAS}
+  \linea{515.93}{Profesor Informante:}
+  \linea{542.44}{Profesor Informante:}
+  \linea{604.60}{Memoria para optar al título de}
+  \linea{619.09}{Ingeniero Civil en Computación}
+  \linea{642.93}{El presente documento fue calificado con nota: \rule{1.755cm}{0.4pt}}
+  \linea{699.43}{Curicó -- Chile}
+  \linea{725.75}{mes: Mayo, año: 2026}
+\end{portada}
+
+% ---------- Páginas preliminares (números romanos en versalitas) ----------
+\pagestyle{headings}
+\renewcommand{\thepage}{\roman{page}}
+
+\thispagestyle{plain}
+\addcontentsline{toc}{chapter}{Dedicatoria}
+\vspace*{\fill}
+\begin{flushright}
+  \textit{Dedicado a ...}
+\end{flushright}
+\vspace*{167.03pt}
+\newpage
+
+\thispagestyle{plain}
+\addcontentsline{toc}{chapter}{Agradecimientos}
+\titulopreliminar{AGRADECIMIENTOS}
+\vspace{10.75pt}
+
+Agradecimientos ...
+\newpage
+
+\thispagestyle{plain}
+\addcontentsline{toc}{chapter}{Tabla de Contenidos}
+\tableofcontents
+\newpage
+
+\thispagestyle{plain}
+\addcontentsline{toc}{chapter}{Índice de Figuras}
+\listoffigures
+\newpage
+
+\thispagestyle{plain}
+\addcontentsline{toc}{chapter}{Índice de Tablas}
+\listoftables
+\newpage
+
+\thispagestyle{plain}
+\addcontentsline{toc}{chapter}{Resumen}
+\input{resumen}
+\newpage
+
+% ---------- Cuerpo: la numeración sigue la cuenta, ahora en arábigos ----------
+\renewcommand{\thepage}{\arabic{page}}
+
+\input{capitulos/01-introduccion}
+\input{capitulos/02-marco-teorico}
+% En el original la raya baja con la «g» de «Metodologías» (5 pt) sin mover el texto.
+\titleformat{\chapter}[hang]
+  {\normalfont\Huge\bfseries}{\thechapter.}{\dimexpr1.5em+2pt\relax}{}[\vspace{13.7pt}{\titlerule[2pt]}\vspace{-5pt}]
+\input{capitulos/03-metodologias}
+\titleformat{\chapter}[hang]
+  {\normalfont\Huge\bfseries}{\thechapter.}{\dimexpr1.5em+2pt\relax}{}[\vspace{8.7pt}{\titlerule[2pt]}]
+\input{capitulos/04-desarrollo}
+\input{glosario}
+
+\printbibliography[heading=bibintoc]
+
+\end{document}
