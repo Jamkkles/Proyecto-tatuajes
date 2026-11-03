@@ -28,3 +28,21 @@ fig-4-7-mockup-inicio-sesion.png  (width=0.6\textwidth)
 fig-4-8-mockup-dashboard.png  (width=0.8\textwidth)
 fig-4-9-mockup-dashboard-movil.png  (width=0.3\textwidth)
 utalca1.png  (width=2.2cm)
+
+Iteración 2 (autenticación). Capturas reales de la aplicación corriendo en
+Docker, con la cuenta de demostración demo.memoria@estudio.cl.
+fig-4-19-vista-login.png  (width=0.8\textwidth)  vista /
+fig-4-20-vista-recuperar.png  (width=0.8\textwidth)  vista /recuperar
+fig-4-21-vista-resumen.png  (width=0.8\textwidth)  vista /dashboard
+
+Iteración 3 (galería de bocetos). Generadas con node a partir del código del
+proyecto y de la aplicación corriendo en Docker.
+fig-4-22-secuencia-subir-boceto.png  (width=\textwidth)
+fig-4-23-secuencia-galeria.png  (width=\textwidth)
+fig-4-24-secuencia-eliminar-boceto.png  (width=\textwidth)
+fig-4-25-implementacion-subida.png  (width=0.85\textwidth)
+fig-4-26-implementacion-propiedad.png  (width=0.85\textwidth)
+fig-4-27-vista-galeria.png  (width=0.8\textwidth)  captura real de la vista
+    /bocetos, con la cuenta de demostración demo.memoria@estudio.cl.
+fig-4-28-resultado-pruebas-galeria.png  (width=0.8\textwidth)  salida real de
+    "npx jest tests/sketches.test.js --runInBand" (16 pruebas, 1 archivo).
