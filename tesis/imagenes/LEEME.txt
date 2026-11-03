@@ -46,3 +46,17 @@ fig-4-27-vista-galeria.png  (width=0.8\textwidth)  captura real de la vista
     /bocetos, con la cuenta de demostración demo.memoria@estudio.cl.
 fig-4-28-resultado-pruebas-galeria.png  (width=0.8\textwidth)  salida real de
     "npx jest tests/sketches.test.js --runInBand" (16 pruebas, 1 archivo).
+
+Iteración 4 (inventario y panel de control). Diagramas y recortes de código
+generados con node; capturas de la aplicación corriendo en Docker.
+fig-4-29-secuencia-registrar-insumo.png  (width=\textwidth)
+fig-4-30-secuencia-stock-critico.png  (width=\textwidth)
+fig-4-31-secuencia-resumen.png  (width=\textwidth)
+fig-4-32-implementacion-stock.png  (width=0.85\textwidth)
+fig-4-33-implementacion-ingresos.png  (width=0.85\textwidth)
+fig-4-34-vista-inventario.png  (width=\textwidth)  vista /inventario con dos
+    insumos en nivel crítico.
+fig-4-35-vista-resumen-stock.png  (width=\textwidth)  vista /dashboard con el
+    panel de stock bajo y las cifras del mes.
+fig-4-36-resultado-pruebas-inventario.png  (width=0.9\textwidth)  salida real
+    de "npx jest tests/materials.test.js tests/starterKit.test.js" (22 pruebas).

@@ -1416,6 +1416,195 @@ Además de las pruebas automatizadas, se llevó a cabo una fase de pruebas manua
 \vspace{\parskip}
 \tituloparpegado{Retrospectiva}
 Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precisas y se identifican posibles mejoras en el proceso de desarrollo. Las cuatro historias se completaron dentro de lo estimado y el trabajo resultó menor al previsto en la HU07, ya que las etiquetas se resolvieron con el mismo mecanismo de filtros del listado en lugar de requerir una estructura aparte. En contrapartida, la capa de almacenamiento con drivers intercambiables tomó más tiempo del considerado para la HU04, pero esa decisión evitó rehacer el módulo al momento del despliegue y dejó preparada la carga de las fotografías de sesión de iteraciones posteriores. Como aprendizaje del proceso, se incorporó la práctica de medir las propiedades de la imagen en el momento de subirla, anticipando necesidades de historias futuras sin agregar trabajo a la iteración.
+
+\subsection{Iteración 4}
+
+En esta iteración se implementan las historias de usuario HU11, HU12, HU13, HU25 y HU26. Las tres primeras levantan el inventario de insumos, que es lo que el tatuador gasta al trabajar; las dos últimas arman el panel de control con el que entra a la plataforma. Van juntas porque el panel es, en buena parte, la cara visible del inventario: ahí es donde el artista se entera de que algo se está acabando sin tener que ir a buscarlo.
+
+\vspace{0.3cm}
+\tituloparpegado{Historias de usuario asociadas}
+A continuación se listan las historias de usuario asignadas a esta iteración en la Tabla \ref{tab:iteraciones}, cuya estimación de esfuerzo suma 12 puntos según la Tabla \ref{tab:prioridad}.
+
+\begin{itemize}
+  \item \textbf{HU11:} como tatuador quiero registrar un material con su cantidad y costo unitario, para mantener un control inicial de mi stock.
+  \item \textbf{HU12:} como tatuador quiero modificar el stock manual o borrar insumos descontinuados, para mantener la realidad operativa de mi estudio.
+  \item \textbf{HU13:} como tatuador quiero visualizar una advertencia cuando un insumo llegue a un nivel crítico, para comprar reposiciones a tiempo.
+  \item \textbf{HU25:} como tatuador quiero ver un panel de control al iniciar sesión con las citas programadas y alertas de stock bajo, para organizar mi jornada de un vistazo.
+  \item \textbf{HU26:} como tatuador quiero visualizar una suma básica de los ingresos generados en el mes actual, para evaluar la rentabilidad del estudio.
+\end{itemize}
+
+El costo unitario que pide la HU11 no se usa todavía en esta iteración: es el dato con el que la Iteración 5 calcula el costo de insumos de una cotización, de modo que el inventario se diseñó desde el principio pensando en ese uso posterior.
+
+\vspace{0.3cm}
+\tituloparpegado{Inicio de Iteración}
+En esta etapa se crean y registran las tareas acordes a las historias de usuario, donde la Tabla \ref{tab:tareas4} ilustra el registro de las tareas resultantes de la iteración.
+
+\begin{table}[H]
+  \centering
+  \caption{Tareas asociadas a la Iteración 4}
+  \label{tab:tareas4}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|l|l|p{7.2cm}|}
+    \hline
+    \textbf{Historia} & \textbf{Tarea} & \textbf{Descripción} \\
+    \hline
+    HU11 & T0001 & Crear diagrama de secuencia \\ \hline
+    HU11 & T0002 & Crear la tabla de insumos y la ruta de registro \\ \hline
+    HU11 & T0003 & Crear el formulario de insumo en la vista de inventario \\ \hline
+    HU12 & T0001 & Crear diagrama de secuencia \\ \hline
+    HU12 & T0002 & Crear la ruta de ajuste de stock \\ \hline
+    HU12 & T0003 & Crear las rutas de edición y eliminación \\ \hline
+    HU12 & T0004 & Agregar los botones de ajuste en la vista \\ \hline
+    HU13 & T0001 & Crear diagrama de secuencia \\ \hline
+    HU13 & T0002 & Marcar el nivel crítico en el listado y en el resumen \\ \hline
+    HU13 & T0003 & Crear el aviso de nivel crítico para la campanita \\ \hline
+    HU25 & T0001 & Crear diagrama de secuencia \\ \hline
+    HU25 & T0002 & Crear el panel de stock bajo en el resumen \\ \hline
+    HU25 & T0003 & Mostrar el calendario del mes y las próximas citas \\ \hline
+    HU26 & T0001 & Crear la ruta de ingresos del mes \\ \hline
+    HU26 & T0002 & Mostrar lo cobrado y lo por cobrar en el resumen \\ \hline
+    HU11--HU13, HU25, HU26 & T0009 & Creación y testeo de pruebas unitarias \\ \hline
+    HU11--HU13, HU25, HU26 & T0010 & Creación y uso de sistema de pruebas \\ \hline
+  \end{tabular}
+\end{table}
+
+\vspace{0.3cm}
+\tituloparpegado{Diseño}
+En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. Las Figuras \ref{fig:secinsumo}, \ref{fig:seccritico} y \ref{fig:secresumen} ilustran el registro de un insumo, el descuento de stock que dispara la advertencia de nivel crítico y la carga del panel de control.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-29-secuencia-registrar-insumo}
+  \caption[Diagrama de secuencia Registrar Insumo]{Diagrama de secuencia HU11: registro de un insumo.}
+  \label{fig:secinsumo}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-30-secuencia-stock-critico}
+  \caption[Diagrama de secuencia Nivel Crítico]{Diagrama de secuencia HU12 y HU13: descuento de stock y advertencia de nivel crítico.}
+  \label{fig:seccritico}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-31-secuencia-resumen}
+  \caption[Diagrama de secuencia Panel de Control]{Diagrama de secuencia HU25 y HU26: carga del panel de control.}
+  \label{fig:secresumen}
+\end{figure}
+
+\tituloparpegado{Implementación}
+En esta etapa se desarrolla el backend y el frontend de las historias asignadas. En el backend se levanta el recurso \texttt{/api/materials} con el registro, la consulta filtrada, la edición, la eliminación y el ajuste de stock, con las mismas reglas de propiedad de las iteraciones anteriores: todo filtra por el identificador del tatuador y un insumo ajeno responde 404.
+
+Un insumo se define por la unidad en que se cuenta y por dos cantidades enteras: el stock actual y el nivel crítico. Esa segunda cantidad es la que convierte el inventario en una herramienta de aviso y no solo en una lista: un insumo está en nivel crítico cuando su stock es menor o igual a su mínimo, y el listado devuelve esos insumos primero, de modo que lo urgente aparece arriba sin que el artista tenga que buscarlo.
+
+El ajuste de stock no se calcula en el servidor para después guardarlo, sino que se resuelve dentro de la misma sentencia en la base de datos, como muestra la Figura \ref{fig:implstock}. Así dos descuentos seguidos no se pisan —cada uno parte del valor que dejó el anterior— y el stock nunca queda bajo cero aunque se descuente más de lo que había.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{fig-4-32-implementacion-stock}
+  \caption[Ajuste de stock en la base de datos]{Ajuste de stock resuelto en la base de datos.}
+  \label{fig:implstock}
+\end{figure}
+
+La advertencia de la HU13 se emite cuando un descuento deja al insumo en su nivel crítico, nunca al reponerlo. Para que el artista no reciba un aviso por cada descuento mientras gasta lo poco que le queda, cada insumo avisa como mucho una vez por día, usando una clave que combina el insumo con la fecha en hora de Chile; al día siguiente, si sigue sin reponer, se le vuelve a recordar. El aviso queda en la campanita de la aplicación y, si el artista tiene las notificaciones activadas, también llega al teléfono.
+
+En cuanto al panel de control, la HU26 pide una suma de ingresos del mes, y la decisión de diseño está en qué fecha se considera. Lo cobrado se acumula por la fecha en que la sesión se marcó pagada, no por la fecha de la cita: si un cliente paga en noviembre una sesión de octubre, ese dinero entra en noviembre, que es cuando efectivamente ingresó. Lo pendiente, en cambio, se cuenta por la fecha de la cita, porque responde a otra pregunta: cuánto falta por cobrar de lo que está agendado este mes. La Figura \ref{fig:implingresos} muestra cómo se obtienen ambas cifras en una sola consulta.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{fig-4-33-implementacion-ingresos}
+  \caption[Cálculo de los ingresos del mes]{Cobrado y pendiente del mes, resueltos en una sola consulta.}
+  \label{fig:implingresos}
+\end{figure}
+
+En el frontend se desarrollaron dos vistas. La de inventario presenta los insumos con su stock, su nivel crítico, su costo unitario y su regla de consumo, con botones para sumar o descontar unidades sin salir de la lista, filtros por categoría y un atajo para ver solo lo que está en nivel crítico. La de resumen reúne el calendario del mes con las citas marcadas, las próximas citas, el panel de stock bajo y las cifras del mes.
+
+\tituloparpegado{Resultado del desarrollo}
+Como resultado de esta iteración, el tatuador tiene el control de sus insumos dentro de la misma plataforma donde lleva su agenda, y una pantalla de entrada que le dice en qué está su mes sin que tenga que entrar a buscarlo. Las Figuras \ref{fig:vistainventario} y \ref{fig:vistaresumenstock} presentan las vistas desarrolladas durante esta etapa.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-34-vista-inventario}
+  \caption[Vista Inventario]{Vista ``Inventario'', con la advertencia de los insumos en nivel crítico, el resumen del stock y los insumos críticos primero en la lista.}
+  \label{fig:vistainventario}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-35-vista-resumen-stock}
+  \caption[Vista Resumen con stock bajo]{Vista ``Resumen'': calendario del mes, próximas citas, panel de stock bajo y las cifras de lo cobrado y lo por cobrar.}
+  \label{fig:vistaresumenstock}
+\end{figure}
+
+\tituloparpegado{Sistema de pruebas}
+Después de la implementación se lleva a cabo una fase de pruebas para esta iteración, evaluando los siguientes casos:
+
+\begin{itemize}
+  \item Registrar un insumo con unidad, stock, nivel crítico y costo.
+  \item Registrar un insumo sin nombre o con una cantidad con decimales.
+  \item Descontar stock hasta llegar al nivel crítico.
+  \item Descontar más stock del que hay disponible.
+  \item Reponer stock de un insumo que estaba en nivel crítico.
+  \item Filtrar el inventario por categoría y ver solo los insumos críticos.
+  \item Eliminar un insumo descontinuado.
+  \item Entrar al panel de control y comprobar las citas del mes, el stock bajo y lo cobrado.
+  \item Marcar una sesión como pagada y ver el monto reflejado en el mes.
+\end{itemize}
+
+\vspace{\parskip}
+\titulopar{Pruebas unitarias}
+Al finalizar el desarrollo se crean las pruebas unitarias correspondientes a las tareas definidas en el Inicio de Iteración, con Jest y Supertest y con la base de datos reemplazada por dobles de prueba. La Tabla \ref{tab:pruebas4} detalla las pruebas implementadas.
+
+% [t] y no [H]: con [H] la tabla no cabe bajo su párrafo y deja media página
+% en blanco; así sube al inicio de la página siguiente y el texto la acompaña.
+\begin{table}[t]
+  \centering
+  \caption{Pruebas unitarias implementadas en la Iteración 4}
+  \label{tab:pruebas4}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|l|p{3.4cm}|p{6.6cm}|c|}
+    \hline
+    \textbf{ID} & \textbf{Función evaluada} & \textbf{Objetivo} & \textbf{Tests} \\
+    \hline
+    PU-11 & \texttt{POST /materials}, \texttt{GET /materials} & Validar el registro de un insumo, el rechazo de categorías, unidades o cantidades inválidas, y los filtros del listado. & 6 \\ \hline
+    PU-12 & \texttt{POST /materials/\newline :id/stock} & Comprobar el ajuste con un delta y el rechazo de uno nulo o no numérico. & 2 \\ \hline
+    PU-13 & \texttt{DELETE /materials/:id} & Verificar la eliminación y el rechazo de un insumo ajeno o de un identificador mal formado. & 3 \\ \hline
+    PU-14 & \texttt{POST /materials/\newline defaults} & Validar la carga del catálogo básico sin duplicar lo existente y el vaciado con confirmación explícita. & 6 \\ \hline
+    PU-15 & \texttt{ensure\newline StarterKit()} & Comprobar que el inventario inicial se entrega una sola vez y que respeta un inventario ya armado. & 5 \\ \hline
+    PU-16 & \texttt{notifyLow\newline Stock()} & Verificar que avisa al llegar al mínimo y que no repite el aviso el mismo día de Chile. & 5 \\ \hline
+    PU-17 & \texttt{GET /sessions/\newline income} & Comprobar la suma de lo cobrado y lo pendiente del artista del token. & 2 \\ \hline
+  \end{tabular}
+\end{table}
+
+En total, durante esta iteración se ejecutaron 29 pruebas unitarias repartidas en cuatro archivos de prueba. Los dos propios del inventario reúnen 22 de ellas; las siete restantes acompañan a las pruebas de avisos y de agenda, porque evalúan funciones que esas historias comparten.
+
+\titulopar{Resultados obtenidos}
+La ejecución de las pruebas evidenció un funcionamiento correcto del registro, del ajuste de stock y de la advertencia de nivel crítico. Se comprobó especialmente que el stock no queda negativo por descontar de más, que estar justo en el mínimo ya cuenta como nivel crítico, y que un segundo descuento el mismo día no genera un aviso repetido. El resultado general fue satisfactorio, con aprobación completa de los casos evaluados, como resume la Tabla \ref{tab:resultado4} y muestra la Figura \ref{fig:resultadopruebas4}.
+
+\begin{table}[H]
+  \centering
+  \caption{Resultado de ejecución de pruebas unitarias de la Iteración 4}
+  \label{tab:resultado4}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|c|c|c|}
+    \hline
+    \textbf{Archivos evaluados} & \textbf{Tests ejecutados} & \textbf{Resultado} \\
+    \hline
+    4 & 29 & 29 aprobados \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig-4-36-resultado-pruebas-inventario}
+  \caption[Resultado pruebas unitarias Iteración 4]{Ejecución de los dos archivos de prueba propios del inventario, que reúnen 22 de las 29 pruebas de la iteración.}
+  \label{fig:resultadopruebas4}
+\end{figure}
+
+\vspace{\parskip}
+\tituloparpegado{Retrospectiva}
+Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precisas y se identifican posibles mejoras en el proceso de desarrollo. Las cinco historias se completaron dentro de lo estimado. La HU25 resultó más barata de lo previsto porque reutilizó la consulta de citas que ya existía de la agenda, y lo que costó más fue decidir la regla de la HU26: la primera versión sumaba por la fecha de la cita y mostraba como ingreso de un mes dinero que aún no se había cobrado, así que se agregó la fecha de pago a cada sesión para poder separar ambas cosas. Como aprendizaje, quedó claro que conviene fijar desde el principio qué fecha representa cada cifra que se muestra al artista, porque corregirlo después obliga a tocar el modelo de datos.
 %======================================================================
 %  GLOSARIO
 %======================================================================
