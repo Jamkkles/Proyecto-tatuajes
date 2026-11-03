@@ -48,3 +48,18 @@ backend/uploads/
 # Modelos 3D fuente (sin optimizar). El .glb optimizado sí se versiona.
 models-src/
 .neon
+
+# LaTeX (tesis): auxiliares que deja latexmk al compilar al guardar
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.lot
+*.out
+*.run.xml
+*.synctex.gz
+*.toc
+*.tmp
