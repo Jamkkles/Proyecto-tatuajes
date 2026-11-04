@@ -2006,6 +2006,205 @@ La ejecución de las pruebas evidenció un funcionamiento correcto del agendado,
 Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precisas y se identifican posibles mejoras en el proceso de desarrollo. Las seis historias se completaron, aunque el reparto del esfuerzo no fue el previsto. La HU17 costó casi el doble de lo estimado, y no por el formulario ni por el calendario: se fue en la revisión del horario, que parecía una condición más en una consulta y terminó obligando a mover la revisión y el guardado a una misma transacción con candado. La HU18, la HU19 y la HU24, en cambio, resultaron más baratas de lo previsto, porque las tres leen de la misma cadena de datos y bastó con pedirle a la base los resúmenes ya calculados.
 
 El aprendizaje de la iteración vino de la HU30. Implementada tal como estaba escrita —un puntaje que el artista le pone al cliente— funcionaba, pero quedaba viejo apenas el cliente volvía al estudio. Preguntarle al tatuador cuándo iba a actualizarlo fue lo que dejó en evidencia que el dato útil no era el puntaje del cliente, sino cómo llegó a cada sesión: el puntaje es una consecuencia de eso y conviene calcularlo, no guardarlo. Cambiarlo obligó a retirar una columna que ya estaba en el esquema, que es exactamente el tipo de corrección que sale barata en la iteración en que se detecta y cara más adelante.
+\subsection{Iteración 7}
+
+En esta iteración se implementan las historias de usuario HU21, HU22, HU23, HU28, HU29 y HU31. Las cuatro primeras tienen un hilo común: hasta aquí la plataforma le servía al tatuador, y a partir de ahora también le habla al cliente. La HU29 cierra el registro de clientes atendidos y la HU31 abre el panel de administración, que es la primera historia del proyecto que no es para el tatuador sino para quien administra la plataforma.
+
+\vspace{0.3cm}
+\tituloparpegado{Historias de usuario asociadas}
+A continuación se listan las historias de usuario asignadas a esta iteración en la Tabla \ref{tab:iteraciones}, cuya estimación de esfuerzo suma 21 puntos según la Tabla \ref{tab:prioridad}.
+
+\begin{itemize}
+  \item \textbf{HU21:} como tatuador quiero cambiar la fecha de una cita o cancelarla, para mantener la agenda actualizada frente a imprevistos.
+  \item \textbf{HU22:} como tatuador quiero que el sistema envíe automáticamente un mensaje de WhatsApp 24 horas antes de la sesión, para evitar olvidos o retrasos.
+  \item \textbf{HU23:} como tatuador quiero que al cancelar o cambiar una hora el sistema avise al cliente por WhatsApp, para mantener una comunicación profesional.
+  \item \textbf{HU28:} como tatuador quiero poder editar el texto base del mensaje que se envía por WhatsApp, para darle recomendaciones del trato del tatuaje posteriormente al trabajo realizado.
+  \item \textbf{HU29:} como tatuador quiero tener el registro de todos mis clientes atendidos con su información.
+  \item \textbf{HU31:} como administrador quiero registrar nuevos estudios de tatuaje en la plataforma indicando nombre, correo y plan contratado, para incorporar a nuevos clientes del sistema.
+\end{itemize}
+
+La HU29 no requirió desarrollo nuevo. El registro de clientes con su información, su historial y su buscador quedó construido en la Iteración 6 junto con la HU24, así que en esta iteración solo se revisó contra su criterio de aceptación y se dio por cumplida. El esfuerzo efectivo fue entonces de 18 puntos.
+
+\vspace{0.3cm}
+\tituloparpegado{Inicio de Iteración}
+En esta etapa se crean y registran las tareas acordes a las historias de usuario, donde la Tabla \ref{tab:tareas7} ilustra el registro de las tareas resultantes de la iteración.
+
+\begin{table}[H]
+  \centering
+  \caption{Tareas asociadas a la Iteración 7}
+  \label{tab:tareas7}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|l|l|p{7.2cm}|}
+    \hline
+    \textbf{Historia} & \textbf{Tarea} & \textbf{Descripción} \\
+    \hline
+    HU21 & T0001 & Permitir reagendar y cancelar una cita \\ \hline
+    HU21 & T0002 & Revisar el horario solo cuando el cambio puede chocar \\ \hline
+    HU22 & T0001 & Crear diagrama de secuencia \\ \hline
+    HU22 & T0002 & Crear el registro de mensajes y su clave única \\ \hline
+    HU22 & T0003 & Buscar las citas que necesitan recordatorio \\ \hline
+    HU22 & T0004 & Crear el programador interno y la ruta para uno externo \\ \hline
+    HU22 & T0005 & Enviar por la API de WhatsApp o dejar el enlace manual \\ \hline
+    HU23 & T0001 & Crear diagrama de secuencia \\ \hline
+    HU23 & T0002 & Decidir qué aviso corresponde a cada cambio de la cita \\ \hline
+    HU23 & T0003 & Contar en pantalla qué pasó con el aviso \\ \hline
+    HU28 & T0001 & Crear la configuración de avisos del artista \\ \hline
+    HU28 & T0002 & Crear la vista con los interruptores y la vista previa \\ \hline
+    HU29 & T0001 & Verificar el registro de clientes contra su criterio \\ \hline
+    HU31 & T0001 & Crear diagrama de secuencia \\ \hline
+    HU31 & T0002 & Crear las tablas de estudio y el rol de administrador \\ \hline
+    HU31 & T0003 & Crear la ruta de registro de estudios \\ \hline
+    HU31 & T0004 & Crear el panel de administración \\ \hline
+    HU21--HU23, HU28, HU31 & T0009 & Creación y testeo de pruebas unitarias \\ \hline
+    HU21--HU23, HU28, HU31 & T0010 & Creación y uso de sistema de pruebas \\ \hline
+  \end{tabular}
+\end{table}
+
+\vspace{0.3cm}
+\tituloparpegado{Diseño}
+En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. Las Figuras \ref{fig:secrecordatorio}, \ref{fig:secavisocambio} y \ref{fig:secestudio} ilustran el envío automático del recordatorio de 24 horas, el aviso al cliente cuando su cita cambia y el registro de un estudio nuevo en la plataforma.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-55-secuencia-recordatorio}
+  \caption[Diagrama de secuencia Recordatorio]{Diagrama de secuencia HU22: recordatorio automático 24 horas antes de la cita.}
+  \label{fig:secrecordatorio}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-56-secuencia-aviso-cambio}
+  \caption[Diagrama de secuencia Aviso de Cambio]{Diagrama de secuencia HU21 y HU23: aviso al cliente al cancelar o cambiar la hora.}
+  \label{fig:secavisocambio}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-57-secuencia-estudio}
+  \caption[Diagrama de secuencia Registrar Estudio]{Diagrama de secuencia HU31: registro de un estudio con su primer tatuador.}
+  \label{fig:secestudio}
+\end{figure}
+
+\tituloparpegado{Implementación}
+En esta etapa se desarrolla el backend y el frontend de las historias asignadas. La HU21 se apoya en la agenda de la iteración anterior: reagendar y cancelar son cambios de estado y de hora sobre una cita existente. Lo que hubo que afinar es cuándo corresponde volver a revisar el horario. Revisarlo en cada cambio bloqueaba operaciones legítimas —corregir el monto o las notas de una cita que, por datos antiguos, ya se solapaba con otra—, así que la revisión ocurre solo cuando el cambio puede crear un cruce: mover la hora, alargar la duración o reactivar una cita cancelada. Editar el monto, las notas o el estado de pago nunca se bloquea.
+
+El resto de la iteración gira en torno a un problema que no es técnico sino de costos. La API oficial de WhatsApp cobra por mensaje y solo acepta plantillas aprobadas por Meta, y un estudio pequeño no siempre puede pagarla. Por eso cada mensaje al cliente existe en \textbf{dos formas que salen de las mismas frases}: los parámetros de su plantilla aprobada, para cuando la API está configurada, y el texto equivalente para un enlace de WhatsApp que el artista abre con un toque. El cliente recibe lo mismo por cualquiera de las dos vías, y el camino manual —gratis y siempre disponible— es el que funciona sin configurar nada.
+
+El envío se reclama antes de mandarse, como muestra la Figura \ref{fig:implreclamo}. El registro de mensajes tiene una restricción de unicidad por artista y clave de deduplicación, de modo que si dos corridas del programador coinciden, la segunda no escribe al cliente de nuevo: la base rechaza el reclamo y el envío no ocurre. Es la misma idea del sello de la Iteración 5, aplicada a un mensaje en lugar de a un descuento de stock, y responde a que escribirle dos veces al mismo cliente es un error visible y molesto para quien lo recibe.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{fig-4-58-implementacion-reclamo}
+  \caption[Reclamo del envío]{El envío se reclama antes de mandarse, y sin teléfono válido se avisa al artista.}
+  \label{fig:implreclamo}
+\end{figure}
+
+La HU22 tiene además una restricción del entorno: el servidor gratuito en el que está publicada la plataforma se duerme tras unos minutos sin visitas, de modo que un programador interno no basta por sí solo. La solución fue tener los dos caminos: un programador que corre mientras el servidor está despierto y una ruta que un servicio externo llama cada diez minutos, que de paso lo mantiene despierto. Las dos vías pueden coincidir sin consecuencias, precisamente por el reclamo previo del envío.
+
+La consulta que decide a qué citas les toca recordatorio está en la Figura \ref{fig:implrecordatorio}, y sus condiciones salieron de pensar qué mensajes serían absurdos de recibir. Una cita entra en la ventana cuando faltan entre 1 y 24 horas: menos de una hora antes ya no sirve de recordatorio. Tampoco se le escribe a alguien que acaba de reservar hace unos minutos, ni a los clientes de un artista que apagó los recordatorios. Y la clave de deduplicación incluye la hora de la cita, así que reagendar genera un recordatorio nuevo para la hora nueva en lugar de quedar silenciado por el anterior.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{fig-4-59-implementacion-recordatorio}
+  \caption[Citas con recordatorio pendiente]{Ventana de 24 horas y clave de deduplicación del recordatorio.}
+  \label{fig:implrecordatorio}
+\end{figure}
+
+La HU23 no agrega una pantalla nueva: el aviso sale del mismo cambio que el tatuador ya hace en la agenda. Al guardar, el sistema compara cómo estaba la cita con cómo quedó y deduce qué corresponde —cancelación, cambio de hora o cuidados posteriores—, con una regla que vale para los tres: solo se avisa de citas futuras, porque escribirle a alguien sobre algo que ya ocurrió no tiene sentido. La respuesta del servidor incluye qué pasó con el aviso, de manera que la pantalla puede decirlo en lugar de dejar al artista con la duda de si el cliente se enteró.
+
+La HU28 convierte en configuración lo que de otro modo habría quedado fijo en el código. El artista decide qué mensajes quiere, y edita con sus palabras la nota del recordatorio y las indicaciones de cuidados posteriores, que son justamente las dos partes del mensaje donde cada estudio tiene su criterio. La pantalla muestra una vista previa de cómo le llegará el texto al cliente, con las frases fijas y las suyas ya combinadas.
+
+Como canal adicional se dejó implementada la posibilidad de que el artista vincule su propio WhatsApp como dispositivo vinculado, de modo que los mensajes salgan gratis desde su número. No es una vía oficial: contraviene los términos de servicio de WhatsApp y puede costarle el bloqueo del número. Por eso viene apagada, exige una variable de entorno en el servidor y que el artista acepte explícitamente el riesgo, y el orden de preferencia la deja siempre después de la API oficial. Se documentó así a propósito: es una alternativa real para un estudio que no puede pagar la API, pero no es la recomendada.
+
+La HU31 inaugura la administración de la plataforma. Aparece la noción de estudio, que agrupa cuentas de tatuadores, y el rol de administrador. Dos decisiones vale la pena dejar escritas. La primera es que el rol se lee de la base de datos en cada petición y no del token, de modo que degradar a alguien tiene efecto inmediato y no cuando expire su sesión. La segunda es que la contraseña del primer tatuador se genera en el servidor, se devuelve una sola vez en la respuesta y de ella solo se guarda el hash: el administrador se la entrega al tatuador, que está obligado a cambiarla al entrar. El estudio y su primer tatuador se crean en una misma transacción, para que no pueda quedar un estudio sin nadie dentro.
+
+\tituloparpegado{Resultado del desarrollo}
+Como resultado de esta iteración, el cliente recibe su recordatorio sin que el tatuador tenga que acordarse, se entera cuando su cita cambia, y el tatuador puede escribir con sus propias palabras lo que se le dice. Además, la plataforma deja de ser de un solo estudio. Las Figuras \ref{fig:vistaconfiguracion} y \ref{fig:vistaadmin} presentan las vistas desarrolladas durante esta etapa.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-60-vista-configuracion}
+  \caption[Vista Configuración]{Vista ``Configuración'': interruptores de cada mensaje, textos editables y vista previa de lo que recibirá el cliente.}
+  \label{fig:vistaconfiguracion}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-61-vista-admin-estudios}
+  \caption[Vista Administración]{Vista ``Administración'': registro de un estudio nuevo con su plan y su primer tatuador.}
+  \label{fig:vistaadmin}
+\end{figure}
+
+\tituloparpegado{Sistema de pruebas}
+Después de la implementación se lleva a cabo una fase de pruebas para esta iteración, evaluando los siguientes casos:
+
+\begin{itemize}
+  \item Cambiar la hora de una cita a un horario libre y a uno ocupado.
+  \item Corregir el monto de una cita sin tocar su horario.
+  \item Cancelar una cita futura y una que ya pasó.
+  \item Esperar el recordatorio de una cita agendada para el día siguiente.
+  \item Reagendar una cita que ya recibió su recordatorio.
+  \item Hacer correr dos veces seguidas el envío de recordatorios.
+  \item Escribirle a un cliente cuyo teléfono no es un celular válido.
+  \item Apagar los recordatorios y volver a correr el envío.
+  \item Editar la nota del recordatorio y revisar la vista previa.
+  \item Registrar un estudio nuevo con un correo que ya tiene cuenta.
+\end{itemize}
+
+\vspace{\parskip}
+\titulopar{Pruebas unitarias}
+Al finalizar el desarrollo se crean las pruebas unitarias correspondientes a las tareas definidas en el Inicio de Iteración, con Jest y Supertest y con la base de datos reemplazada por dobles de prueba. La Tabla \ref{tab:pruebas7} detalla las pruebas implementadas.
+
+\begin{table}[H]
+  \centering
+  \caption{Pruebas unitarias implementadas en la Iteración 7}
+  \label{tab:pruebas7}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|l|p{3.4cm}|p{6.6cm}|c|}
+    \hline
+    \textbf{ID} & \textbf{Función evaluada} & \textbf{Objetivo} & \textbf{Tests} \\
+    \hline
+    PU-32 & \texttt{deliver()} & Validar el reclamo previo del envío, la elección de canal y el aviso cuando falta el teléfono. & 19 \\ \hline
+    PU-33 & \texttt{decideKind()}, \texttt{afterUpdate()} & Comprobar qué aviso corresponde a cada cambio y que una cita pasada no avisa. & 24 \\ \hline
+    PU-34 & \texttt{dueFor\newline Reminder()},\newline \texttt{runReminders()} & Verificar la ventana de 24 horas, los interruptores del artista y que no se repite el mensaje. & 14 \\ \hline
+    PU-35 & \texttt{sendTemplate()},\newline \texttt{normalize\newline Phone()} & Validar los parámetros de la plantilla, el rechazo de números que no son celulares y el enlace manual. & 35 \\ \hline
+    PU-36 & \texttt{/notifications}, \texttt{/notification-\newline settings} & Comprobar la campanita, los interruptores y que los valores por defecto coinciden con el esquema. & 40 \\ \hline
+    PU-37 & \texttt{notify()}, \texttt{/push} & Verificar que el aviso nunca interrumpe la operación y que un endpoint muerto se borra solo. & 19 \\ \hline
+    PU-38 & \texttt{PATCH /sessions/:id} & Validar el reagendamiento y la cancelación, y que un cambio inocuo no revisa el horario. & 10 \\ \hline
+    PU-39 & \texttt{POST /admin/\newline studios} & Comprobar el registro del estudio con su primer tatuador, el correo repetido y el acceso de quien no es administrador. & 6 \\ \hline
+  \end{tabular}
+\end{table}
+
+En total, durante esta iteración se ejecutaron 167 pruebas unitarias repartidas en trece archivos de prueba. Diez de esos archivos son propios de los mensajes y los avisos y reúnen 151; las otras 16 viven en los archivos de la agenda y de la administración, porque evalúan rutas que esta iteración comparte con las vecinas.
+
+\titulopar{Resultados obtenidos}
+La ejecución de las pruebas evidenció un funcionamiento correcto del reagendamiento, de los recordatorios y de los avisos al cliente. Se comprobó especialmente que un mensaje reclamado no se vuelve a enviar aunque la corrida se repita; que un cliente sin teléfono válido no rompe el envío, sino que deja al artista un aviso para corregir su ficha; que reagendar una cita genera un recordatorio nuevo en lugar de quedar silenciado por el anterior; y que un fallo al avisar nunca deshace el cambio en la agenda. El resultado general fue satisfactorio, con aprobación completa de los casos evaluados, como resume la Tabla \ref{tab:resultado7} y muestra la Figura \ref{fig:resultadopruebas7}.
+
+\begin{table}[H]
+  \centering
+  \caption{Resultado de ejecución de pruebas unitarias de la Iteración 7}
+  \label{tab:resultado7}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|c|c|c|}
+    \hline
+    \textbf{Archivos evaluados} & \textbf{Tests ejecutados} & \textbf{Resultado} \\
+    \hline
+    13 & 167 & 167 aprobados \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{fig-4-62-resultado-pruebas-avisos}
+  \caption[Resultado pruebas unitarias Iteración 7]{Ejecución de los diez archivos propios de los mensajes y los avisos, que reúnen 151 de las 167 pruebas de la iteración.}
+  \label{fig:resultadopruebas7}
+\end{figure}
+
+\vspace{\parskip}
+\tituloparpegado{Retrospectiva}
+Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precisas y se identifican posibles mejoras en el proceso de desarrollo. Fue la iteración más larga del proyecto y la que más se desvió de lo estimado, aunque no por la programación. La HU22 estaba escrita como ``enviar un WhatsApp 24 horas antes'', y recién al implementarla apareció que la API oficial es de pago, exige plantillas aprobadas por Meta y tarda días en aprobarlas. Rehacer el diseño para que el mismo mensaje pudiera salir por la API o por un enlace manual costó más que escribir el envío, pero es lo que permite que la historia funcione en un estudio que no paga la API, que era el caso del estudio real del proyecto.
+
+Quedaron dos aprendizajes. El primero es que una historia que depende de un servicio externo hay que investigarla antes de estimarla: lo que se estimó en cinco puntos era en realidad un problema de costos y de plazos de aprobación ajenos al desarrollo. El segundo tiene que ver con la responsabilidad frente al usuario final: el canal gratuito que vincula el WhatsApp del propio artista es técnicamente la mejor opción y la que más se usaría, y aun así se dejó apagada y marcada como riesgosa, porque el costo de un bloqueo lo pagaría el tatuador y no el sistema.
 %======================================================================
 %  GLOSARIO
 %======================================================================

@@ -92,3 +92,20 @@ fig-4-53-vista-cliente-historial.png  (width=\textwidth)  vista /clientes/:id
 fig-4-54-resultado-pruebas-agenda.png  (width=0.9\textwidth)  salida real de
     "npx jest agenda sessionOverlap" (64 pruebas, 2 archivos; 40 de esta
     iteración).
+
+Iteración 7 (recordatorios, avisos al cliente y estudios). Diagramas y
+recortes de código generados con node; capturas de la aplicación en Docker.
+fig-4-55-secuencia-recordatorio.png  (width=\textwidth)
+fig-4-56-secuencia-aviso-cambio.png  (width=\textwidth)
+fig-4-57-secuencia-estudio.png  (width=\textwidth)
+fig-4-58-implementacion-reclamo.png  (width=0.85\textwidth)
+fig-4-59-implementacion-recordatorio.png  (width=0.85\textwidth)
+fig-4-60-vista-configuracion.png  (width=\textwidth)  vista /configuracion
+    con los interruptores, los textos editables y la vista previa.
+fig-4-61-vista-admin-estudios.png  (width=\textwidth)  vista /admin, pestaña
+    Estudios, con el formulario de estudio nuevo. Para tomarla se promovió a
+    administrador la cuenta de demostración en la base local y después se
+    devolvió a tatuador.
+fig-4-62-resultado-pruebas-avisos.png  (width=0.95\textwidth)  salida real de
+    los diez archivos de avisos y mensajes (151 pruebas; la iteración suma
+    167 en trece archivos).
