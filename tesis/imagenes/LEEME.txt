@@ -109,3 +109,17 @@ fig-4-61-vista-admin-estudios.png  (width=\textwidth)  vista /admin, pestaña
 fig-4-62-resultado-pruebas-avisos.png  (width=0.95\textwidth)  salida real de
     los diez archivos de avisos y mensajes (151 pruebas; la iteración suma
     167 en trece archivos).
+
+Iteración 8 (previsualización 3D). Diagramas y recortes de código generados
+con node; capturas de la aplicación corriendo en Docker (el visor se maneja
+desde el protocolo DevTools: se elige la pieza y se toca el modelo).
+fig-4-63-secuencia-colocar.png  (width=\textwidth)
+fig-4-64-secuencia-guardar-escena.png  (width=\textwidth)
+fig-4-65-implementacion-envolvente.png  (width=0.9\textwidth)
+fig-4-66-implementacion-parche.png  (width=0.9\textwidth)
+fig-4-67-vista-modelos.png  (width=\textwidth)  vista /previsualizacion con
+    el cuerpo completo y el catálogo de piezas.
+fig-4-68-vista-calca.png  (width=\textwidth)  el boceto proyectado sobre el
+    antebrazo, con el tamaño en centímetros.
+Esta iteración no tiene figura de pruebas unitarias: no se escribieron (ver
+el Sistema de pruebas de la sección).

@@ -2205,6 +2205,163 @@ La ejecución de las pruebas evidenció un funcionamiento correcto del reagendam
 Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precisas y se identifican posibles mejoras en el proceso de desarrollo. Fue la iteración más larga del proyecto y la que más se desvió de lo estimado, aunque no por la programación. La HU22 estaba escrita como ``enviar un WhatsApp 24 horas antes'', y recién al implementarla apareció que la API oficial es de pago, exige plantillas aprobadas por Meta y tarda días en aprobarlas. Rehacer el diseño para que el mismo mensaje pudiera salir por la API o por un enlace manual costó más que escribir el envío, pero es lo que permite que la historia funcione en un estudio que no paga la API, que era el caso del estudio real del proyecto.
 
 Quedaron dos aprendizajes. El primero es que una historia que depende de un servicio externo hay que investigarla antes de estimarla: lo que se estimó en cinco puntos era en realidad un problema de costos y de plazos de aprobación ajenos al desarrollo. El segundo tiene que ver con la responsabilidad frente al usuario final: el canal gratuito que vincula el WhatsApp del propio artista es técnicamente la mejor opción y la que más se usaría, y aun así se dejó apagada y marcada como riesgosa, porque el costo de un bloqueo lo pagaría el tatuador y no el sistema.
+\subsection{Iteración 8}
+
+En esta iteración se implementan las historias de usuario HU08, HU09 y HU10, que son la previsualización del tatuaje sobre un modelo anatómico en tres dimensiones. Es la funcionalidad que distingue a la plataforma de una agenda con inventario, y también la más cara del proyecto: 21 de los puntos de esfuerzo estimados, repartidos en solo tres historias. Se dejó para esta altura del desarrollo a propósito, porque necesita el boceto de la Iteración 3 y porque la medida que de aquí sale es la que alimenta la cotización de la Iteración 5.
+
+\vspace{0.3cm}
+\tituloparpegado{Historias de usuario asociadas}
+A continuación se listan las historias de usuario asignadas a esta iteración en la Tabla \ref{tab:iteraciones}, cuya estimación de esfuerzo suma 21 puntos según la Tabla \ref{tab:prioridad}.
+
+\begin{itemize}
+  \item \textbf{HU08:} como tatuador quiero elegir entre distintos modelos anatómicos 3D ya integrados, para utilizarlos como lienzo de previsualización.
+  \item \textbf{HU09:} como tatuador quiero proyectar un boceto 2D (PNG) sobre el modelo 3D, para evaluar cómo se adapta a la curvatura de la piel.
+  \item \textbf{HU10:} como tatuador quiero escalar, mover y rotar el diseño sobre el modelo 3D, para definir la posición exacta.
+\end{itemize}
+
+\vspace{0.3cm}
+\tituloparpegado{Inicio de Iteración}
+En esta etapa se crean y registran las tareas acordes a las historias de usuario, donde la Tabla \ref{tab:tareas8} ilustra el registro de las tareas resultantes de la iteración.
+
+\begin{table}[H]
+  \centering
+  \caption{Tareas asociadas a la Iteración 8}
+  \label{tab:tareas8}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|l|l|p{7.2cm}|}
+    \hline
+    \textbf{Historia} & \textbf{Tarea} & \textbf{Descripción} \\
+    \hline
+    HU08 & T0001 & Crear diagrama de secuencia \\ \hline
+    HU08 & T0002 & Preparar los catorce modelos y publicarlos optimizados \\ \hline
+    HU08 & T0003 & Cargar el modelo y escalarlo a la altura humana real \\ \hline
+    HU08 & T0004 & Crear el selector de cuerpo, pieza y encuadre \\ \hline
+    HU09 & T0001 & Proyectar el boceto sobre la piel donde se toque \\ \hline
+    HU09 & T0002 & Descartar los triángulos que no miran al proyector \\ \hline
+    HU09 & T0003 & Envolver el dibujo alrededor del miembro \\ \hline
+    HU09 & T0004 & Medir la curvatura de la piel bajo la calca \\ \hline
+    HU10 & T0001 & Crear diagrama de secuencia \\ \hline
+    HU10 & T0002 & Arrastrar, escalar y girar la calca \\ \hline
+    HU10 & T0003 & Recortar la vecindad de la malla para el arrastre \\ \hline
+    HU10 & T0004 & Manejar los gestos de dos dedos \\ \hline
+    HU10 & T0005 & Guardar la escena y copiar la medida al proyecto \\ \hline
+    HU08--HU10 & T0010 & Creación y uso de sistema de pruebas \\ \hline
+  \end{tabular}
+\end{table}
+
+\vspace{0.3cm}
+\tituloparpegado{Diseño}
+En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. Las Figuras \ref{fig:seccolocar} y \ref{fig:secguardarescena} ilustran la carga de un modelo con la colocación del boceto sobre la piel y el guardado de la escena con su medida.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-63-secuencia-colocar}
+  \caption[Diagrama de secuencia Colocar Tatuaje]{Diagrama de secuencia HU08 y HU09: carga del modelo y proyección del boceto sobre la piel.}
+  \label{fig:seccolocar}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-64-secuencia-guardar-escena}
+  \caption[Diagrama de secuencia Guardar Escena]{Diagrama de secuencia HU10: ajuste de la calca y guardado de la escena con su medida.}
+  \label{fig:secguardarescena}
+\end{figure}
+
+\tituloparpegado{Implementación}
+En esta etapa se desarrolla el visor y el guardado de las escenas. A diferencia de las iteraciones anteriores, el peso del trabajo está en el frontend: el servidor solo guarda la escena, y todo lo que define si la previsualización sirve o no ocurre en el navegador, con three.js.
+
+La HU08 se resolvió con catorce modelos: dos cuerpos por cada uno de siete piezas, que son el cuerpo completo, el torso, los dos brazos, las dos piernas y la cabeza. Cada pieza es un modelo suelto y no un recorte del cuerpo completo, de modo que elegir ``brazo izquierdo'' muestra ese brazo llenando la vista. Al cargarlo, el visor lo centra y lo escala a una altura humana real, y esa normalización no es solo estética: es lo que hace que el tamaño de la calca esté en centímetros de piel de verdad, que son los que después recibe la cotización de la Iteración 5. Los modelos se publican optimizados y con la versión en el nombre del archivo, porque el servidor los entrega con caché de un año y cambiar uno sin cambiarle el nombre dejaría a los usuarios viendo el anterior.
+
+La HU09 pega el boceto sobre la malla con una calca proyectada, una técnica que recorta la geometría de la piel con una caja y le aplica la imagen. Esa técnica trae dos límites, y los dos se notaban de inmediato sobre un brazo. El primero es que la caja atraviesa el miembro, de modo que también recortaba la cara de atrás y el dibujo aparecía repetido al otro lado del brazo; se resolvió descartando los triángulos que no miran hacia el proyector. El segundo es más de fondo: una proyección plana no pasa de la silueta, porque reparte la imagen según su sombra, que se agolpa al llegar al borde del brazo. El dibujo se cortaba justo donde el tatuaje tendría que empezar a envolver. La solución fue dejar de proyectar en plano cuando la piel se curva lo suficiente: se proyecta una caja que abarca el anillo completo del miembro y las coordenadas de textura se recalculan por ángulo alrededor de su eje, como muestra la Figura \ref{fig:implenvolvente}. Así la imagen avanza a paso constante sobre la piel y rodea la muñeca en vez de cortarse, y cuesta una sola proyección, igual que antes.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig-4-65-implementacion-envolvente}
+  \caption[Envolvente de la calca]{Decisión de envolver y anillo de proyección, que se deduce en cada reconstrucción.}
+  \label{fig:implenvolvente}
+\end{figure}
+
+Para saber cuánto se curva la piel hubo que cambiar de método a mitad de camino. La primera versión miraba cuánto giran las normales de la malla, que es lo directo; el problema es que estos modelos vienen con las normales suavizadas, y esa medida daba 7,4 centímetros de radio en un antebrazo cuya medida real es la mitad. La versión definitiva ajusta una circunferencia que pase por tres puntos de la superficie, es decir, mide la piel en lugar de preguntarle al sombreado. El muestreo además se va cerrando progresivamente, porque en una muñeca delgada un vano ancho cae fuera de la piel y no devuelve nada.
+
+La HU10 es la historia donde más se nota la diferencia entre ``funciona'' y ``se siente bien''. Arrastrar la calca exige rehacer su geometría en cada fotograma, y las primeras versiones hacían tres cosas que lo arruinaban. La primera era volver a medir la curvatura en cada reconstrucción: el radio salía algo distinto cada vez y el dibujo temblaba, así que ahora se congela mientras dura el arrastre y se vuelve a medir al soltar. La segunda era guardar el centro del cilindro junto con el radio; al arrastrar, la calca se iba pero el anillo de proyección se quedaba clavado donde se había medido, y la imagen se movía de forma errática hasta desaparecer. Ahora el centro no se guarda: se deduce en cada reconstrucción de dónde está la calca en ese momento. La tercera era recorrer la malla entera para recortar la calca; ahora se trabaja sobre un trozo de malla alrededor del tatuaje, como muestra la Figura \ref{fig:implparche}, salvo que ese trozo sea tan grande que no compense.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig-4-66-implementacion-parche}
+  \caption[Recorte de la vecindad de la malla]{Recorte de la vecindad de la malla, con los tiempos que lo justifican.}
+  \label{fig:implparche}
+\end{figure}
+
+El giro tuvo su propio ajuste. Al arrastrar no se rehace la orientación de la calca desde la normal nueva, porque eso perdía el giro que el artista le había dado; en su lugar se aplica la rotación mínima que lleva de la normal anterior a la nueva, que adapta la calca a la piel conservando su inclinación, y ese origen se vuelve a anclar cada cuarto de vuelta para que no haya un punto ambiguo en el que el dibujo pegue un volantazo. La normal que se usa es la interpolada entre vértices y no la de la cara, porque con esta última la calca saltaba de triángulo en triángulo sobre un brazo de pocos polígonos.
+
+En los gestos táctiles la decisión fue hacerse cargo de los dos dedos en lugar de dejárselos a los controles de cámara, que con un pellizco hacen acercamiento y desplazamiento a la vez y terminaban sacando la cámara fuera del cuerpo. Ahora, con dos dedos sobre el tatuaje elegido, separarlos lo agranda y girarlos lo rota, con una pequeña holgura para que no se tuerza al escalar; en cualquier otro caso el gesto es de cámara. El tope del deslizador de tamaño es fijo por zona del cuerpo: medirlo en vivo contra el modelo daba un tope que cambiaba con cada giro, y la escala se movía bajo el dedo. También se eliminó el control de opacidad que traía la primera versión, sencillamente porque un tatuaje no es translúcido.
+
+Por último, la escena se guarda en el servidor como una lista de colocaciones saneada —solo los campos conocidos, para que nadie pueda inflar el documento con datos arbitrarios— y al guardarla se copia además la medida del tatuaje al proyecto. Esa copia no es redundante: el enlace entre proyecto y escena se borra si la escena desaparece, y sin la copia se perdería el único lugar donde está escrito de qué porte es el tatuaje.
+
+\tituloparpegado{Resultado del desarrollo}
+Como resultado de esta iteración, el tatuador puede mostrarle al cliente cómo se verá el diseño sobre su cuerpo antes de tatuarlo, ajustarlo hasta dejarlo donde va, y dejar esa decisión guardada junto al proyecto. Las Figuras \ref{fig:vistamodelos} y \ref{fig:vistacalca} presentan la vista desarrollada durante esta etapa.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-67-vista-modelos}
+  \caption[Vista Previsualización 3D]{Vista ``Previsualización 3D'': catálogo de cuerpos, piezas y encuadres, con el boceto listo para colocar.}
+  \label{fig:vistamodelos}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-68-vista-calca}
+  \caption[Tatuaje colocado sobre el antebrazo]{El boceto proyectado sobre el antebrazo, con su tamaño en centímetros y su giro sobre el lienzo.}
+  \label{fig:vistacalca}
+\end{figure}
+
+\tituloparpegado{Sistema de pruebas}
+Esta iteración se apartó del esquema de pruebas de las demás, y conviene dejarlo dicho con claridad: \textbf{no se escribieron pruebas unitarias automatizadas para el visor}. La razón es que lo que hay que verificar aquí es si el dibujo se ve bien sobre la piel, y eso no lo responde una aserción sobre un valor devuelto: una proyección que deja el tatuaje duplicado al otro lado del brazo es, para cualquier prueba automatizada razonable, una geometría perfectamente válida. Las pruebas se hicieron entonces de dos maneras: recorriendo a mano una lista de casos sobre los modelos reales, y midiendo el rendimiento en el navegador, que es lo único de esta iteración que sí admite un número objetivo.
+
+Los casos recorridos a mano fueron los siguientes:
+
+\begin{itemize}
+  \item Colocar el boceto en el antebrazo, el torso, la pierna y la cabeza.
+  \item Girar el modelo y comprobar que el dibujo no aparece duplicado atrás.
+  \item Agrandar el tatuaje hasta que tenga que envolver la muñeca.
+  \item Arrastrar la calca desde el codo hasta la muñeca sin soltarla.
+  \item Sacar el cursor del lienzo en medio de un arrastre.
+  \item Girar el tatuaje media vuelta y seguir arrastrándolo.
+  \item Escalar y rotar con dos dedos sobre una pantalla táctil.
+  \item Acercar la cámara con dos dedos fuera del tatuaje.
+  \item Guardar la escena y volver a abrirla desde el proyecto.
+  \item Cotizar el proyecto y comprobar que el tamaño llega desde la escena.
+\end{itemize}
+
+\titulopar{Resultados obtenidos}
+Los problemas que estos casos dejaron en evidencia son los que se describen en la implementación: el dibujo duplicado en la cara opuesta, el corte en la silueta, el temblor al arrastrar y el salto del tatuaje al volver a entrar al lienzo. Todos se corrigieron dentro de la iteración.
+
+La medición de rendimiento se hizo en el navegador, sobre el modelo de brazo de 40.000 triángulos, y es la que resume la Tabla \ref{tab:rendimiento8}. El punto de partida era un arrastre a 24 fotogramas por segundo, con un tirón de más de dos décimas de segundo justo al agarrar el tatuaje; la versión final sostiene 60 fotogramas por segundo de mediana durante todo el arrastre, sin ningún fotograma por encima del presupuesto.
+
+\begin{table}[H]
+  \centering
+  \caption{Medición de rendimiento del visor, antes y después}
+  \label{tab:rendimiento8}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|p{6.2cm}|p{3.6cm}|p{3.6cm}|}
+    \hline
+    \textbf{Medición} & \textbf{Antes} & \textbf{Después} \\
+    \hline
+    Reconstruir la calca & 41 ms (malla entera) & 18 ms (vecindad) \\ \hline
+    Primer recorte al agarrar el tatuaje & 212 ms & 32 ms \\ \hline
+    Arrastre sostenido & 24 fps & 60 fps de mediana \\ \hline
+  \end{tabular}
+\end{table}
+
+Queda como deuda reconocida que las rutas de guardado de escenas sí podrían cubrirse con pruebas unitarias como el resto del backend —validan datos y filtran por dueño igual que las demás—, y que esta iteración no las dejó escritas.
+
+\vspace{\parskip}
+\tituloparpegado{Retrospectiva}
+Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precisas y se identifican posibles mejoras en el proceso de desarrollo. Las tres historias se completaron, pero fue la iteración con más retrocesos del proyecto: varias piezas se escribieron, se probaron sobre el modelo y hubo que rehacerlas con otro enfoque. La estimación, que ya era la más alta del backlog, igual se quedó corta.
+
+El aprendizaje principal es metodológico. En las iteraciones anteriores, cuando algo no funcionaba, bastaba leer el código para ver por qué; aquí los problemas eran de geometría y solo se entendían mirando el resultado y midiendo. La medida de la curvatura es el mejor ejemplo: el método inicial era el razonable y el código estaba bien escrito, pero daba el doble del radio real, y eso no se descubre revisando el código sino comparando su resultado con el antebrazo que se tiene delante. Lo mismo vale para el rendimiento: el arrastre ``se sentía raro'' mucho antes de que hubiera un número que lo explicara, y recién al medir los fotogramas quedó claro dónde se iba el tiempo.
+
+El segundo aprendizaje es sobre el alcance de las pruebas automatizadas. Sirven muy bien para reglas de negocio —un stock que no puede quedar negativo, un mensaje que no se envía dos veces— y muy mal para decidir si una imagen se ve bien. Reconocerlo a tiempo evitó gastar la iteración escribiendo pruebas que habrían pasado igual con el dibujo duplicado en la espalda.
 %======================================================================
 %  GLOSARIO
 %======================================================================
