@@ -75,3 +75,20 @@ fig-4-44-vista-proyecto-costo.png  (width=\textwidth)  vista /proyectos/:id
     con el panel "Costo de insumos" y su cotización guardada.
 fig-4-45-resultado-pruebas-cotizaciones.png  (width=0.9\textwidth)  salida
     real de "npx jest quoteEngine colorMatch quotes" (90 pruebas, 3 archivos).
+
+Iteración 6 (agenda, historial y puntaje). Diagramas y recortes de código
+generados con node; capturas de la aplicación corriendo en Docker.
+fig-4-46-secuencia-agendar.png  (width=\textwidth)
+fig-4-47-secuencia-foto-sesion.png  (width=\textwidth)
+fig-4-48-secuencia-calificar.png  (width=\textwidth)
+fig-4-49-implementacion-choque.png  (width=0.85\textwidth)
+fig-4-50-implementacion-promedio.png  (width=0.9\textwidth)
+fig-4-51-vista-citas.png  (width=\textwidth)  vista /citas con el calendario
+    del mes y el detalle del día elegido.
+fig-4-52-vista-clientes.png  (width=\textwidth)  vista /clientes con el
+    marcador por puntaje y los filtros de responsabilidad.
+fig-4-53-vista-cliente-historial.png  (width=\textwidth)  vista /clientes/:id
+    con el historial de proyectos y el estado de los pagos.
+fig-4-54-resultado-pruebas-agenda.png  (width=0.9\textwidth)  salida real de
+    "npx jest agenda sessionOverlap" (64 pruebas, 2 archivos; 40 de esta
+    iteración).

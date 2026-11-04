@@ -1807,6 +1807,205 @@ La ejecución de las pruebas evidenció un funcionamiento correcto del cálculo,
 Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precisas y se identifican posibles mejoras en el proceso de desarrollo. Las tres historias implementadas se completaron, pero la HU14 tomó bastante más de lo estimado: calcular el costo era la parte fácil, y lo que costó fue el reparto de las tintas por color, que hubo que rehacer después de descubrir que un tatuaje en negro salía cotizando todas las tintas del inventario. La HU16, en cambio, resultó más barata de lo previsto porque el descuento se apoyó en el ajuste de stock que ya existía de la Iteración 4. La HU27 se descartó antes de programarla, lo que liberó sus dos puntos de esfuerzo.
 
 Quedaron dos aprendizajes. El primero es que un error de cálculo no se delata solo: la pantalla muestra una cifra con el mismo aspecto esté bien o mal, y fueron las pruebas sobre el motor las que dejaron en evidencia el problema del reparto, no el uso de la aplicación. El segundo es que conviene revisar con el usuario si una historia describe su trabajo real antes de programarla; la HU27 estaba escrita desde una idea razonable de cómo debería funcionar un calendario, pero no desde cómo este estudio toma sus citas.
+\subsection{Iteración 6}
+
+En esta iteración se implementan las historias de usuario HU17, HU18, HU19, HU20, HU24 y HU30, que en conjunto forman la agenda del estudio: a quién se atiende, qué se le está tatuando, cuándo, cómo quedó y qué tan cumplidor resultó. Es la parte de la plataforma que reemplaza directamente al cuaderno y a las conversaciones de Instagram con las que el tatuador llevaba sus citas hasta ahora.
+
+\vspace{0.3cm}
+\tituloparpegado{Historias de usuario asociadas}
+A continuación se listan las historias de usuario asignadas a esta iteración en la Tabla \ref{tab:iteraciones}, cuya estimación de esfuerzo suma 20 puntos según la Tabla \ref{tab:prioridad}.
+
+\begin{itemize}
+  \item \textbf{HU17:} como tatuador quiero agendar a un cliente especificando fecha, hora, número de contacto y precio del proyecto, para organizar mis tiempos.
+  \item \textbf{HU18:} como tatuador quiero ver mis citas en un formato de calendario mensual y semanal, para organizar visualmente mi jornada.
+  \item \textbf{HU19:} como tatuador quiero poder crear distintos proyectos para clientes específicos junto con sus sesiones.
+  \item \textbf{HU20:} como tatuador quiero poder subir una foto de cada sesión para ver los progresos del proyecto.
+  \item \textbf{HU24:} como tatuador quiero ver el historial de todas las sesiones pasadas y futuras asociadas a un cliente, para hacer seguimiento de piezas grandes.
+  \item \textbf{HU30:} como tatuador quiero poder visualizar un marcador de todos mis clientes y asignarles puntaje para saber su responsabilidad de llegada y poder filtrarlos de acuerdo a ello.
+\end{itemize}
+
+\vspace{0.3cm}
+\tituloparpegado{Inicio de Iteración}
+En esta etapa se crean y registran las tareas acordes a las historias de usuario, donde la Tabla \ref{tab:tareas6} ilustra el registro de las tareas resultantes de la iteración.
+
+\begin{table}[H]
+  \centering
+  \caption{Tareas asociadas a la Iteración 6}
+  \label{tab:tareas6}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|l|l|p{7.2cm}|}
+    \hline
+    \textbf{Historia} & \textbf{Tarea} & \textbf{Descripción} \\
+    \hline
+    HU17 & T0001 & Crear diagrama de secuencia \\ \hline
+    HU17 & T0002 & Crear las tablas de cliente, proyecto y sesión \\ \hline
+    HU17 & T0003 & Crear las rutas de cliente y de sesión \\ \hline
+    HU17 & T0004 & Impedir que se agenden dos citas a la misma hora \\ \hline
+    HU18 & T0001 & Crear el calendario del mes con las citas marcadas \\ \hline
+    HU18 & T0002 & Crear el detalle del día elegido \\ \hline
+    HU19 & T0001 & Crear la ruta de proyectos y su resumen de pagos \\ \hline
+    HU19 & T0002 & Crear cliente y proyecto desde la misma pantalla \\ \hline
+    HU20 & T0001 & Crear diagrama de secuencia \\ \hline
+    HU20 & T0002 & Crear la ruta de fotos de sesión \\ \hline
+    HU20 & T0003 & Mostrar las fotos junto a cada sesión \\ \hline
+    HU24 & T0001 & Crear la ficha del cliente con su historial \\ \hline
+    HU30 & T0001 & Crear diagrama de secuencia \\ \hline
+    HU30 & T0002 & Calificar cada sesión de 1 a 5 \\ \hline
+    HU30 & T0003 & Calcular el puntaje del cliente y ordenar la lista \\ \hline
+    HU30 & T0004 & Filtrar los clientes por su responsabilidad \\ \hline
+    HU17--HU20, HU24, HU30 & T0009 & Creación y testeo de pruebas unitarias \\ \hline
+    HU17--HU20, HU24, HU30 & T0010 & Creación y uso de sistema de pruebas \\ \hline
+  \end{tabular}
+\end{table}
+
+\vspace{0.3cm}
+\tituloparpegado{Diseño}
+En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. Las Figuras \ref{fig:secagendar}, \ref{fig:secfoto} y \ref{fig:seccalificar} ilustran el agendado de una cita con la revisión del horario, la subida de una foto del avance y la calificación de una sesión con el puntaje que de ella resulta.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-46-secuencia-agendar}
+  \caption[Diagrama de secuencia Agendar Cita]{Diagrama de secuencia HU17: agendado de una cita con revisión del horario.}
+  \label{fig:secagendar}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-47-secuencia-foto-sesion}
+  \caption[Diagrama de secuencia Foto de Sesión]{Diagrama de secuencia HU20: subida de una foto del avance de la sesión.}
+  \label{fig:secfoto}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-48-secuencia-calificar}
+  \caption[Diagrama de secuencia Puntaje del Cliente]{Diagrama de secuencia HU30: calificación de una sesión y puntaje del cliente.}
+  \label{fig:seccalificar}
+\end{figure}
+
+\tituloparpegado{Implementación}
+En esta etapa se desarrolla el backend y el frontend de las historias asignadas. El modelo de datos de la agenda es una cadena de cuatro niveles: un cliente tiene proyectos, un proyecto tiene sesiones y una sesión tiene fotos. La decisión que ordena todo lo demás es que \textbf{cada sesión es una cita}: lleva su fecha, su hora, su duración y lo que se cobra en ella. Un proyecto grande no es una cita larga, sino varias, y por eso el precio total del trabajo y lo que se cobra en cada visita son dos cifras distintas que la plataforma mantiene separadas.
+
+Esa cadena también resuelve la propiedad de los datos. Las consultas filtran siempre por el identificador del tatuador, y las inserciones de los niveles hijos no reciben el identificador del padre a ciegas: lo seleccionan desde la tabla del padre ya filtrada por el dueño, de modo que no hay forma de colgar una sesión del proyecto de otro artista. Un identificador ajeno en la dirección responde 404, para no confirmar que esa fila existe, y uno ajeno en el cuerpo de la petición responde 400.
+
+La parte más delicada de la HU17 es que una hora ocupada no se pueda volver a comprometer. La revisión en sí es una consulta por intersección de intervalos, pero revisar y guardar por separado no basta: dos peticiones simultáneas —un doble clic, dos pestañas abiertas— pasarían la revisión a la vez y quedarían las dos citas. Por eso ambas cosas ocurren dentro de la misma transacción, bajo un candado tomado por artista, como muestra la Figura \ref{fig:implchoque}. Las reglas del cruce salieron de cómo se trabaja realmente: una cita cancelada o a la que el cliente no llegó dejan la hora libre, y dos citas contiguas —una termina a las 15:00 y la siguiente empieza a las 15:00— no se consideran cruzadas. Cuando sí hay cruce, el mensaje no dice solo que la hora está ocupada: nombra al cliente y el horario de la cita que la ocupa, que es lo que el tatuador necesita para decidir.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{fig-4-49-implementacion-choque}
+  \caption[Revisión del horario ocupado]{Revisión del horario y candado por artista, dentro de la misma transacción.}
+  \label{fig:implchoque}
+\end{figure}
+
+Esta revisión es, además, la que ocupó el lugar de la HU27 descartada en la Iteración 5. En vez de pedirle al tatuador que declare por adelantado sus días y horas de trabajo, el sistema protege las horas que de verdad están comprometidas, que es el problema que la historia original intentaba resolver.
+
+La HU20 reutiliza la capa de almacenamiento de la galería de bocetos, apuntando a su propia carpeta. El orden de los pasos importa: antes de subir nada se comprueba que la sesión exista y sea del artista, porque no tiene sentido gastar almacenamiento en una imagen que después se va a rechazar; y si la sesión se borra mientras la imagen se está subiendo, el archivo recién guardado se elimina en lugar de quedar huérfano.
+
+La HU24 se resuelve sin consultas nuevas desde el frontend: la ficha del cliente trae, en la misma respuesta, cuántos proyectos tiene, cuándo es su próxima cita agendada y cómo ha cumplido hasta ahora.
+
+La HU30 es la historia que más cambió respecto de lo que pedía su enunciado. La primera versión guardaba un puntaje fijo en el cliente, que el artista escribía a mano; el problema es que ese número envejece y nadie lo actualiza. La versión definitiva califica \textbf{cada sesión} de 1 a 5 según cómo llegó el cliente, y el puntaje del cliente no se guarda en ninguna parte: es el promedio de sus sesiones calificadas, calculado al consultar, como muestra la Figura \ref{fig:implpromedio}. Así nunca queda desactualizado, y la lista de clientes puede ordenarse del mejor promedio al peor sin mantener ningún dato duplicado. La columna anterior se retiró del esquema. Junto al puntaje viajan las cifras que lo explican —sesiones hechas, inasistencias y cancelaciones—, porque un promedio sin contexto no dice lo mismo que un promedio con tres sesiones detrás. Una regla que se fijó desde el principio: calificar es información interna del artista y nunca le envía ningún aviso al cliente.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig-4-50-implementacion-promedio}
+  \caption[Puntaje del cliente]{Puntaje del cliente calculado al consultar, con las cifras que lo explican.}
+  \label{fig:implpromedio}
+\end{figure}
+
+En el frontend se desarrollaron tres vistas. La de citas reúne el calendario del mes, con un contador en cada día que tiene citas, el detalle del día elegido y un formulario que permite agendar creando al cliente y al proyecto en el mismo paso, que es como llega la mayoría de las solicitudes. La de clientes presenta el marcador con las estrellas, los filtros por responsabilidad y la búsqueda por nombre o contacto. La ficha del cliente muestra su historial de proyectos con lo pagado y lo pendiente.
+
+\tituloparpegado{Resultado del desarrollo}
+Como resultado de esta iteración, el tatuador tiene su agenda completa dentro de la plataforma: puede ver su mes de un vistazo, agendar sin riesgo de comprometer dos veces la misma hora, seguir el avance de una pieza grande con fotos de cada sesión y saber con qué clientes puede contar. Las Figuras \ref{fig:vistacitas}, \ref{fig:vistaclientes} y \ref{fig:vistaclientehistorial} presentan las vistas desarrolladas durante esta etapa.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-51-vista-citas}
+  \caption[Vista Citas]{Vista ``Citas'': calendario del mes con las citas marcadas, detalle del día elegido y formulario de agendado.}
+  \label{fig:vistacitas}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-52-vista-clientes}
+  \caption[Vista Clientes]{Vista ``Clientes'': marcador ordenado por puntaje, con los filtros por responsabilidad de llegada.}
+  \label{fig:vistaclientes}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-53-vista-cliente-historial}
+  \caption[Ficha del cliente]{Ficha del cliente: responsabilidad de llegada, historial de proyectos y estado de los pagos.}
+  \label{fig:vistaclientehistorial}
+\end{figure}
+
+\tituloparpegado{Sistema de pruebas}
+Después de la implementación se lleva a cabo una fase de pruebas para esta iteración, evaluando los siguientes casos:
+
+\begin{itemize}
+  \item Agendar una cita creando el cliente y el proyecto en el mismo paso.
+  \item Agendar sobre una hora que ya está ocupada.
+  \item Agendar justo cuando termina otra cita.
+  \item Agendar dos veces seguidas con un doble clic.
+  \item Subir una foto del avance de una sesión y luego borrarla.
+  \item Subir una foto a la sesión de otro artista.
+  \item Revisar el historial de proyectos y sesiones de un cliente.
+  \item Calificar una sesión y ver el puntaje que toma el cliente.
+  \item Quitar la calificación de una sesión.
+  \item Filtrar la lista de clientes por responsabilidad de llegada.
+\end{itemize}
+
+\vspace{\parskip}
+\titulopar{Pruebas unitarias}
+Al finalizar el desarrollo se crean las pruebas unitarias correspondientes a las tareas definidas en el Inicio de Iteración, con Jest y Supertest y con la base de datos reemplazada por dobles de prueba. La Tabla \ref{tab:pruebas6} detalla las pruebas implementadas.
+
+\begin{table}[H]
+  \centering
+  \caption{Pruebas unitarias implementadas en la Iteración 6}
+  \label{tab:pruebas6}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|l|p{3.4cm}|p{6.6cm}|c|}
+    \hline
+    \textbf{ID} & \textbf{Función evaluada} & \textbf{Objetivo} & \textbf{Tests} \\
+    \hline
+    PU-26 & \texttt{POST /clients},\newline \texttt{GET /clients/:id} & Validar el registro saneado, el rechazo sin nombre o con teléfono inválido y la ficha con su historial. & 8 \\ \hline
+    PU-27 & \texttt{POST /projects} & Comprobar el precio total, el rechazo de un cliente o un boceto ajeno y el detalle con sus sesiones. & 7 \\ \hline
+    PU-28 & \texttt{GET} y \texttt{POST\newline /sessions} & Verificar el rango obligatorio del listado, el agendado y la validación de fecha y pago. & 6 \\ \hline
+    PU-29 & \texttt{POST /sessions/\newline :id/photos} & Validar la subida, el rechazo de una sesión ajena sin tocar el archivo y el borrado. & 3 \\ \hline
+    PU-30 & \texttt{PATCH /sessions/:id} & Comprobar que el puntaje solo acepta un entero de 1 a 5 o nulo, y que calificar no avisa al cliente. & 11 \\ \hline
+    PU-31 & \texttt{sessionModel.\newline create()} & Verificar el candado del artista y el rechazo de una hora ya ocupada. & 5 \\ \hline
+  \end{tabular}
+\end{table}
+
+En total, durante esta iteración se ejecutaron 40 pruebas unitarias repartidas en dos archivos de prueba. Esos dos archivos suman 64 pruebas, porque cubren también historias vecinas que viven en las mismas rutas: los ingresos del mes de la Iteración 4 y, de la Iteración 7, los avisos al cliente y el reagendamiento de una cita.
+
+\titulopar{Resultados obtenidos}
+La ejecución de las pruebas evidenció un funcionamiento correcto del agendado, de la subida de fotos y del puntaje. Se comprobó especialmente que el candado del artista se toma antes de revisar el horario y dentro de la misma transacción que guarda la cita; que una cita cancelada deja su hora libre mientras que dos citas contiguas no se consideran cruzadas; y que el puntaje solo acepta un entero de 1 a 5, de modo que un valor con decimales, un texto o un cero se rechazan en lugar de guardarse. El resultado general fue satisfactorio, con aprobación completa de los casos evaluados, como resume la Tabla \ref{tab:resultado6} y muestra la Figura \ref{fig:resultadopruebas6}.
+
+\begin{table}[H]
+  \centering
+  \caption{Resultado de ejecución de pruebas unitarias de la Iteración 6}
+  \label{tab:resultado6}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|c|c|c|}
+    \hline
+    \textbf{Archivos evaluados} & \textbf{Tests ejecutados} & \textbf{Resultado} \\
+    \hline
+    2 & 40 & 40 aprobados \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig-4-54-resultado-pruebas-agenda}
+  \caption[Resultado pruebas unitarias Iteración 6]{Ejecución de los dos archivos de la agenda, que reúnen las 40 pruebas de esta iteración junto con 24 de historias vecinas.}
+  \label{fig:resultadopruebas6}
+\end{figure}
+
+\vspace{\parskip}
+\tituloparpegado{Retrospectiva}
+Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precisas y se identifican posibles mejoras en el proceso de desarrollo. Las seis historias se completaron, aunque el reparto del esfuerzo no fue el previsto. La HU17 costó casi el doble de lo estimado, y no por el formulario ni por el calendario: se fue en la revisión del horario, que parecía una condición más en una consulta y terminó obligando a mover la revisión y el guardado a una misma transacción con candado. La HU18, la HU19 y la HU24, en cambio, resultaron más baratas de lo previsto, porque las tres leen de la misma cadena de datos y bastó con pedirle a la base los resúmenes ya calculados.
+
+El aprendizaje de la iteración vino de la HU30. Implementada tal como estaba escrita —un puntaje que el artista le pone al cliente— funcionaba, pero quedaba viejo apenas el cliente volvía al estudio. Preguntarle al tatuador cuándo iba a actualizarlo fue lo que dejó en evidencia que el dato útil no era el puntaje del cliente, sino cómo llegó a cada sesión: el puntaje es una consecuencia de eso y conviene calcularlo, no guardarlo. Cambiarlo obligó a retirar una columna que ya estaba en el esquema, que es exactamente el tipo de corrección que sale barata en la iteración en que se detecta y cara más adelante.
 %======================================================================
 %  GLOSARIO
 %======================================================================
