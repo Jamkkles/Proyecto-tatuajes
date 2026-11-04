@@ -2539,6 +2539,172 @@ Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precis
 Lo que sí tomó tiempo fue decidir el alcance de la HU34. La historia ofrecía dos caminos —eliminar o desactivar— y la tentación era implementar los dos, porque técnicamente el borrado es la operación más simple de las dos. Pensar qué se lleva por delante una cuenta borrada fue lo que cerró la discusión: datos de clientes que nunca fueron usuarios del sistema. Quedó como aprendizaje que cuando una historia ofrece una alternativa irreversible y una reversible que cumplen el mismo objetivo, implementar solo la reversible no es dejar la historia a medias.
 
 El segundo aprendizaje es sobre el costo escondido de las sesiones largas. Un token de siete días es cómodo para el usuario, pero obliga a revisar el estado de la cuenta en cada petición si se quiere poder cortar un acceso de verdad; ese costo se paga con una pequeña memoria de unos segundos que el administrador limpia al cambiar un estado. Es una decisión que se tomó aquí pero que afecta a todas las rutas de la plataforma.
+\subsection{Iteración 10}
+
+En esta última iteración se implementan las historias de usuario HU35 y HU36, que son las métricas de uso de la plataforma, y se decide no implementar la HU37. Con ella se cierra la fase de iteraciones: el panel de administración de la Iteración 7 pasa de permitir dar de alta a mostrar qué está ocurriendo, y el dueño de un estudio con varios tatuadores recibe su propio resumen.
+
+\vspace{0.3cm}
+\tituloparpegado{Historias de usuario asociadas}
+A continuación se listan las historias de usuario asignadas a esta iteración en la Tabla \ref{tab:iteraciones}, cuya estimación de esfuerzo suma 11 puntos según la Tabla \ref{tab:prioridad}.
+
+\begin{itemize}
+  \item \textbf{HU35:} como administrador quiero visualizar un listado de todos los estudios y tatuadores registrados, para monitorear el uso general de la plataforma.
+  \item \textbf{HU36:} como administrador quiero ver métricas globales de uso por estudio (número de sesiones, citas agendadas, bocetos almacenados), para evaluar la adopción de la plataforma.
+  \item \textbf{HU37:} como administrador quiero gestionar los modelos anatómicos 3D disponibles en la plataforma (agregar, actualizar o eliminar), para mantener actualizado el catálogo compartido entre estudios.
+\end{itemize}
+
+La HU37 quedó fuera del alcance del proyecto, de modo que el esfuerzo efectivo de la iteración fue de 8 puntos. El motivo está en lo que significa hoy un modelo en la plataforma: un archivo que se prepara fuera del sistema, se optimiza con un script y se publica como contenido estático con caché de un año. Convertir eso en un catálogo administrable desde la aplicación no es agregar un formulario de subida; es validar que cada archivo que llegue cumpla las condiciones que el visor da por hechas —una sola malla, un solo material, sin esqueleto, orientado y con una cantidad de triángulos que el navegador pueda mover—, almacenarlo, versionarlo e invalidar el caché de quienes ya tengan el anterior. Es, en tamaño, un subsistema comparable a la galería de bocetos más una validación de geometría que no existe en ninguna otra parte del sistema. Frente a eso, el beneficio para esta versión es bajo: los catorce modelos integrados cubren las zonas del cuerpo que efectivamente se tatúan, y agregar uno nuevo es una tarea de mantenimiento que ocurre rara vez. Se dejó registrada como trabajo futuro.
+
+\vspace{0.3cm}
+\tituloparpegado{Inicio de Iteración}
+En esta etapa se crean y registran las tareas acordes a las historias de usuario, donde la Tabla \ref{tab:tareas10} ilustra el registro de las tareas resultantes de la iteración.
+
+\begin{table}[H]
+  \centering
+  \caption{Tareas asociadas a la Iteración 10}
+  \label{tab:tareas10}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|l|l|p{7.2cm}|}
+    \hline
+    \textbf{Historia} & \textbf{Tarea} & \textbf{Descripción} \\
+    \hline
+    HU35 & T0001 & Crear diagrama de secuencia \\ \hline
+    HU35 & T0002 & Listar estudios con sus tatuadores y cuentas \\ \hline
+    HU35 & T0003 & Buscar y filtrar por estado en el panel \\ \hline
+    HU36 & T0001 & Crear diagrama de secuencia \\ \hline
+    HU36 & T0002 & Calcular las métricas de uso de cada estudio \\ \hline
+    HU36 & T0003 & Mostrar los totales de la plataforma \\ \hline
+    HU36 & T0004 & Crear el resumen del mes para el dueño del estudio \\ \hline
+    HU36 & T0005 & Crear la vista «Mi estudio» \\ \hline
+    HU37 & T0001 & Descartada: queda como trabajo futuro \\ \hline
+    HU35, HU36 & T0009 & Creación y testeo de pruebas unitarias \\ \hline
+    HU35, HU36 & T0010 & Creación y uso de sistema de pruebas \\ \hline
+  \end{tabular}
+\end{table}
+
+\vspace{0.3cm}
+\tituloparpegado{Diseño}
+En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. Las Figuras \ref{fig:secmetricas} y \ref{fig:secmiestudio} ilustran la carga del panel de administración con las métricas de cada estudio y el resumen mensual que recibe el dueño de un estudio.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-76-secuencia-metricas}
+  \caption[Diagrama de secuencia Métricas de Uso]{Diagrama de secuencia HU35 y HU36: listado de estudios con sus métricas de uso.}
+  \label{fig:secmetricas}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-77-secuencia-mi-estudio}
+  \caption[Diagrama de secuencia Mi estudio]{Diagrama de secuencia HU36: resumen mensual por tatuador, visible solo para el dueño.}
+  \label{fig:secmiestudio}
+\end{figure}
+
+\tituloparpegado{Implementación}
+En esta etapa se desarrolla el backend y el frontend de las historias asignadas. Las métricas de un estudio son, en el fondo, las de sus tatuadores sumadas: cuántas sesiones se han registrado, cuántas citas tiene por delante, cuántos bocetos guardados y cuántos clientes. La parte que exigió cuidado es cómo se suman. Con varios enlaces directos a las tablas hijas —sesiones, bocetos y clientes de cada tatuador— las filas se multiplican entre sí y los conteos salen inflados sin que nada falle de forma visible: un estudio con tres bocetos y cuatro sesiones aparece con doce de cada cosa. Por eso cada métrica va en su propia subconsulta lateral, como muestra la Figura \ref{fig:implmetricas}, y la base devuelve una sola fila por estudio ya sumada.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig-4-78-implementacion-metricas}
+  \caption[Métricas de uso por estudio]{Métricas de cada estudio, en subconsultas laterales para que los conteos no se multipliquen.}
+  \label{fig:implmetricas}
+\end{figure}
+
+A las cifras de volumen se le sumó una de actividad: la fecha del último movimiento del estudio, que es el máximo entre su última sesión registrada y su último boceto subido. Es la que responde la pregunta que de verdad le interesa a quien administra la plataforma, que no es cuántos estudios hay inscritos sino cuáles siguen usándola.
+
+La HU36 tiene una segunda mitad que no estaba en su enunciado y que apareció al conversar sobre para qué servirían estas métricas: un estudio con varios tatuadores también quiere ver su propio mes. Se construyó entonces ``Mi estudio'', un resumen por tatuador con lo cobrado, lo que queda por cobrar, las sesiones hechas y las citas agendadas del mes. Las dos cifras de dinero se calculan con el mismo criterio del panel de control de la Iteración 4 —lo cobrado por la fecha en que se marcó pagada la sesión, lo pendiente por la fecha de la cita—, para que el artista no vea dos números distintos según la pantalla en que mire.
+
+Aquí hubo que tomar una decisión de privacidad, que está en la Figura \ref{fig:implresumen}: cuánto factura cada tatuador es información sensible dentro del propio estudio, así que el resumen lo ve \textbf{solo el dueño}. Pertenecer al estudio no alcanza, y la ruta responde 403 a cualquier otro, incluso a sus compañeros. La vista tampoco aparece en el menú salvo que la cuenta sea dueña de un estudio con más de un tatuador, aunque esa parte es comodidad para el usuario: quien decide es el servidor. El resumen además es de un mes a la vez, con un rango acotado, porque es una vista de gestión y no una herramienta de exportación.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig-4-79-implementacion-resumen}
+  \caption[Resumen del estudio]{El resumen por tatuador, reservado al dueño del estudio.}
+  \label{fig:implresumen}
+\end{figure}
+
+\tituloparpegado{Resultado del desarrollo}
+Como resultado de esta iteración, quien administra la plataforma puede ver qué estudios la están usando y cuánto, y el dueño de un estudio con varios tatuadores tiene su propio resumen del mes. Las Figuras \ref{fig:vistaadminmetricas} y \ref{fig:vistamiestudio} presentan las vistas desarrolladas durante esta etapa.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-80-vista-admin-metricas}
+  \caption[Vista Administración, métricas]{Vista ``Administración'': totales de la plataforma y uso de cada estudio, con el buscador aplicado.}
+  \label{fig:vistaadminmetricas}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-81-vista-mi-estudio}
+  \caption[Vista Mi estudio]{Vista ``Mi estudio'': resumen del mes del estudio, tatuador por tatuador.}
+  \label{fig:vistamiestudio}
+\end{figure}
+
+\tituloparpegado{Sistema de pruebas}
+Después de la implementación se lleva a cabo una fase de pruebas para esta iteración, evaluando los siguientes casos:
+
+\begin{itemize}
+  \item Entrar al panel y revisar los totales de la plataforma.
+  \item Comparar las cifras de un estudio con lo que tiene cargado.
+  \item Buscar un estudio por su nombre y por el correo de un tatuador.
+  \item Filtrar los estudios y las cuentas por estado.
+  \item Entrar a «Mi estudio» siendo dueño de un estudio con dos tatuadores.
+  \item Intentar entrar a «Mi estudio» sin ser dueño.
+  \item Marcar una sesión como pagada y ver el cambio en el resumen.
+  \item Moverse al mes anterior y al siguiente.
+\end{itemize}
+
+\vspace{\parskip}
+\titulopar{Pruebas unitarias}
+Al finalizar el desarrollo se crean las pruebas unitarias correspondientes a las tareas definidas en el Inicio de Iteración, con Jest y Supertest y con la base de datos reemplazada por dobles de prueba. La Tabla \ref{tab:pruebas10} detalla las pruebas implementadas.
+
+\begin{table}[H]
+  \centering
+  \caption{Pruebas unitarias implementadas en la Iteración 10}
+  \label{tab:pruebas10}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|l|p{3.4cm}|p{6.6cm}|c|}
+    \hline
+    \textbf{ID} & \textbf{Función evaluada} & \textbf{Objetivo} & \textbf{Tests} \\
+    \hline
+    PU-46 & \texttt{GET /admin/\newline studios}, \texttt{/users} & Validar el listado con tatuadores, métricas y totales, y que un tatuador no entra. & 3 \\ \hline
+    PU-47 & \texttt{GET /api/studio} & Comprobar que dice si la cuenta es dueña y cuántos tatuadores tiene el estudio. & 2 \\ \hline
+    PU-48 & \texttt{GET /api/studio/\newline summary} & Verificar que solo el dueño lo ve, el detalle por tatuador y el rechazo de un rango mayor a un mes. & 3 \\ \hline
+  \end{tabular}
+\end{table}
+
+En total, durante esta iteración se ejecutaron 8 pruebas unitarias repartidas en dos archivos de prueba. Esos dos archivos suman 33 pruebas, porque incluyen también las de la administración de cuentas de las Iteraciones 7 y 9.
+
+\titulopar{Resultados obtenidos}
+La ejecución de las pruebas evidenció un funcionamiento correcto del listado, de las métricas y del resumen del estudio. Se comprobó especialmente que las cifras de cada estudio corresponden a las de sus tatuadores sin multiplicarse entre sí; que un tatuador que no es dueño recibe 403 al pedir el resumen, aunque pertenezca al estudio; y que un rango de más de un mes se rechaza. El resultado general fue satisfactorio, con aprobación completa de los casos evaluados, como resume la Tabla \ref{tab:resultado10} y muestra la Figura \ref{fig:resultadopruebas10}.
+
+\begin{table}[H]
+  \centering
+  \caption{Resultado de ejecución de pruebas unitarias de la Iteración 10}
+  \label{tab:resultado10}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|c|c|c|}
+    \hline
+    \textbf{Archivos evaluados} & \textbf{Tests ejecutados} & \textbf{Resultado} \\
+    \hline
+    2 & 8 & 8 aprobados \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig-4-82-resultado-pruebas-metricas}
+  \caption[Resultado pruebas unitarias Iteración 10]{Ejecución de los dos archivos de administración y estudio, que reúnen las 8 pruebas de esta iteración junto con 25 de iteraciones anteriores.}
+  \label{fig:resultadopruebas10}
+\end{figure}
+
+\vspace{\parskip}
+\tituloparpegado{Retrospectiva}
+Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precisas y se identifican posibles mejoras en el proceso de desarrollo. La HU35 y la HU36 se completaron dentro de lo estimado, con la salvedad de que la segunda creció: a su enunciado, que hablaba del administrador de la plataforma, se le sumó el resumen para el dueño del estudio, que no estaba escrito en ninguna historia y que surgió al preguntar para qué servirían las métricas. Es la única vez en el proyecto en que una iteración entregó más de lo que pedía su historia, y vale anotar que eso solo fue posible porque era la última y no había nada detrás esperando.
+
+Siendo la iteración de cierre, conviene mirar el backlog completo. De las 38 historias de usuario definidas, 36 quedaron implementadas. Las otras dos no se abandonaron por falta de tiempo sino por decisión explícita: la HU27 se descartó porque describía una forma de trabajar que no era la del estudio, y la necesidad detrás de ella quedó cubierta por la revisión de horarios de la Iteración 6; la HU37 quedó como trabajo futuro porque su costo real, al examinarla, resultó desproporcionado frente a lo que aportaba. A ellas se suma la HU29, que no necesitó desarrollo propio porque lo que pedía ya estaba construido. Las tres aparecen documentadas en la iteración que les correspondía, con su razón, en lugar de quedar como casillas sin marcar.
+
+El aprendizaje de cierre es que la estimación inicial acertó en el total pero no en el reparto. Las historias que resultaron caras —la previsualización 3D, el reparto de tinta por color, los recordatorios por WhatsApp— lo fueron por motivos que no se ven al escribir la historia: geometría, costos de un servicio externo, formas de trabajo del oficio. Las que resultaron baratas lo fueron porque se apoyaron en decisiones tomadas en iteraciones anteriores, sobre todo en las reglas de propiedad de los datos que se fijaron temprano y no hubo que tocar nunca más.
 %======================================================================
 %  GLOSARIO
 %======================================================================

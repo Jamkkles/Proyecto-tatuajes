@@ -137,3 +137,16 @@ fig-4-74-vista-cambiar-contrasena.png  (width=\textwidth)  vista
 fig-4-75-resultado-pruebas-admin.png  (width=0.9\textwidth)  salida real de
     "npx jest admin accountStatus auth.login" (60 pruebas, 3 archivos; 34 de
     esta iteración).
+
+Iteración 10 (métricas de uso y Mi estudio). Diagramas y recortes de código
+generados con node; capturas de la aplicación corriendo en Docker.
+fig-4-76-secuencia-metricas.png  (width=\textwidth)
+fig-4-77-secuencia-mi-estudio.png  (width=\textwidth)
+fig-4-78-implementacion-metricas.png  (width=0.9\textwidth)
+fig-4-79-implementacion-resumen.png  (width=0.9\textwidth)
+fig-4-80-vista-admin-metricas.png  (width=\textwidth)  vista /admin, pestaña
+    Estudios, con el buscador aplicado para que se vea un estudio con datos.
+fig-4-81-vista-mi-estudio.png  (width=\textwidth)  vista /mi-estudio, con el
+    segundo tatuador sembrado para la captura.
+fig-4-82-resultado-pruebas-metricas.png  (width=0.9\textwidth)  salida real
+    de "npx jest admin studio" (33 pruebas, 2 archivos; 8 de esta iteración).
