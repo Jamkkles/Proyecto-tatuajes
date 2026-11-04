@@ -2171,11 +2171,11 @@ Al finalizar el desarrollo se crean las pruebas unitarias correspondientes a las
     PU-36 & \texttt{/notifications}, \texttt{/notification-\newline settings} & Comprobar la campanita, los interruptores y que los valores por defecto coinciden con el esquema. & 40 \\ \hline
     PU-37 & \texttt{notify()}, \texttt{/push} & Verificar que el aviso nunca interrumpe la operación y que un endpoint muerto se borra solo. & 19 \\ \hline
     PU-38 & \texttt{PATCH /sessions/:id} & Validar el reagendamiento y la cancelación, y que un cambio inocuo no revisa el horario. & 10 \\ \hline
-    PU-39 & \texttt{POST /admin/\newline studios} & Comprobar el registro del estudio con su primer tatuador, el correo repetido y el acceso de quien no es administrador. & 6 \\ \hline
+    PU-39 & \texttt{POST /admin/\newline studios} & Comprobar el registro del estudio con su primer tatuador, el correo repetido y el acceso de quien no es administrador. & 10 \\ \hline
   \end{tabular}
 \end{table}
 
-En total, durante esta iteración se ejecutaron 167 pruebas unitarias repartidas en trece archivos de prueba. Diez de esos archivos son propios de los mensajes y los avisos y reúnen 151; las otras 16 viven en los archivos de la agenda y de la administración, porque evalúan rutas que esta iteración comparte con las vecinas.
+En total, durante esta iteración se ejecutaron 171 pruebas unitarias repartidas en trece archivos de prueba. Diez de esos archivos son propios de los mensajes y los avisos y reúnen 151; las otras 20 viven en los archivos de la agenda y de la administración, porque evalúan rutas que esta iteración comparte con las vecinas.
 
 \titulopar{Resultados obtenidos}
 La ejecución de las pruebas evidenció un funcionamiento correcto del reagendamiento, de los recordatorios y de los avisos al cliente. Se comprobó especialmente que un mensaje reclamado no se vuelve a enviar aunque la corrida se repita; que un cliente sin teléfono válido no rompe el envío, sino que deja al artista un aviso para corregir su ficha; que reagendar una cita genera un recordatorio nuevo en lugar de quedar silenciado por el anterior; y que un fallo al avisar nunca deshace el cambio en la agenda. El resultado general fue satisfactorio, con aprobación completa de los casos evaluados, como resume la Tabla \ref{tab:resultado7} y muestra la Figura \ref{fig:resultadopruebas7}.
@@ -2189,14 +2189,14 @@ La ejecución de las pruebas evidenció un funcionamiento correcto del reagendam
     \hline
     \textbf{Archivos evaluados} & \textbf{Tests ejecutados} & \textbf{Resultado} \\
     \hline
-    13 & 167 & 167 aprobados \\ \hline
+    13 & 171 & 171 aprobados \\ \hline
   \end{tabular}
 \end{table}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.95\textwidth]{fig-4-62-resultado-pruebas-avisos}
-  \caption[Resultado pruebas unitarias Iteración 7]{Ejecución de los diez archivos propios de los mensajes y los avisos, que reúnen 151 de las 167 pruebas de la iteración.}
+  \caption[Resultado pruebas unitarias Iteración 7]{Ejecución de los diez archivos propios de los mensajes y los avisos, que reúnen 151 de las 171 pruebas de la iteración.}
   \label{fig:resultadopruebas7}
 \end{figure}
 
@@ -2362,6 +2362,183 @@ Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precis
 El aprendizaje principal es metodológico. En las iteraciones anteriores, cuando algo no funcionaba, bastaba leer el código para ver por qué; aquí los problemas eran de geometría y solo se entendían mirando el resultado y midiendo. La medida de la curvatura es el mejor ejemplo: el método inicial era el razonable y el código estaba bien escrito, pero daba el doble del radio real, y eso no se descubre revisando el código sino comparando su resultado con el antebrazo que se tiene delante. Lo mismo vale para el rendimiento: el arrastre ``se sentía raro'' mucho antes de que hubiera un número que lo explicara, y recién al medir los fotogramas quedó claro dónde se iba el tiempo.
 
 El segundo aprendizaje es sobre el alcance de las pruebas automatizadas. Sirven muy bien para reglas de negocio —un stock que no puede quedar negativo, un mensaje que no se envía dos veces— y muy mal para decidir si una imagen se ve bien. Reconocerlo a tiempo evitó gastar la iteración escribiendo pruebas que habrían pasado igual con el dibujo duplicado en la espalda.
+\subsection{Iteración 9}
+
+En esta iteración se implementan las historias de usuario HU32, HU33, HU34 y HU38, que completan la administración de la plataforma iniciada en la Iteración 7. Si aquella creó el estudio y el rol de administrador, esta se ocupa de lo que viene después de dar de alta a alguien: dejarlo entrar o no, sumarle compañeros de estudio y sacarlo de un apuro cuando pierde su contraseña. Es la iteración más corta del proyecto y, a diferencia de las anteriores, casi todo su trabajo consistió en decidir qué no hacer.
+
+\vspace{0.3cm}
+\tituloparpegado{Historias de usuario asociadas}
+A continuación se listan las historias de usuario asignadas a esta iteración en la Tabla \ref{tab:iteraciones}, cuya estimación de esfuerzo suma 9 puntos según la Tabla \ref{tab:prioridad}.
+
+\begin{itemize}
+  \item \textbf{HU32:} como administrador quiero activar o desactivar una cuenta de estudio, para gestionar el acceso a la plataforma ante impagos o solicitudes de baja.
+  \item \textbf{HU33:} como administrador quiero agregar tatuadores adicionales dentro de un estudio existente, para dar soporte a estudios con más de un profesional.
+  \item \textbf{HU34:} como administrador quiero eliminar o desactivar la cuenta de un tatuador específico dentro de un estudio, para mantener actualizada la nómina de usuarios activos.
+  \item \textbf{HU38:} como administrador quiero restablecer la contraseña de cualquier usuario registrado, para brindar soporte ante bloqueos de acceso.
+\end{itemize}
+
+\vspace{0.3cm}
+\tituloparpegado{Inicio de Iteración}
+En esta etapa se crean y registran las tareas acordes a las historias de usuario, donde la Tabla \ref{tab:tareas9} ilustra el registro de las tareas resultantes de la iteración.
+
+\begin{table}[H]
+  \centering
+  \caption{Tareas asociadas a la Iteración 9}
+  \label{tab:tareas9}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|l|l|p{7.2cm}|}
+    \hline
+    \textbf{Historia} & \textbf{Tarea} & \textbf{Descripción} \\
+    \hline
+    HU32 & T0001 & Crear diagrama de secuencia \\ \hline
+    HU32 & T0002 & Crear la ruta de edición y baja del estudio \\ \hline
+    HU32 & T0003 & Cortar el acceso de un estudio desactivado \\ \hline
+    HU33 & T0001 & Crear diagrama de secuencia \\ \hline
+    HU33 & T0002 & Crear la ruta para sumar tatuadores al estudio \\ \hline
+    HU33 & T0003 & Entregar la contraseña temporal una sola vez \\ \hline
+    HU34 & T0001 & Crear la ruta de activación y baja de una cuenta \\ \hline
+    HU34 & T0002 & Impedir que la plataforma quede sin administrador \\ \hline
+    HU38 & T0001 & Crear la ruta de restablecimiento de contraseña \\ \hline
+    HU38 & T0002 & Obligar a cambiar la contraseña que puso el administrador \\ \hline
+    HU32--HU34, HU38 & T0009 & Creación y testeo de pruebas unitarias \\ \hline
+    HU32--HU34, HU38 & T0010 & Creación y uso de sistema de pruebas \\ \hline
+  \end{tabular}
+\end{table}
+
+\vspace{0.3cm}
+\tituloparpegado{Diseño}
+En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. Las Figuras \ref{fig:secdesactivar} y \ref{fig:sectatuador} ilustran la baja de una cuenta con el corte inmediato de su acceso y el alta de un tatuador dentro de un estudio existente.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-69-secuencia-desactivar}
+  \caption[Diagrama de secuencia Desactivar Cuenta]{Diagrama de secuencia HU32 y HU34: baja de una cuenta y corte de su acceso.}
+  \label{fig:secdesactivar}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-70-secuencia-tatuador}
+  \caption[Diagrama de secuencia Agregar Tatuador]{Diagrama de secuencia HU33: alta de un tatuador dentro de un estudio.}
+  \label{fig:sectatuador}
+\end{figure}
+
+\tituloparpegado{Implementación}
+En esta etapa se desarrolla el backend y el frontend de las historias asignadas. Las cuatro son operaciones sobre cuentas, y la parte interesante no está en escribirlas sino en lo que implican.
+
+El problema de fondo de la HU32 y la HU34 es que la sesión de la plataforma dura siete días. Desactivar una cuenta en la base de datos no sirve de nada si quien la usa ya tiene un token emitido: seguiría entrando una semana más, que es justamente lo que no se quiere cuando la baja responde a un impago. Por eso la comprobación de si una cuenta puede seguir trabajando ocurre en \textbf{cada petición}, como muestra la Figura \ref{fig:implestado}. Para no consultar la base cada vez, la respuesta se guarda unos segundos por cuenta, y el administrador limpia esa memoria en el mismo momento en que activa o desactiva, de modo que el corte es inmediato. Cuando la cuenta ya no puede entrar, el servidor responde con el motivo —cuenta desactivada o estudio desactivado— y la aplicación cierra la sesión en lugar de dejar al tatuador frente a errores sueltos.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig-4-71-implementacion-estado}
+  \caption[Estado de la cuenta en cada petición]{Comprobación del estado de la cuenta y de su estudio, en cada petición.}
+  \label{fig:implestado}
+\end{figure}
+
+La decisión de diseño de la iteración está en la HU34, que pide ``eliminar o desactivar'' la cuenta de un tatuador. Se implementó solo la desactivación y \textbf{no existe borrado de cuentas} en la plataforma. La razón es que una cuenta de tatuador no contiene únicamente sus datos: de ella cuelgan sus clientes, su agenda, los pagos registrados y las fotos de las sesiones. Borrarla destruiría el historial de personas que no son usuarios del sistema y que no tienen cómo recuperarlo, y lo haría de forma irreversible para resolver algo —sacar a alguien de la nómina— que la desactivación resuelve igual de bien y se puede deshacer. Desactivar conserva los datos, corta el acceso de inmediato y permite volver atrás si fue un error.
+
+Sobre la misma ruta se pusieron dos puertas, que están en la Figura \ref{fig:implultimoadmin}: un administrador no puede desactivarse a sí mismo, y tampoco puede desactivar al último administrador activo. Ambas evitan el mismo accidente, que es dejar la plataforma sin nadie que pueda administrarla, con el agravante de que sería un estado del que no se sale desde la propia aplicación.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig-4-72-implementacion-ultimo-admin}
+  \caption[Puertas de la baja de cuentas]{Las dos puertas que impiden dejar la plataforma sin administrador.}
+  \label{fig:implultimoadmin}
+\end{figure}
+
+La HU33 suma tatuadores a un estudio existente con el mismo mecanismo que creó al primero: el servidor genera una contraseña temporal legible, guarda solo su hash y la devuelve una única vez en la respuesta, para que el administrador se la entregue al tatuador. Conviene dejar dicho qué significa aquí pertenecer a un estudio: agrupa cuentas para la administración y la facturación, pero \textbf{no comparte datos}. Cada tatuador sigue viendo solo sus clientes, su agenda y su inventario. Fue una decisión explícita del estudio con el que se trabajó, y además compartir esos datos habría obligado a rehacer las reglas de propiedad en todo el backend, que es la base sobre la que se construyeron las siete iteraciones anteriores.
+
+La HU38 reutiliza ese mismo mecanismo para el soporte: el administrador restablece la contraseña de cualquier cuenta y recibe una temporal nueva. Además invalida los enlaces de ``olvidé mi contraseña'' que estuvieran pendientes, porque dejar vivo un enlace antiguo después de un restablecimiento sería una puerta trasera. Hay una limitación que conviene anotar: restablecer la contraseña no invalida los tokens ya emitidos, de modo que no sirve para cortarle el acceso a alguien de inmediato; para eso está la desactivación, y así quedó documentado.
+
+En el frontend, la contraseña que pone el administrador deja la cuenta marcada para cambio obligatorio: al entrar, la aplicación lleva al tatuador a una pantalla donde elige una propia. Es un empujón del frontend y no un candado del servidor —las rutas de la API siguen funcionando con la contraseña temporal—, y se eligió así porque el objetivo es que la contraseña que conoce el administrador deje de ser la del tatuador, no bloquear su trabajo.
+
+\tituloparpegado{Resultado del desarrollo}
+Como resultado de esta iteración, la plataforma puede administrarse sin tocar la base de datos: dar de alta estudios y tatuadores, cortar accesos y resolver bloqueos. Las Figuras \ref{fig:vistaadminusuarios} y \ref{fig:vistacambiarclave} presentan las vistas desarrolladas durante esta etapa.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-73-vista-admin-usuarios}
+  \caption[Vista Administración, cuentas]{Vista ``Administración'': cuentas con su estudio y su uso, con las acciones de restablecer contraseña y desactivar.}
+  \label{fig:vistaadminusuarios}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-74-vista-cambiar-contrasena}
+  \caption[Vista Cambiar contraseña]{Pantalla de cambio obligatorio, a la que llega quien entró con una contraseña puesta por el administrador.}
+  \label{fig:vistacambiarclave}
+\end{figure}
+
+\tituloparpegado{Sistema de pruebas}
+Después de la implementación se lleva a cabo una fase de pruebas para esta iteración, evaluando los siguientes casos:
+
+\begin{itemize}
+  \item Desactivar un estudio y comprobar que sus tatuadores quedan fuera.
+  \item Seguir trabajando con la sesión abierta cuando el estudio se desactiva.
+  \item Cambiar el plan de un estudio sin tocar su acceso.
+  \item Agregar un segundo tatuador y entrar con su contraseña temporal.
+  \item Agregar un tatuador con un correo que ya tiene cuenta.
+  \item Desactivar y volver a activar a un tatuador.
+  \item Intentar desactivarse a uno mismo siendo administrador.
+  \item Intentar desactivar al único administrador activo.
+  \item Restablecer una contraseña y entrar con la nueva.
+  \item Pedir un enlace de recuperación y restablecer la contraseña después.
+\end{itemize}
+
+\vspace{\parskip}
+\titulopar{Pruebas unitarias}
+Al finalizar el desarrollo se crean las pruebas unitarias correspondientes a las tareas definidas en el Inicio de Iteración, con Jest y Supertest y con la base de datos reemplazada por dobles de prueba. La Tabla \ref{tab:pruebas9} detalla las pruebas implementadas.
+
+\begin{table}[H]
+  \centering
+  \caption{Pruebas unitarias implementadas en la Iteración 9}
+  \label{tab:pruebas9}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|l|p{3.4cm}|p{6.6cm}|c|}
+    \hline
+    \textbf{ID} & \textbf{Función evaluada} & \textbf{Objetivo} & \textbf{Tests} \\
+    \hline
+    PU-40 & \texttt{PATCH /admin/\newline studios/:id} & Validar la baja del estudio, el cambio de plan y de dueño, y el estudio inexistente. & 5 \\ \hline
+    PU-41 & \texttt{POST /studios/\newline :id/tattooists} & Comprobar el alta con contraseña temporal y el rechazo de un correo ocupado. & 2 \\ \hline
+    PU-42 & \texttt{PATCH /admin/\newline users/:id} & Verificar la baja y el alta, y las dos puertas que protegen al último administrador. & 5 \\ \hline
+    PU-43 & \texttt{POST /users/\newline :id/reset-\newline password} & Validar la contraseña temporal nueva, que sea distinta cada vez y que anule los enlaces pendientes. & 3 \\ \hline
+    PU-44 & \texttt{accountStatus.\newline decide()} & Comprobar que una cuenta o un estudio desactivados quedan fuera, y que el administrador no depende de un estudio. & 15 \\ \hline
+    PU-45 & \texttt{POST /auth/\newline change-password} & Verificar el cambio obligatorio y que una contraseña actual equivocada no cierra la sesión. & 4 \\ \hline
+  \end{tabular}
+\end{table}
+
+En total, durante esta iteración se ejecutaron 34 pruebas unitarias repartidas en tres archivos de prueba. Esos tres archivos suman 60 pruebas, porque incluyen también las del registro de estudios de la Iteración 7, las métricas de la Iteración 10 y el resto del inicio de sesión.
+
+\titulopar{Resultados obtenidos}
+La ejecución de las pruebas evidenció un funcionamiento correcto de las altas, las bajas y el restablecimiento de contraseñas. Se comprobó especialmente que desactivar un estudio deja fuera a todos sus tatuadores en la petición siguiente, sin esperar a que venzan sus tokens; que un administrador no puede desactivarse a sí mismo ni dejar la plataforma sin ninguno activo; que cada contraseña temporal generada es distinta; y que escribir mal la contraseña actual al cambiarla devuelve un error de formulario y no un cierre de sesión. El resultado general fue satisfactorio, con aprobación completa de los casos evaluados, como resume la Tabla \ref{tab:resultado9} y muestra la Figura \ref{fig:resultadopruebas9}.
+
+\begin{table}[H]
+  \centering
+  \caption{Resultado de ejecución de pruebas unitarias de la Iteración 9}
+  \label{tab:resultado9}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|c|c|c|}
+    \hline
+    \textbf{Archivos evaluados} & \textbf{Tests ejecutados} & \textbf{Resultado} \\
+    \hline
+    3 & 34 & 34 aprobados \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig-4-75-resultado-pruebas-admin}
+  \caption[Resultado pruebas unitarias Iteración 9]{Ejecución de los tres archivos de administración y sesión, que reúnen las 34 pruebas de esta iteración junto con 26 de historias vecinas.}
+  \label{fig:resultadopruebas9}
+\end{figure}
+
+\vspace{\parskip}
+\tituloparpegado{Retrospectiva}
+Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precisas y se identifican posibles mejoras en el proceso de desarrollo. Las cuatro historias se completaron dentro de lo estimado, y fue la iteración más predecible del proyecto: rutas que validan datos, consultan y actualizan, sobre un backend cuyas reglas de propiedad ya estaban firmes desde la Iteración 6.
+
+Lo que sí tomó tiempo fue decidir el alcance de la HU34. La historia ofrecía dos caminos —eliminar o desactivar— y la tentación era implementar los dos, porque técnicamente el borrado es la operación más simple de las dos. Pensar qué se lleva por delante una cuenta borrada fue lo que cerró la discusión: datos de clientes que nunca fueron usuarios del sistema. Quedó como aprendizaje que cuando una historia ofrece una alternativa irreversible y una reversible que cumplen el mismo objetivo, implementar solo la reversible no es dejar la historia a medias.
+
+El segundo aprendizaje es sobre el costo escondido de las sesiones largas. Un token de siete días es cómodo para el usuario, pero obliga a revisar el estado de la cuenta en cada petición si se quiere poder cortar un acceso de verdad; ese costo se paga con una pequeña memoria de unos segundos que el administrador limpia al cambiar un estado. Es una decisión que se tomó aquí pero que afecta a todas las rutas de la plataforma.
 %======================================================================
 %  GLOSARIO
 %======================================================================

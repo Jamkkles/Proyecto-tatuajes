@@ -123,3 +123,17 @@ fig-4-68-vista-calca.png  (width=\textwidth)  el boceto proyectado sobre el
     antebrazo, con el tamaño en centímetros.
 Esta iteración no tiene figura de pruebas unitarias: no se escribieron (ver
 el Sistema de pruebas de la sección).
+
+Iteración 9 (administración de cuentas). Diagramas y recortes de código
+generados con node; capturas de la aplicación corriendo en Docker.
+fig-4-69-secuencia-desactivar.png  (width=\textwidth)
+fig-4-70-secuencia-tatuador.png  (width=\textwidth)
+fig-4-71-implementacion-estado.png  (width=0.9\textwidth)
+fig-4-72-implementacion-ultimo-admin.png  (width=0.9\textwidth)
+fig-4-73-vista-admin-usuarios.png  (width=\textwidth)  vista /admin, pestaña
+    Usuarios (misma sesión promovida que la figura 4.61).
+fig-4-74-vista-cambiar-contrasena.png  (width=\textwidth)  vista
+    /cambiar-contrasena.
+fig-4-75-resultado-pruebas-admin.png  (width=0.9\textwidth)  salida real de
+    "npx jest admin accountStatus auth.login" (60 pruebas, 3 archivos; 34 de
+    esta iteración).
