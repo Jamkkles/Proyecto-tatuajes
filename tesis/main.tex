@@ -1200,7 +1200,7 @@ Después de la implementación, se lleva a cabo una fase de pruebas para esta it
 
 \vspace{\parskip}
 \titulopar{Pruebas unitarias}
-Junto con los casos anteriores, las historias de esta iteración quedaron cubiertas por pruebas automatizadas sobre las rutas de autenticación y sobre el servicio de correo, usando Jest con Supertest. Las capas que tocan la base de datos se reemplazan por dobles de prueba, de modo que cada caso evalúa el controlador de forma aislada. La Tabla \ref{tab:pruebas2} detalla las pruebas implementadas; incluye también los casos que se agregaron después sobre estas mismas rutas, como el bloqueo de cuentas desactivadas y el cambio de la contraseña temporal entregada por el administrador.
+Junto con los casos anteriores, las historias de esta iteración quedaron cubiertas por pruebas automatizadas sobre las rutas de autenticación y sobre el servicio de correo, usando Jest con Supertest. Las capas que tocan la base de datos se reemplazan por dobles de prueba, de modo que cada caso evalúa el controlador de forma aislada. La Tabla \ref{tab:pruebas2} detalla las pruebas implementadas; incluye también los casos que se agregaron después sobre estas mismas rutas, como el bloqueo de cuentas desactivadas y el cambio de la contraseña temporal entregada por el administrador. La columna ``Tests'' indica cuántos casos de prueba independientes verifican cada función.
 
 \begin{table}[H]
   \centering
@@ -1605,6 +1605,208 @@ La ejecución de las pruebas evidenció un funcionamiento correcto del registro,
 \vspace{\parskip}
 \tituloparpegado{Retrospectiva}
 Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precisas y se identifican posibles mejoras en el proceso de desarrollo. Las cinco historias se completaron dentro de lo estimado. La HU25 resultó más barata de lo previsto porque reutilizó la consulta de citas que ya existía de la agenda, y lo que costó más fue decidir la regla de la HU26: la primera versión sumaba por la fecha de la cita y mostraba como ingreso de un mes dinero que aún no se había cobrado, así que se agregó la fecha de pago a cada sesión para poder separar ambas cosas. Como aprendizaje, quedó claro que conviene fijar desde el principio qué fecha representa cada cifra que se muestra al artista, porque corregirlo después obliga a tocar el modelo de datos.
+\subsection{Iteración 5}
+
+En esta iteración se implementan las historias de usuario HU14, HU15 y HU16, que son el cálculo automatizado del costo de insumos de un tatuaje, el ajuste manual de ese cálculo y el descuento del inventario al dar por terminada una sesión. Las tres se apoyan en lo construido antes: la cobertura de tinta y los colores que se midieron del boceto en la Iteración 3, y el inventario con costos unitarios y reglas de consumo de la Iteración 4. La HU27, asignada también a esta iteración, se descartó; la decisión se explica más abajo y se retoma en la retrospectiva.
+
+\vspace{0.3cm}
+\tituloparpegado{Historias de usuario asociadas}
+A continuación se listan las historias de usuario asignadas a esta iteración en la Tabla \ref{tab:iteraciones}, cuya estimación de esfuerzo suma 15 puntos según la Tabla \ref{tab:prioridad}.
+
+\begin{itemize}
+  \item \textbf{HU14:} como tatuador quiero que el sistema calcule el costo de los insumos basándose en el tamaño del boceto y variables de trazado, para obtener un presupuesto automatizado.
+  \item \textbf{HU15:} como tatuador quiero agregar o quitar materiales específicos sugeridos por el algoritmo, para refinar el cálculo final de la cotización.
+  \item \textbf{HU16:} como tatuador quiero que al dar por finalizada una sesión cotizada los materiales se descuenten solos, para automatizar el control de stock.
+  \item \textbf{HU27:} como tatuador quiero definir mis días y horas de trabajo, para que el calendario bloquee automáticamente mis días libres.
+\end{itemize}
+
+La HU27 se revisó con el tatuador antes de programarla y se decidió no implementarla, de modo que el esfuerzo efectivo de la iteración fue de 13 puntos. La razón es que no describe cómo trabaja el estudio: el tatuador no tiene días libres fijos, atiende fuera de su horario habitual cuando al cliente le acomoda, y un calendario que bloqueara esos horarios le habría impedido agendar citas que sí quería tomar. La necesidad concreta detrás de la historia, que es no comprometer dos veces la misma hora, se resolvió en la Iteración 6 con una comprobación de solapamiento entre citas, que actúa sobre las horas realmente ocupadas en lugar de sobre un horario declarado de antemano.
+
+\vspace{0.3cm}
+\tituloparpegado{Inicio de Iteración}
+En esta etapa se crean y registran las tareas acordes a las historias de usuario, donde la Tabla \ref{tab:tareas5} ilustra el registro de las tareas resultantes de la iteración.
+
+\begin{table}[H]
+  \centering
+  \caption{Tareas asociadas a la Iteración 5}
+  \label{tab:tareas5}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|l|l|p{7.2cm}|}
+    \hline
+    \textbf{Historia} & \textbf{Tarea} & \textbf{Descripción} \\
+    \hline
+    HU14 & T0001 & Crear diagrama de secuencia \\ \hline
+    HU14 & T0002 & Crear las tablas de cotización y de su detalle \\ \hline
+    HU14 & T0003 & Crear el motor de cálculo con las variables de trazado \\ \hline
+    HU14 & T0004 & Repartir el área entintada entre las tintas del diseño \\ \hline
+    HU14 & T0005 & Crear la ruta de estimación que calcula sin guardar \\ \hline
+    HU14 & T0006 & Crear la vista de cotizaciones con el cálculo en vivo \\ \hline
+    HU15 & T0001 & Crear diagrama de secuencia \\ \hline
+    HU15 & T0002 & Crear las rutas de guardado y de ajuste del detalle \\ \hline
+    HU15 & T0003 & Permitir agregar, corregir y quitar líneas en la vista \\ \hline
+    HU16 & T0001 & Crear diagrama de secuencia \\ \hline
+    HU16 & T0002 & Crear el descuento de stock dentro de una transacción \\ \hline
+    HU16 & T0003 & Enganchar el descuento al cierre de la sesión \\ \hline
+    HU27 & T0001 & Descartada antes de programarla (ver Retrospectiva) \\ \hline
+    HU14--HU16 & T0009 & Creación y testeo de pruebas unitarias \\ \hline
+    HU14--HU16 & T0010 & Creación y uso de sistema de pruebas \\ \hline
+  \end{tabular}
+\end{table}
+
+\vspace{0.3cm}
+\tituloparpegado{Diseño}
+En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. Las Figuras \ref{fig:seccotizar}, \ref{fig:secajuste} y \ref{fig:secdescuento} ilustran el cálculo de una cotización, el ajuste manual de su detalle y el descuento de inventario al cerrar una sesión cotizada.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-37-secuencia-cotizar}
+  \caption[Diagrama de secuencia Cotizar]{Diagrama de secuencia HU14: cálculo del costo de insumos de un tatuaje.}
+  \label{fig:seccotizar}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-38-secuencia-ajustar-cotizacion}
+  \caption[Diagrama de secuencia Ajustar Cotización]{Diagrama de secuencia HU15: ajuste manual del detalle de insumos.}
+  \label{fig:secajuste}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-39-secuencia-descuento-stock}
+  \caption[Diagrama de secuencia Descuento de Stock]{Diagrama de secuencia HU16: descuento del inventario al dar por finalizada una sesión cotizada.}
+  \label{fig:secdescuento}
+\end{figure}
+
+\tituloparpegado{Implementación}
+En esta etapa se desarrolla el backend y el frontend de las historias asignadas. En el backend se levanta el recurso \texttt{/api/quotes} con el cálculo sin guardar, el guardado, el ajuste, la eliminación y el descuento de stock, con las mismas reglas de propiedad de las iteraciones anteriores.
+
+Lo primero que hubo que acotar es qué calcula la plataforma. La cotización entrega el \textbf{costo objetivo de los insumos} que gasta un tatuaje, no el precio que el artista cobra por su trabajo: ese precio depende de su experiencia, de su estilo y de lo que decida cobrar, y sigue viviendo en el proyecto como un dato que él escribe. Separar ambas cosas fue lo que permitió automatizar la primera sin pretender automatizar la segunda.
+
+El cálculo parte del área que de verdad se va a entintar, como muestra la Figura \ref{fig:implarea}. El rectángulo del boceto por sí solo miente: un lettering fino y un diseño macizo del mismo tamaño gastan cosas muy distintas. Por eso el área del rectángulo se pondera por la cobertura de tinta que se midió del archivo al subirlo, y sobre esa área efectiva se calcula todo lo demás. Las horas de aguja salen de dividir esa área por un rendimiento en centímetros cuadrados por hora, calibrado con los tiempos que maneja el oficio y corregido por las variables de trazado.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig-4-40-implementacion-area-efectiva}
+  \caption[Área efectiva y tiempo de trabajo]{Área efectiva, horas de aguja y sesiones deducidas del trabajo que pide la pieza.}
+  \label{fig:implarea}
+\end{figure}
+
+Las variables de trazado que pide la HU14 son el grosor del trazo y el modo de color, y mueven el material y el tiempo en sentidos distintos. Un trazo grueso come más tinta pero avanza más rápido por centímetro cuadrado; uno fino es de detalle y ocurre al revés. En la misma pieza de prueba de 12 por 18 centímetros, el trazo fino gasta 1,489 ml de tinta en 2 horas 9 minutos de aguja, el medio 1,861 ml en 1 hora 43 minutos y el grueso 2,419 ml en 1 hora 28 minutos.
+
+Un segundo punto de diseño fue cómo se cobran las tintas. La primera versión cotizaba todas las tintas del inventario por el área completa del diseño, de modo que un tatuaje en negro salía pagando también el rojo y el amarillo, y agregar tintas al inventario encarecía cualquier cotización. La regla que corrigió el problema es que el área entintada se \textbf{reparte} entre las tintas y nunca se multiplica por cuántas haya guardadas: los colores que se midieron del boceto se emparejan con las tintas que el artista declaró, y cada una recibe solo la parte del diseño que lleva su color. Un color del diseño que ninguna tinta del inventario cubre no desaparece del cálculo ni se reparte entre las demás: se cotiza con una tinta de referencia y se muestra marcado como que hay que comprarla, porque el tatuaje la va a necesitar igual.
+
+El consumo de cada insumo se resuelve según la base que declaró en el inventario, como muestra la Figura \ref{fig:implconsumo}. Lo que escala con el área lleva además un piso de una unidad por sesión, que no es un redondeo de conveniencia: un cartucho y la tinta servida en la copita son estériles y se botan al terminar, no se guardan para el cliente siguiente, así que una pieza chica no puede cotizarse en centésimas de cartucho.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{fig-4-41-implementacion-consumo}
+  \caption[Consumo de un insumo]{Consumo de cada insumo según la base declarada en el inventario.}
+  \label{fig:implconsumo}
+\end{figure}
+
+La HU15 se resolvió guardando el detalle como una copia congelada. Cada línea de la cotización conserva el nombre, la unidad y el costo del insumo tal como estaban al cotizar, de modo que si mañana sube el precio de la tinta la cotización que ya se le pasó al cliente no cambia sola. El artista puede corregir cantidades, quitar lo que no va a usar y agregar insumos que el algoritmo no consideró, pero el costo total lo recalcula siempre el servidor a partir de las líneas: una cifra enviada desde el navegador se ignora.
+
+La HU16 descuenta el inventario cuando la sesión se marca como completada, y su exigencia principal es no descontar dos veces. Volver a guardar una sesión ya cerrada, un segundo clic o dos pestañas abiertas no pueden vaciar el stock dos veces por el mismo trabajo. Como muestra la Figura \ref{fig:impldescuento}, el descuento ocurre dentro de una transacción que empieza sellando la cotización con un UPDATE condicionado a que ese sello siga vacío: si otra ejecución llegó antes, ese UPDATE no afecta ninguna fila, la transacción se corta y el inventario queda intacto. Si el descuento falla por cualquier motivo, la sesión igual queda cerrada y el artista puede ajustar el stock a mano, porque perder el registro de la cita por un problema del inventario sería peor que el problema mismo.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{fig-4-42-implementacion-descuento}
+  \caption[Descuento de stock de una cotización]{Descuento del inventario en una transacción, con el sello que lo hace irrepetible.}
+  \label{fig:impldescuento}
+\end{figure}
+
+En el frontend se desarrolló la vista de cotizaciones, que estima en vivo contra el servidor mientras el artista ajusta los campos y recién guarda cuando él lo decide. La página se abre desde el proyecto, con el boceto y el tamaño ya precargados, y el cálculo no se hace nunca en el navegador: la pantalla solo muestra lo que el servidor devuelve.
+
+\tituloparpegado{Resultado del desarrollo}
+Como resultado de esta iteración, el tatuador puede saber cuánto material le cuesta un trabajo antes de cotizarlo, ajustar ese cálculo con lo que él sabe de su propia forma de trabajar, y dejar que el inventario se descuente solo cuando la sesión termina. Las Figuras \ref{fig:vistacotizaciones} y \ref{fig:vistaproyectocosto} presentan las vistas desarrolladas durante esta etapa. En el ejemplo, una pieza de 12 por 18 centímetros con un 20\% de cobertura de tinta da 43 centímetros cuadrados efectivos, 2 horas 15 minutos de trabajo en una sesión y un costo de insumos de \$9.983.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-43-vista-cotizaciones}
+  \caption[Vista Cotizaciones]{Vista ``Cotizaciones'': parámetros del tatuaje a la izquierda y, a la derecha, el área a tatuar, el tiempo estimado, el costo de insumos, los colores del boceto y el detalle editable.}
+  \label{fig:vistacotizaciones}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-4-44-vista-proyecto-costo}
+  \caption[Costo de insumos en el proyecto]{Vista ``Proyecto'': el costo de insumos vive en su propio panel, separado de lo que el artista cobra por su trabajo.}
+  \label{fig:vistaproyectocosto}
+\end{figure}
+
+\tituloparpegado{Sistema de pruebas}
+Después de la implementación se lleva a cabo una fase de pruebas para esta iteración, evaluando los siguientes casos:
+
+\begin{itemize}
+  \item Cotizar un boceto medido y comprobar el área efectiva que resulta.
+  \item Cotizar la misma pieza con trazo fino, medio y grueso.
+  \item Cotizar un diseño a color y revisar el reparto entre las tintas.
+  \item Cotizar un diseño con un color que no está en el inventario.
+  \item Quitar una línea y corregir la cantidad de otra antes de guardar.
+  \item Guardar la cotización y volver a abrirla desde el proyecto.
+  \item Intentar modificar una cotización que ya descontó el stock.
+  \item Marcar como completada una sesión cotizada y revisar el inventario.
+  \item Volver a guardar esa misma sesión y comprobar que el stock no baja de nuevo.
+\end{itemize}
+
+\vspace{\parskip}
+\titulopar{Pruebas unitarias}
+Al finalizar el desarrollo se crean las pruebas unitarias correspondientes a las tareas definidas en el Inicio de Iteración, con Jest y Supertest y con la base de datos reemplazada por dobles de prueba. La Tabla \ref{tab:pruebas5} detalla las pruebas implementadas.
+
+% Los objetivos van compactados a dos líneas y las pruebas del motor de
+% cálculo en una sola fila: con filas de tres líneas la tabla ocupaba casi una
+% página entera, que es lo que la hacía flotar lejos del texto que la nombra.
+\begin{table}[H]
+  \centering
+  \caption{Pruebas unitarias implementadas en la Iteración 5}
+  \label{tab:pruebas5}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|l|p{3.4cm}|p{6.6cm}|c|}
+    \hline
+    \textbf{ID} & \textbf{Función evaluada} & \textbf{Objetivo} & \textbf{Tests} \\
+    \hline
+    PU-18 & \texttt{computeQuote()} & Validar el área efectiva, las bases de consumo, las variables de trazado y el tiempo. & 25 \\ \hline
+    PU-19 & \texttt{computeQuote()} & Verificar que el área entintada se reparte entre las tintas y nunca se multiplica. & 17 \\ \hline
+    PU-20 & \texttt{matchInk()} & Validar el emparejamiento de un color con la tinta más parecida y los grises. & 11 \\ \hline
+    PU-21 & \texttt{allocate\newline Palette()} & Comprobar que las partes del área suman 1, con paleta medida y por modo de color. & 14 \\ \hline
+    PU-22 & \texttt{POST /quotes/\newline estimate} & Verificar el cálculo sin guardar y la cobertura tomada del boceto. & 7 \\ \hline
+    PU-23 & \texttt{POST /quotes} & Validar el guardado y el rechazo de referencias ajenas o sin token. & 8 \\ \hline
+    PU-24 & \texttt{PATCH /quotes/:id} & Comprobar el reemplazo de las líneas y el bloqueo de una cotización consumida. & 6 \\ \hline
+    PU-25 & \texttt{POST /quotes/\newline :id/consume} & Verificar el descuento de stock y que no se repite la segunda vez. & 2 \\ \hline
+  \end{tabular}
+\end{table}
+
+En total, durante esta iteración se ejecutaron 90 pruebas unitarias repartidas en tres archivos de prueba. La mayoría se concentra en el motor de cálculo y en el emparejamiento de color, que son la parte del sistema donde un error no se nota a simple vista: una cotización equivocada igual se ve bien en pantalla.
+
+\titulopar{Resultados obtenidos}
+La ejecución de las pruebas evidenció un funcionamiento correcto del cálculo, del ajuste manual y del descuento de inventario. Se comprobó especialmente que las partes del área repartidas entre las tintas suman siempre uno, de modo que agregar tintas al inventario no encarece un diseño en negro; que repartir la misma pieza en más citas no agranda el tatuaje ni su costo; y que descontar dos veces la misma cotización deja el inventario intacto la segunda vez. El resultado general fue satisfactorio, con aprobación completa de los casos evaluados, como resume la Tabla \ref{tab:resultado5} y muestra la Figura \ref{fig:resultadopruebas5}.
+
+\begin{table}[H]
+  \centering
+  \caption{Resultado de ejecución de pruebas unitarias de la Iteración 5}
+  \label{tab:resultado5}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|c|c|c|}
+    \hline
+    \textbf{Archivos evaluados} & \textbf{Tests ejecutados} & \textbf{Resultado} \\
+    \hline
+    3 & 90 & 90 aprobados \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{fig-4-45-resultado-pruebas-cotizaciones}
+  \caption[Resultado pruebas unitarias Iteración 5]{Ejecución de los tres archivos de prueba de la cotización automatizada.}
+  \label{fig:resultadopruebas5}
+\end{figure}
+
+\vspace{\parskip}
+\tituloparpegado{Retrospectiva}
+Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precisas y se identifican posibles mejoras en el proceso de desarrollo. Las tres historias implementadas se completaron, pero la HU14 tomó bastante más de lo estimado: calcular el costo era la parte fácil, y lo que costó fue el reparto de las tintas por color, que hubo que rehacer después de descubrir que un tatuaje en negro salía cotizando todas las tintas del inventario. La HU16, en cambio, resultó más barata de lo previsto porque el descuento se apoyó en el ajuste de stock que ya existía de la Iteración 4. La HU27 se descartó antes de programarla, lo que liberó sus dos puntos de esfuerzo.
+
+Quedaron dos aprendizajes. El primero es que un error de cálculo no se delata solo: la pantalla muestra una cifra con el mismo aspecto esté bien o mal, y fueron las pruebas sobre el motor las que dejaron en evidencia el problema del reparto, no el uso de la aplicación. El segundo es que conviene revisar con el usuario si una historia describe su trabajo real antes de programarla; la HU27 estaba escrita desde una idea razonable de cómo debería funcionar un calendario, pero no desde cómo este estudio toma sus citas.
 %======================================================================
 %  GLOSARIO
 %======================================================================
