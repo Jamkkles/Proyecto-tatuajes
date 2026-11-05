@@ -63,3 +63,6 @@ models-src/
 *.synctex.gz
 *.toc
 *.tmp
+
+# Respaldos locales de la memoria (git ya guarda el historial)
+tesis/_respaldo/
