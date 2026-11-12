@@ -797,6 +797,8 @@ En esta etapa, se crean los diagramas de sencuencia de las historias de usuario 
   \label{fig:secuencia}
 \end{figure}
 
+Las tareas T0001 de cada iteración corresponden a estos diagramas. Para no extender la memoria con flujos que repiten el mismo recorrido —vista, interfaz de programación, base de datos y respuesta—, en el capítulo de Desarrollo se reproduce el diagrama más representativo de cada iteración.
+
 \titulopar{Implementación}
 
 En esta etapa se lleva a cabo el desarrollo de código, pruebas unitarias y refactorización. La implementación sigue los diagramas de secuencia para guiar el flujo de las funcionalidades y los mockups propuestos. Aunque la metodología PXP sugiere un enfoque de Test-Driven Development (TDD)\cite{beck2002}, en el que primero se crean las pruebas, luego el código, y finalmente se realiza la refactorización este caso se ajustaría el proceso: primero se desarrollará el código, luego se completarán las pruebas unitarias, y se refactorizará en caso de que alguna prueba falle.
@@ -1095,7 +1097,7 @@ En esta etapa, se crean y son registradas las tareas acordes a las historias de 
 
 \vspace{0.3cm}
 \tituloparpegado{Diseño}
-En esta etapa, se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. A continuación, las Figuras \ref{fig:seclogin}, \ref{fig:secdashboard} y \ref{fig:secolvido} ilustran el flujo de las principales funcioanlidades.
+En esta etapa, se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. A continuación, la Figura \ref{fig:seclogin} ilustra el flujo del inicio de sesión, que es el que establece el patrón de autenticación que siguen las demás funcionalidades de la plataforma.
 
 \begin{figure}[H]
   \centering
@@ -1104,26 +1106,12 @@ En esta etapa, se crean los diagramas de secuencia de las historias de usuario a
   \label{fig:seclogin}
 \end{figure}
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{fig-4-13-secuencia-dashboard}
-  \caption[Diagrama de secuencia Dashboard]{Diagrama de secuencia HU02: Dashboard.}
-  \label{fig:secdashboard}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{fig-4-14-secuencia-olvidar-contrasena}
-  \caption[Diagrama de secuencia Olvidar Contraseña]{Diagrama de secuencia HU03: Olvidar Contraseña.}
-  \label{fig:secolvido}
-\end{figure}
-
 \tituloparpegado{Implementación}
 En esta etapa, se desarrolla tanto el backend como el frontend de las historias de usuario asignadas a la iteración. Se crean las rutas necesarias en el backend para manejar las solicitudes de inicio de sesión, cierre de sesión y recuperación de contraseña, mientras que en el frontend se desarrollan las vistas correspondientes para que el usuario pueda interactuar con estas funcionalidades. En el caso del inicio de sesión, se implemente JSON Web Tokens (JWT) para la autenticación y autorización de usuarios, asegurando acceso seguro a rutas protegidas del sistema. (Figura \ref{fig:jwt})
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.8\textwidth]{fig-4-15-implementacion-jwt}
+  \includegraphics[width=0.8\textwidth]{fig-4-13-implementacion-jwt}
   \caption[Implementación JWT]{Implementación de autenticación mediante JSON Web Tokens (JWT).}
   \label{fig:jwt}
 \end{figure}
@@ -1132,7 +1120,7 @@ Otro modulo que se implementó fue el servicio de envío de correos electrónico
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.8\textwidth]{fig-4-16-implementacion-email}
+  \includegraphics[width=0.8\textwidth]{fig-4-14-implementacion-email}
   \caption[Implementación Email]{Implementación del servicio de envío de correos electrónicos para recuperación de contraseña.}
   \label{fig:email}
 \end{figure}
@@ -1141,7 +1129,7 @@ Al finalizar el desarrollo de las funcionalidades, se crean las pruebas unitaria
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.8\textwidth]{fig-4-17-estructura-pruebas}
+  \includegraphics[width=0.8\textwidth]{fig-4-15-estructura-pruebas}
   \caption[Pruebas Unitarias]{Estructura de pruebas unitarias.}
   \label{fig:estructurapruebas}
 \vspace{-5.72pt}
@@ -1151,7 +1139,7 @@ La Figura \ref{fig:resultadopruebas} muestra los resultado de la ejecución de l
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=0.8\textwidth]{fig-4-18-resultado-pruebas}
+  \includegraphics[width=0.8\textwidth]{fig-4-16-resultado-pruebas}
   \caption[Resultado Pruebas Unitarias]{Resultado de la ejecución de pruebas unitarias.}
   \label{fig:resultadopruebas}
 \vspace{2.33pt}
@@ -1162,14 +1150,14 @@ Como resultado de esta iteración, la plataforma cuenta con un acceso propio par
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.8\textwidth]{fig-4-19-vista-login}
+  \includegraphics[width=0.8\textwidth]{fig-4-17-vista-login}
   \caption[Vista Inicio de sesión]{Vista ``Inicio de sesión'', con el acceso a la recuperación de contraseña y a la creación de una cuenta nueva.}
   \label{fig:vistalogin}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.8\textwidth]{fig-4-20-vista-recuperar}
+  \includegraphics[width=0.8\textwidth]{fig-4-18-vista-recuperar}
   \caption[Vista Recuperar contraseña]{Vista ``Recuperar contraseña'': el tatuador indica su correo y recibe el enlace para definir una nueva.}
   \label{fig:vistarecuperar}
 \end{figure}
@@ -1178,7 +1166,7 @@ La Figura \ref{fig:vistaresumen} muestra la pantalla a la que llega el tatuador 
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.8\textwidth]{fig-4-21-vista-resumen}
+  \includegraphics[width=0.8\textwidth]{fig-4-19-vista-resumen}
   \caption[Vista Resumen]{Vista ``Resumen'', primera pantalla tras iniciar sesión.}
   \label{fig:vistaresumen}
 \end{figure}
@@ -1292,27 +1280,13 @@ En esta etapa se crean y registran las tareas acordes a las historias de usuario
 
 \vspace{0.3cm}
 \tituloparpegado{Diseño}
-En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. Las Figuras \ref{fig:secsubir}, \ref{fig:secgaleria} y \ref{fig:seceliminar} ilustran el flujo de la subida de un boceto, la consulta filtrada de la galería y la eliminación de un diseño, respectivamente. En los tres casos la petición pasa primero por el middleware de autenticación, que entrega el identificador del tatuador dueño de la sesión: ese identificador es el que después filtra cada consulta a la base de datos.
+En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. La Figura \ref{fig:secsubir} ilustra la subida de un boceto, que es el flujo más completo de la galería. La consulta filtrada y la eliminación de un diseño siguen el mismo recorrido: la petición pasa primero por el middleware de autenticación, que entrega el identificador del tatuador dueño de la sesión, y ese identificador es el que después filtra cada consulta a la base de datos.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-22-secuencia-subir-boceto}
+  \includegraphics[width=\textwidth]{fig-4-20-secuencia-subir-boceto}
   \caption[Diagrama de secuencia Subir Boceto]{Diagrama de secuencia HU04: subida de un boceto.}
   \label{fig:secsubir}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{fig-4-23-secuencia-galeria}
-  \caption[Diagrama de secuencia Galería]{Diagrama de secuencia HU05 y HU07: consulta de la galería con filtros.}
-  \label{fig:secgaleria}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{fig-4-24-secuencia-eliminar-boceto}
-  \caption[Diagrama de secuencia Eliminar Boceto]{Diagrama de secuencia HU06: eliminación de un boceto.}
-  \label{fig:seceliminar}
 \end{figure}
 
 \tituloparpegado{Implementación}
@@ -1322,7 +1296,7 @@ La subida de archivos se resuelve con Multer, una librería de Node.js que inter
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.85\textwidth]{fig-4-25-implementacion-subida}
+  \includegraphics[width=0.85\textwidth]{fig-4-21-implementacion-subida}
   \caption[Implementación de la subida de imágenes]{Configuración de la recepción de imágenes en memoria.}
   \label{fig:implsubida}
 \end{figure}
@@ -1335,7 +1309,7 @@ Respecto del aislamiento de la información, cada consulta incorpora el identifi
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.85\textwidth]{fig-4-26-implementacion-propiedad}
+  \includegraphics[width=0.85\textwidth]{fig-4-22-implementacion-propiedad}
   \caption[Consulta filtrada por usuario]{Consulta de bocetos filtrada por el usuario del token y por los filtros de la HU07.}
   \label{fig:implpropiedad}
 \end{figure}
@@ -1350,7 +1324,7 @@ En ella se distinguen el formulario de importación a la izquierda, los filtros 
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.8\textwidth]{fig-4-27-vista-galeria}
+  \includegraphics[width=0.8\textwidth]{fig-4-23-vista-galeria}
   \caption[Vista Galería de bocetos]{Vista ``Galería de bocetos''.}
   \label{fig:vistagaleria}
 \end{figure}
@@ -1395,7 +1369,7 @@ La ejecución de las pruebas evidenció un funcionamiento correcto de las operac
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.8\textwidth]{fig-4-28-resultado-pruebas-galeria}
+  \includegraphics[width=0.8\textwidth]{fig-4-24-resultado-pruebas-galeria}
   \caption[Resultado pruebas unitarias Iteración 3]{Resultado de la ejecución de las pruebas unitarias de la galería de bocetos.}
   \label{fig:resultadopruebas3}
 \end{figure}
@@ -1470,27 +1444,13 @@ En esta etapa se crean y registran las tareas acordes a las historias de usuario
 
 \vspace{0.3cm}
 \tituloparpegado{Diseño}
-En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. Las Figuras \ref{fig:secinsumo}, \ref{fig:seccritico} y \ref{fig:secresumen} ilustran el registro de un insumo, el descuento de stock que dispara la advertencia de nivel crítico y la carga del panel de control.
+En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. La Figura \ref{fig:seccritico} ilustra el descuento de stock que dispara la advertencia de nivel crítico, que es el flujo de la iteración en el que intervienen más partes: la vista, la base de datos y el servicio de avisos. El registro de un insumo y la carga del panel de control siguen el recorrido habitual de la plataforma.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-29-secuencia-registrar-insumo}
-  \caption[Diagrama de secuencia Registrar Insumo]{Diagrama de secuencia HU11: registro de un insumo.}
-  \label{fig:secinsumo}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{fig-4-30-secuencia-stock-critico}
+  \includegraphics[width=\textwidth]{fig-4-25-secuencia-stock-critico}
   \caption[Diagrama de secuencia Nivel Crítico]{Diagrama de secuencia HU12 y HU13: descuento de stock y advertencia de nivel crítico.}
   \label{fig:seccritico}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{fig-4-31-secuencia-resumen}
-  \caption[Diagrama de secuencia Panel de Control]{Diagrama de secuencia HU25 y HU26: carga del panel de control.}
-  \label{fig:secresumen}
 \end{figure}
 
 \tituloparpegado{Implementación}
@@ -1502,7 +1462,7 @@ El ajuste de stock no se calcula en el servidor para después guardarlo, sino qu
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.85\textwidth]{fig-4-32-implementacion-stock}
+  \includegraphics[width=0.85\textwidth]{fig-4-26-implementacion-stock}
   \caption[Ajuste de stock en la base de datos]{Ajuste de stock resuelto en la base de datos.}
   \label{fig:implstock}
 \end{figure}
@@ -1513,7 +1473,7 @@ En cuanto al panel de control, la HU26 pide una suma de ingresos del mes, y la d
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.85\textwidth]{fig-4-33-implementacion-ingresos}
+  \includegraphics[width=0.85\textwidth]{fig-4-27-implementacion-ingresos}
   \caption[Cálculo de los ingresos del mes]{Cobrado y pendiente del mes, resueltos en una sola consulta.}
   \label{fig:implingresos}
 \end{figure}
@@ -1525,14 +1485,14 @@ Como resultado de esta iteración, el tatuador tiene el control de sus insumos d
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-34-vista-inventario}
+  \includegraphics[width=\textwidth]{fig-4-28-vista-inventario}
   \caption[Vista Inventario]{Vista ``Inventario'', con la advertencia de los insumos en nivel crítico, el resumen del stock y los insumos críticos primero en la lista.}
   \label{fig:vistainventario}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-35-vista-resumen-stock}
+  \includegraphics[width=\textwidth]{fig-4-29-vista-resumen-stock}
   \caption[Vista Resumen con stock bajo]{Vista ``Resumen'': calendario del mes, próximas citas, panel de stock bajo y las cifras de lo cobrado y lo por cobrar.}
   \label{fig:vistaresumenstock}
 \end{figure}
@@ -1597,7 +1557,7 @@ La ejecución de las pruebas evidenció un funcionamiento correcto del registro,
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.9\textwidth]{fig-4-36-resultado-pruebas-inventario}
+  \includegraphics[width=0.9\textwidth]{fig-4-30-resultado-pruebas-inventario}
   \caption[Resultado pruebas unitarias Iteración 4]{Ejecución de los dos archivos de prueba propios del inventario, que reúnen 22 de las 29 pruebas de la iteración.}
   \label{fig:resultadopruebas4}
 \end{figure}
@@ -1655,27 +1615,13 @@ En esta etapa se crean y registran las tareas acordes a las historias de usuario
 
 \vspace{0.3cm}
 \tituloparpegado{Diseño}
-En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. Las Figuras \ref{fig:seccotizar}, \ref{fig:secajuste} y \ref{fig:secdescuento} ilustran el cálculo de una cotización, el ajuste manual de su detalle y el descuento de inventario al cerrar una sesión cotizada.
+En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. La Figura \ref{fig:seccotizar} ilustra el cálculo de una cotización, donde además de la base de datos interviene el motor de cálculo. El ajuste manual del detalle y el descuento de inventario al cerrar una sesión se describen en la implementación, con el código que los resuelve.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-37-secuencia-cotizar}
+  \includegraphics[width=\textwidth]{fig-4-31-secuencia-cotizar}
   \caption[Diagrama de secuencia Cotizar]{Diagrama de secuencia HU14: cálculo del costo de insumos de un tatuaje.}
   \label{fig:seccotizar}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{fig-4-38-secuencia-ajustar-cotizacion}
-  \caption[Diagrama de secuencia Ajustar Cotización]{Diagrama de secuencia HU15: ajuste manual del detalle de insumos.}
-  \label{fig:secajuste}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{fig-4-39-secuencia-descuento-stock}
-  \caption[Diagrama de secuencia Descuento de Stock]{Diagrama de secuencia HU16: descuento del inventario al dar por finalizada una sesión cotizada.}
-  \label{fig:secdescuento}
 \end{figure}
 
 \tituloparpegado{Implementación}
@@ -1687,7 +1633,7 @@ El cálculo parte del área que de verdad se va a entintar, como muestra la Figu
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.9\textwidth]{fig-4-40-implementacion-area-efectiva}
+  \includegraphics[width=0.9\textwidth]{fig-4-32-implementacion-area-efectiva}
   \caption[Área efectiva y tiempo de trabajo]{Área efectiva, horas de aguja y sesiones deducidas del trabajo que pide la pieza.}
   \label{fig:implarea}
 \end{figure}
@@ -1700,7 +1646,7 @@ El consumo de cada insumo se resuelve según la base que declaró en el inventar
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.85\textwidth]{fig-4-41-implementacion-consumo}
+  \includegraphics[width=0.85\textwidth]{fig-4-33-implementacion-consumo}
   \caption[Consumo de un insumo]{Consumo de cada insumo según la base declarada en el inventario.}
   \label{fig:implconsumo}
 \end{figure}
@@ -1711,7 +1657,7 @@ La HU16 descuenta el inventario cuando la sesión se marca como completada, y su
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.85\textwidth]{fig-4-42-implementacion-descuento}
+  \includegraphics[width=0.85\textwidth]{fig-4-34-implementacion-descuento}
   \caption[Descuento de stock de una cotización]{Descuento del inventario en una transacción, con el sello que lo hace irrepetible.}
   \label{fig:impldescuento}
 \end{figure}
@@ -1723,14 +1669,14 @@ Como resultado de esta iteración, el tatuador puede saber cuánto material le c
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-43-vista-cotizaciones}
+  \includegraphics[width=\textwidth]{fig-4-35-vista-cotizaciones}
   \caption[Vista Cotizaciones]{Vista ``Cotizaciones'': parámetros del tatuaje a la izquierda y, a la derecha, el área a tatuar, el tiempo estimado, el costo de insumos, los colores del boceto y el detalle editable.}
   \label{fig:vistacotizaciones}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-44-vista-proyecto-costo}
+  \includegraphics[width=\textwidth]{fig-4-36-vista-proyecto-costo}
   \caption[Costo de insumos en el proyecto]{Vista ``Proyecto'': el costo de insumos vive en su propio panel, separado de lo que el artista cobra por su trabajo.}
   \label{fig:vistaproyectocosto}
 \end{figure}
@@ -1797,7 +1743,7 @@ La ejecución de las pruebas evidenció un funcionamiento correcto del cálculo,
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.9\textwidth]{fig-4-45-resultado-pruebas-cotizaciones}
+  \includegraphics[width=0.9\textwidth]{fig-4-37-resultado-pruebas-cotizaciones}
   \caption[Resultado pruebas unitarias Iteración 5]{Ejecución de los tres archivos de prueba de la cotización automatizada.}
   \label{fig:resultadopruebas5}
 \end{figure}
@@ -1860,27 +1806,13 @@ En esta etapa se crean y registran las tareas acordes a las historias de usuario
 
 \vspace{0.3cm}
 \tituloparpegado{Diseño}
-En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. Las Figuras \ref{fig:secagendar}, \ref{fig:secfoto} y \ref{fig:seccalificar} ilustran el agendado de una cita con la revisión del horario, la subida de una foto del avance y la calificación de una sesión con el puntaje que de ella resulta.
+En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. La Figura \ref{fig:secagendar} ilustra el agendado de una cita con la revisión del horario, que es la parte de la agenda en la que el orden de los pasos importa. La subida de una foto repite el flujo de la galería de bocetos, y la calificación de una sesión es una actualización más.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-46-secuencia-agendar}
+  \includegraphics[width=\textwidth]{fig-4-38-secuencia-agendar}
   \caption[Diagrama de secuencia Agendar Cita]{Diagrama de secuencia HU17: agendado de una cita con revisión del horario.}
   \label{fig:secagendar}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{fig-4-47-secuencia-foto-sesion}
-  \caption[Diagrama de secuencia Foto de Sesión]{Diagrama de secuencia HU20: subida de una foto del avance de la sesión.}
-  \label{fig:secfoto}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{fig-4-48-secuencia-calificar}
-  \caption[Diagrama de secuencia Puntaje del Cliente]{Diagrama de secuencia HU30: calificación de una sesión y puntaje del cliente.}
-  \label{fig:seccalificar}
 \end{figure}
 
 \tituloparpegado{Implementación}
@@ -1892,7 +1824,7 @@ La parte más delicada de la HU17 es que una hora ocupada no se pueda volver a c
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.85\textwidth]{fig-4-49-implementacion-choque}
+  \includegraphics[width=0.85\textwidth]{fig-4-39-implementacion-choque}
   \caption[Revisión del horario ocupado]{Revisión del horario y candado por artista, dentro de la misma transacción.}
   \label{fig:implchoque}
 \end{figure}
@@ -1907,7 +1839,7 @@ La HU30 es la historia que más cambió respecto de lo que pedía su enunciado. 
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.9\textwidth]{fig-4-50-implementacion-promedio}
+  \includegraphics[width=0.9\textwidth]{fig-4-40-implementacion-promedio}
   \caption[Puntaje del cliente]{Puntaje del cliente calculado al consultar, con las cifras que lo explican.}
   \label{fig:implpromedio}
 \end{figure}
@@ -1919,21 +1851,21 @@ Como resultado de esta iteración, el tatuador tiene su agenda completa dentro d
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-51-vista-citas}
+  \includegraphics[width=\textwidth]{fig-4-41-vista-citas}
   \caption[Vista Citas]{Vista ``Citas'': calendario del mes con las citas marcadas, detalle del día elegido y formulario de agendado.}
   \label{fig:vistacitas}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-52-vista-clientes}
+  \includegraphics[width=\textwidth]{fig-4-42-vista-clientes}
   \caption[Vista Clientes]{Vista ``Clientes'': marcador ordenado por puntaje, con los filtros por responsabilidad de llegada.}
   \label{fig:vistaclientes}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-53-vista-cliente-historial}
+  \includegraphics[width=\textwidth]{fig-4-43-vista-cliente-historial}
   \caption[Ficha del cliente]{Ficha del cliente: responsabilidad de llegada, historial de proyectos y estado de los pagos.}
   \label{fig:vistaclientehistorial}
 \end{figure}
@@ -1996,7 +1928,7 @@ La ejecución de las pruebas evidenció un funcionamiento correcto del agendado,
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.9\textwidth]{fig-4-54-resultado-pruebas-agenda}
+  \includegraphics[width=0.9\textwidth]{fig-4-44-resultado-pruebas-agenda}
   \caption[Resultado pruebas unitarias Iteración 6]{Ejecución de los dos archivos de la agenda, que reúnen las 40 pruebas de esta iteración junto con 24 de historias vecinas.}
   \label{fig:resultadopruebas6}
 \end{figure}
@@ -2062,27 +1994,13 @@ En esta etapa se crean y registran las tareas acordes a las historias de usuario
 
 \vspace{0.3cm}
 \tituloparpegado{Diseño}
-En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. Las Figuras \ref{fig:secrecordatorio}, \ref{fig:secavisocambio} y \ref{fig:secestudio} ilustran el envío automático del recordatorio de 24 horas, el aviso al cliente cuando su cita cambia y el registro de un estudio nuevo en la plataforma.
+En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. La Figura \ref{fig:secrecordatorio} ilustra el envío automático del recordatorio de 24 horas, que es el único flujo de la plataforma que no empieza por una acción del tatuador. El aviso al cliente cuando su cita cambia usa el mismo mecanismo de entrega, disparado al guardar la cita.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-55-secuencia-recordatorio}
+  \includegraphics[width=\textwidth]{fig-4-45-secuencia-recordatorio}
   \caption[Diagrama de secuencia Recordatorio]{Diagrama de secuencia HU22: recordatorio automático 24 horas antes de la cita.}
   \label{fig:secrecordatorio}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{fig-4-56-secuencia-aviso-cambio}
-  \caption[Diagrama de secuencia Aviso de Cambio]{Diagrama de secuencia HU21 y HU23: aviso al cliente al cancelar o cambiar la hora.}
-  \label{fig:secavisocambio}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{fig-4-57-secuencia-estudio}
-  \caption[Diagrama de secuencia Registrar Estudio]{Diagrama de secuencia HU31: registro de un estudio con su primer tatuador.}
-  \label{fig:secestudio}
 \end{figure}
 
 \tituloparpegado{Implementación}
@@ -2094,7 +2012,7 @@ El envío se reclama antes de mandarse, como muestra la Figura \ref{fig:implrecl
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.85\textwidth]{fig-4-58-implementacion-reclamo}
+  \includegraphics[width=0.85\textwidth]{fig-4-46-implementacion-reclamo}
   \caption[Reclamo del envío]{El envío se reclama antes de mandarse, y sin teléfono válido se avisa al artista.}
   \label{fig:implreclamo}
 \end{figure}
@@ -2105,7 +2023,7 @@ La consulta que decide a qué citas les toca recordatorio está en la Figura \re
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.85\textwidth]{fig-4-59-implementacion-recordatorio}
+  \includegraphics[width=0.85\textwidth]{fig-4-47-implementacion-recordatorio}
   \caption[Citas con recordatorio pendiente]{Ventana de 24 horas y clave de deduplicación del recordatorio.}
   \label{fig:implrecordatorio}
 \end{figure}
@@ -2123,14 +2041,14 @@ Como resultado de esta iteración, el cliente recibe su recordatorio sin que el 
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-60-vista-configuracion}
+  \includegraphics[width=\textwidth]{fig-4-48-vista-configuracion}
   \caption[Vista Configuración]{Vista ``Configuración'': interruptores de cada mensaje, textos editables y vista previa de lo que recibirá el cliente.}
   \label{fig:vistaconfiguracion}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-61-vista-admin-estudios}
+  \includegraphics[width=\textwidth]{fig-4-49-vista-admin-estudios}
   \caption[Vista Administración]{Vista ``Administración'': registro de un estudio nuevo con su plan y su primer tatuador.}
   \label{fig:vistaadmin}
 \end{figure}
@@ -2195,7 +2113,7 @@ La ejecución de las pruebas evidenció un funcionamiento correcto del reagendam
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.95\textwidth]{fig-4-62-resultado-pruebas-avisos}
+  \includegraphics[width=0.95\textwidth]{fig-4-50-resultado-pruebas-avisos}
   \caption[Resultado pruebas unitarias Iteración 7]{Ejecución de los diez archivos propios de los mensajes y los avisos, que reúnen 151 de las 171 pruebas de la iteración.}
   \label{fig:resultadopruebas7}
 \end{figure}
@@ -2251,20 +2169,13 @@ En esta etapa se crean y registran las tareas acordes a las historias de usuario
 
 \vspace{0.3cm}
 \tituloparpegado{Diseño}
-En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. Las Figuras \ref{fig:seccolocar} y \ref{fig:secguardarescena} ilustran la carga de un modelo con la colocación del boceto sobre la piel y el guardado de la escena con su medida.
+En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. La Figura \ref{fig:seccolocar} ilustra la carga de un modelo y la colocación del boceto sobre la piel, que es donde ocurre todo lo propio de esta iteración; el guardado de la escena es, en cambio, una escritura corriente contra el servidor.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-63-secuencia-colocar}
+  \includegraphics[width=\textwidth]{fig-4-51-secuencia-colocar}
   \caption[Diagrama de secuencia Colocar Tatuaje]{Diagrama de secuencia HU08 y HU09: carga del modelo y proyección del boceto sobre la piel.}
   \label{fig:seccolocar}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{fig-4-64-secuencia-guardar-escena}
-  \caption[Diagrama de secuencia Guardar Escena]{Diagrama de secuencia HU10: ajuste de la calca y guardado de la escena con su medida.}
-  \label{fig:secguardarescena}
 \end{figure}
 
 \tituloparpegado{Implementación}
@@ -2276,7 +2187,7 @@ La HU09 pega el boceto sobre la malla con una calca proyectada, una técnica que
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.9\textwidth]{fig-4-65-implementacion-envolvente}
+  \includegraphics[width=0.9\textwidth]{fig-4-52-implementacion-envolvente}
   \caption[Envolvente de la calca]{Decisión de envolver y anillo de proyección, que se deduce en cada reconstrucción.}
   \label{fig:implenvolvente}
 \end{figure}
@@ -2287,7 +2198,7 @@ La HU10 es la historia donde más se nota la diferencia entre ``funciona'' y ``s
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.9\textwidth]{fig-4-66-implementacion-parche}
+  \includegraphics[width=0.9\textwidth]{fig-4-53-implementacion-parche}
   \caption[Recorte de la vecindad de la malla]{Recorte de la vecindad de la malla, con los tiempos que lo justifican.}
   \label{fig:implparche}
 \end{figure}
@@ -2303,14 +2214,14 @@ Como resultado de esta iteración, el tatuador puede mostrarle al cliente cómo 
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-67-vista-modelos}
+  \includegraphics[width=\textwidth]{fig-4-54-vista-modelos}
   \caption[Vista Previsualización 3D]{Vista ``Previsualización 3D'': catálogo de cuerpos, piezas y encuadres, con el boceto listo para colocar.}
   \label{fig:vistamodelos}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-68-vista-calca}
+  \includegraphics[width=\textwidth]{fig-4-55-vista-calca}
   \caption[Tatuaje colocado sobre el antebrazo]{El boceto proyectado sobre el antebrazo, con su tamaño en centímetros y su giro sobre el lienzo.}
   \label{fig:vistacalca}
 \end{figure}
@@ -2407,20 +2318,13 @@ En esta etapa se crean y registran las tareas acordes a las historias de usuario
 
 \vspace{0.3cm}
 \tituloparpegado{Diseño}
-En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. Las Figuras \ref{fig:secdesactivar} y \ref{fig:sectatuador} ilustran la baja de una cuenta con el corte inmediato de su acceso y el alta de un tatuador dentro de un estudio existente.
+En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. La Figura \ref{fig:secdesactivar} ilustra la baja de una cuenta y el corte de su acceso, que ocurre en la petición siguiente y no cuando vence su token.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-69-secuencia-desactivar}
+  \includegraphics[width=\textwidth]{fig-4-56-secuencia-desactivar}
   \caption[Diagrama de secuencia Desactivar Cuenta]{Diagrama de secuencia HU32 y HU34: baja de una cuenta y corte de su acceso.}
   \label{fig:secdesactivar}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{fig-4-70-secuencia-tatuador}
-  \caption[Diagrama de secuencia Agregar Tatuador]{Diagrama de secuencia HU33: alta de un tatuador dentro de un estudio.}
-  \label{fig:sectatuador}
 \end{figure}
 
 \tituloparpegado{Implementación}
@@ -2430,7 +2334,7 @@ El problema de fondo de la HU32 y la HU34 es que la sesión de la plataforma dur
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.9\textwidth]{fig-4-71-implementacion-estado}
+  \includegraphics[width=0.9\textwidth]{fig-4-57-implementacion-estado}
   \caption[Estado de la cuenta en cada petición]{Comprobación del estado de la cuenta y de su estudio, en cada petición.}
   \label{fig:implestado}
 \end{figure}
@@ -2441,7 +2345,7 @@ Sobre la misma ruta se pusieron dos puertas, que están en la Figura \ref{fig:im
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.9\textwidth]{fig-4-72-implementacion-ultimo-admin}
+  \includegraphics[width=0.9\textwidth]{fig-4-58-implementacion-ultimo-admin}
   \caption[Puertas de la baja de cuentas]{Las dos puertas que impiden dejar la plataforma sin administrador.}
   \label{fig:implultimoadmin}
 \end{figure}
@@ -2457,14 +2361,14 @@ Como resultado de esta iteración, la plataforma puede administrarse sin tocar l
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-73-vista-admin-usuarios}
+  \includegraphics[width=\textwidth]{fig-4-59-vista-admin-usuarios}
   \caption[Vista Administración, cuentas]{Vista ``Administración'': cuentas con su estudio y su uso, con las acciones de restablecer contraseña y desactivar.}
   \label{fig:vistaadminusuarios}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-74-vista-cambiar-contrasena}
+  \includegraphics[width=\textwidth]{fig-4-60-vista-cambiar-contrasena}
   \caption[Vista Cambiar contraseña]{Pantalla de cambio obligatorio, a la que llega quien entró con una contraseña puesta por el administrador.}
   \label{fig:vistacambiarclave}
 \end{figure}
@@ -2527,7 +2431,7 @@ La ejecución de las pruebas evidenció un funcionamiento correcto de las altas,
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.9\textwidth]{fig-4-75-resultado-pruebas-admin}
+  \includegraphics[width=0.9\textwidth]{fig-4-61-resultado-pruebas-admin}
   \caption[Resultado pruebas unitarias Iteración 9]{Ejecución de los tres archivos de administración y sesión, que reúnen las 34 pruebas de esta iteración junto con 26 de historias vecinas.}
   \label{fig:resultadopruebas9}
 \end{figure}
@@ -2584,18 +2488,11 @@ En esta etapa se crean y registran las tareas acordes a las historias de usuario
 
 \vspace{0.3cm}
 \tituloparpegado{Diseño}
-En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. Las Figuras \ref{fig:secmetricas} y \ref{fig:secmiestudio} ilustran la carga del panel de administración con las métricas de cada estudio y el resumen mensual que recibe el dueño de un estudio.
+En esta etapa se crean los diagramas de secuencia de las historias de usuario asociadas a la iteración. La Figura \ref{fig:secmiestudio} ilustra el resumen mensual por tatuador, que es el flujo con una regla propia: lo ve solo el dueño del estudio. El listado con las métricas sigue el mismo recorrido que las demás rutas de administración.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-76-secuencia-metricas}
-  \caption[Diagrama de secuencia Métricas de Uso]{Diagrama de secuencia HU35 y HU36: listado de estudios con sus métricas de uso.}
-  \label{fig:secmetricas}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{fig-4-77-secuencia-mi-estudio}
+  \includegraphics[width=\textwidth]{fig-4-62-secuencia-mi-estudio}
   \caption[Diagrama de secuencia Mi estudio]{Diagrama de secuencia HU36: resumen mensual por tatuador, visible solo para el dueño.}
   \label{fig:secmiestudio}
 \end{figure}
@@ -2605,7 +2502,7 @@ En esta etapa se desarrolla el backend y el frontend de las historias asignadas.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.9\textwidth]{fig-4-78-implementacion-metricas}
+  \includegraphics[width=0.9\textwidth]{fig-4-63-implementacion-metricas}
   \caption[Métricas de uso por estudio]{Métricas de cada estudio, en subconsultas laterales para que los conteos no se multipliquen.}
   \label{fig:implmetricas}
 \end{figure}
@@ -2618,7 +2515,7 @@ Aquí hubo que tomar una decisión de privacidad, que está en la Figura \ref{fi
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.9\textwidth]{fig-4-79-implementacion-resumen}
+  \includegraphics[width=0.9\textwidth]{fig-4-64-implementacion-resumen}
   \caption[Resumen del estudio]{El resumen por tatuador, reservado al dueño del estudio.}
   \label{fig:implresumen}
 \end{figure}
@@ -2628,14 +2525,14 @@ Como resultado de esta iteración, quien administra la plataforma puede ver qué
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-80-vista-admin-metricas}
+  \includegraphics[width=\textwidth]{fig-4-65-vista-admin-metricas}
   \caption[Vista Administración, métricas]{Vista ``Administración'': totales de la plataforma y uso de cada estudio, con el buscador aplicado.}
   \label{fig:vistaadminmetricas}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-81-vista-mi-estudio}
+  \includegraphics[width=\textwidth]{fig-4-66-vista-mi-estudio}
   \caption[Vista Mi estudio]{Vista ``Mi estudio'': resumen del mes del estudio, tatuador por tatuador.}
   \label{fig:vistamiestudio}
 \end{figure}
@@ -2693,7 +2590,7 @@ La ejecución de las pruebas evidenció un funcionamiento correcto del listado, 
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.9\textwidth]{fig-4-82-resultado-pruebas-metricas}
+  \includegraphics[width=0.9\textwidth]{fig-4-67-resultado-pruebas-metricas}
   \caption[Resultado pruebas unitarias Iteración 10]{Ejecución de los dos archivos de administración y estudio, que reúnen las 8 pruebas de esta iteración junto con 25 de iteraciones anteriores.}
   \label{fig:resultadopruebas10}
 \end{figure}

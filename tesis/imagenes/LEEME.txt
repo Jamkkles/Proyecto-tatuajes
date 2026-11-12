@@ -13,12 +13,10 @@ fig-4-1-arquitectura-fisica.png  (width=0.8\textwidth)
 fig-4-10-mockup-previsualizacion-3d.png  (width=\textwidth)
 fig-4-11-mockup-previsualizacion-3d-movil.png  (width=0.6\textwidth)
 fig-4-12-secuencia-login.png  (width=\textwidth)
-fig-4-13-secuencia-dashboard.png  (width=\textwidth)
-fig-4-14-secuencia-olvidar-contrasena.png  (width=\textwidth)
-fig-4-15-implementacion-jwt.png  (width=0.8\textwidth)
-fig-4-16-implementacion-email.png  (width=0.8\textwidth)
-fig-4-17-estructura-pruebas.png  (width=0.8\textwidth)
-fig-4-18-resultado-pruebas.png  (width=0.8\textwidth)
+fig-4-13-implementacion-jwt.png  (width=0.8\textwidth)
+fig-4-14-implementacion-email.png  (width=0.8\textwidth)
+fig-4-15-estructura-pruebas.png  (width=0.8\textwidth)
+fig-4-16-resultado-pruebas.png  (width=0.8\textwidth)
 fig-4-2-arquitectura-logica.png  (width=1.1\textwidth)
 fig-4-3-diagrama-er.png  (width=\textwidth)
 fig-4-4-idea-1.png  (width=0.8\textwidth)
@@ -31,122 +29,113 @@ utalca1.png  (width=2.2cm)
 
 Iteración 2 (autenticación). Capturas reales de la aplicación corriendo en
 Docker, con la cuenta de demostración demo.memoria@estudio.cl.
-fig-4-19-vista-login.png  (width=0.8\textwidth)  vista /
-fig-4-20-vista-recuperar.png  (width=0.8\textwidth)  vista /recuperar
-fig-4-21-vista-resumen.png  (width=0.8\textwidth)  vista /dashboard
+fig-4-17-vista-login.png  (width=0.8\textwidth)  vista /
+fig-4-18-vista-recuperar.png  (width=0.8\textwidth)  vista /recuperar
+fig-4-19-vista-resumen.png  (width=0.8\textwidth)  vista /dashboard
 
 Iteración 3 (galería de bocetos). Generadas con node a partir del código del
 proyecto y de la aplicación corriendo en Docker.
-fig-4-22-secuencia-subir-boceto.png  (width=\textwidth)
-fig-4-23-secuencia-galeria.png  (width=\textwidth)
-fig-4-24-secuencia-eliminar-boceto.png  (width=\textwidth)
-fig-4-25-implementacion-subida.png  (width=0.85\textwidth)
-fig-4-26-implementacion-propiedad.png  (width=0.85\textwidth)
-fig-4-27-vista-galeria.png  (width=0.8\textwidth)  captura real de la vista
+fig-4-20-secuencia-subir-boceto.png  (width=\textwidth)
+fig-4-21-implementacion-subida.png  (width=0.85\textwidth)
+fig-4-22-implementacion-propiedad.png  (width=0.85\textwidth)
+fig-4-23-vista-galeria.png  (width=0.8\textwidth)  captura real de la vista
     /bocetos, con la cuenta de demostración demo.memoria@estudio.cl.
-fig-4-28-resultado-pruebas-galeria.png  (width=0.8\textwidth)  salida real de
+fig-4-24-resultado-pruebas-galeria.png  (width=0.8\textwidth)  salida real de
     "npx jest tests/sketches.test.js --runInBand" (16 pruebas, 1 archivo).
 
 Iteración 4 (inventario y panel de control). Diagramas y recortes de código
 generados con node; capturas de la aplicación corriendo en Docker.
-fig-4-29-secuencia-registrar-insumo.png  (width=\textwidth)
-fig-4-30-secuencia-stock-critico.png  (width=\textwidth)
-fig-4-31-secuencia-resumen.png  (width=\textwidth)
-fig-4-32-implementacion-stock.png  (width=0.85\textwidth)
-fig-4-33-implementacion-ingresos.png  (width=0.85\textwidth)
-fig-4-34-vista-inventario.png  (width=\textwidth)  vista /inventario con dos
+fig-4-25-secuencia-stock-critico.png  (width=\textwidth)
+fig-4-26-implementacion-stock.png  (width=0.85\textwidth)
+fig-4-27-implementacion-ingresos.png  (width=0.85\textwidth)
+fig-4-28-vista-inventario.png  (width=\textwidth)  vista /inventario con dos
     insumos en nivel crítico.
-fig-4-35-vista-resumen-stock.png  (width=\textwidth)  vista /dashboard con el
+fig-4-29-vista-resumen-stock.png  (width=\textwidth)  vista /dashboard con el
     panel de stock bajo y las cifras del mes.
-fig-4-36-resultado-pruebas-inventario.png  (width=0.9\textwidth)  salida real
+fig-4-30-resultado-pruebas-inventario.png  (width=0.9\textwidth)  salida real
     de "npx jest tests/materials.test.js tests/starterKit.test.js" (22 pruebas).
 
 Iteración 5 (cotización automatizada). Diagramas y recortes de código
 generados con node; capturas de la aplicación corriendo en Docker.
-fig-4-37-secuencia-cotizar.png  (width=\textwidth)
-fig-4-38-secuencia-ajustar-cotizacion.png  (width=\textwidth)
-fig-4-39-secuencia-descuento-stock.png  (width=\textwidth)
-fig-4-40-implementacion-area-efectiva.png  (width=0.9\textwidth)
-fig-4-41-implementacion-consumo.png  (width=0.85\textwidth)
-fig-4-42-implementacion-descuento.png  (width=0.85\textwidth)
-fig-4-43-vista-cotizaciones.png  (width=\textwidth)  vista /cotizaciones con
+fig-4-31-secuencia-cotizar.png  (width=\textwidth)
+fig-4-32-implementacion-area-efectiva.png  (width=0.9\textwidth)
+fig-4-33-implementacion-consumo.png  (width=0.85\textwidth)
+fig-4-34-implementacion-descuento.png  (width=0.85\textwidth)
+fig-4-35-vista-cotizaciones.png  (width=\textwidth)  vista /cotizaciones con
     la estimación en vivo de una pieza de 12 x 18 cm.
-fig-4-44-vista-proyecto-costo.png  (width=\textwidth)  vista /proyectos/:id
+fig-4-36-vista-proyecto-costo.png  (width=\textwidth)  vista /proyectos/:id
     con el panel "Costo de insumos" y su cotización guardada.
-fig-4-45-resultado-pruebas-cotizaciones.png  (width=0.9\textwidth)  salida
+fig-4-37-resultado-pruebas-cotizaciones.png  (width=0.9\textwidth)  salida
     real de "npx jest quoteEngine colorMatch quotes" (90 pruebas, 3 archivos).
 
 Iteración 6 (agenda, historial y puntaje). Diagramas y recortes de código
 generados con node; capturas de la aplicación corriendo en Docker.
-fig-4-46-secuencia-agendar.png  (width=\textwidth)
-fig-4-47-secuencia-foto-sesion.png  (width=\textwidth)
-fig-4-48-secuencia-calificar.png  (width=\textwidth)
-fig-4-49-implementacion-choque.png  (width=0.85\textwidth)
-fig-4-50-implementacion-promedio.png  (width=0.9\textwidth)
-fig-4-51-vista-citas.png  (width=\textwidth)  vista /citas con el calendario
+fig-4-38-secuencia-agendar.png  (width=\textwidth)
+fig-4-39-implementacion-choque.png  (width=0.85\textwidth)
+fig-4-40-implementacion-promedio.png  (width=0.9\textwidth)
+fig-4-41-vista-citas.png  (width=\textwidth)  vista /citas con el calendario
     del mes y el detalle del día elegido.
-fig-4-52-vista-clientes.png  (width=\textwidth)  vista /clientes con el
+fig-4-42-vista-clientes.png  (width=\textwidth)  vista /clientes con el
     marcador por puntaje y los filtros de responsabilidad.
-fig-4-53-vista-cliente-historial.png  (width=\textwidth)  vista /clientes/:id
+fig-4-43-vista-cliente-historial.png  (width=\textwidth)  vista /clientes/:id
     con el historial de proyectos y el estado de los pagos.
-fig-4-54-resultado-pruebas-agenda.png  (width=0.9\textwidth)  salida real de
+fig-4-44-resultado-pruebas-agenda.png  (width=0.9\textwidth)  salida real de
     "npx jest agenda sessionOverlap" (64 pruebas, 2 archivos; 40 de esta
     iteración).
 
 Iteración 7 (recordatorios, avisos al cliente y estudios). Diagramas y
 recortes de código generados con node; capturas de la aplicación en Docker.
-fig-4-55-secuencia-recordatorio.png  (width=\textwidth)
-fig-4-56-secuencia-aviso-cambio.png  (width=\textwidth)
-fig-4-57-secuencia-estudio.png  (width=\textwidth)
-fig-4-58-implementacion-reclamo.png  (width=0.85\textwidth)
-fig-4-59-implementacion-recordatorio.png  (width=0.85\textwidth)
-fig-4-60-vista-configuracion.png  (width=\textwidth)  vista /configuracion
+fig-4-45-secuencia-recordatorio.png  (width=\textwidth)
+fig-4-46-implementacion-reclamo.png  (width=0.85\textwidth)
+fig-4-47-implementacion-recordatorio.png  (width=0.85\textwidth)
+fig-4-48-vista-configuracion.png  (width=\textwidth)  vista /configuracion
     con los interruptores, los textos editables y la vista previa.
-fig-4-61-vista-admin-estudios.png  (width=\textwidth)  vista /admin, pestaña
+fig-4-49-vista-admin-estudios.png  (width=\textwidth)  vista /admin, pestaña
     Estudios, con el formulario de estudio nuevo. Para tomarla se promovió a
     administrador la cuenta de demostración en la base local y después se
     devolvió a tatuador.
-fig-4-62-resultado-pruebas-avisos.png  (width=0.95\textwidth)  salida real de
+fig-4-50-resultado-pruebas-avisos.png  (width=0.95\textwidth)  salida real de
     los diez archivos de avisos y mensajes (151 pruebas; la iteración suma
     167 en trece archivos).
 
 Iteración 8 (previsualización 3D). Diagramas y recortes de código generados
 con node; capturas de la aplicación corriendo en Docker (el visor se maneja
 desde el protocolo DevTools: se elige la pieza y se toca el modelo).
-fig-4-63-secuencia-colocar.png  (width=\textwidth)
-fig-4-64-secuencia-guardar-escena.png  (width=\textwidth)
-fig-4-65-implementacion-envolvente.png  (width=0.9\textwidth)
-fig-4-66-implementacion-parche.png  (width=0.9\textwidth)
-fig-4-67-vista-modelos.png  (width=\textwidth)  vista /previsualizacion con
+fig-4-51-secuencia-colocar.png  (width=\textwidth)
+fig-4-52-implementacion-envolvente.png  (width=0.9\textwidth)
+fig-4-53-implementacion-parche.png  (width=0.9\textwidth)
+fig-4-54-vista-modelos.png  (width=\textwidth)  vista /previsualizacion con
     el cuerpo completo y el catálogo de piezas.
-fig-4-68-vista-calca.png  (width=\textwidth)  el boceto proyectado sobre el
+fig-4-55-vista-calca.png  (width=\textwidth)  el boceto proyectado sobre el
     antebrazo, con el tamaño en centímetros.
 Esta iteración no tiene figura de pruebas unitarias: no se escribieron (ver
 el Sistema de pruebas de la sección).
 
 Iteración 9 (administración de cuentas). Diagramas y recortes de código
 generados con node; capturas de la aplicación corriendo en Docker.
-fig-4-69-secuencia-desactivar.png  (width=\textwidth)
-fig-4-70-secuencia-tatuador.png  (width=\textwidth)
-fig-4-71-implementacion-estado.png  (width=0.9\textwidth)
-fig-4-72-implementacion-ultimo-admin.png  (width=0.9\textwidth)
-fig-4-73-vista-admin-usuarios.png  (width=\textwidth)  vista /admin, pestaña
+fig-4-56-secuencia-desactivar.png  (width=\textwidth)
+fig-4-57-implementacion-estado.png  (width=0.9\textwidth)
+fig-4-58-implementacion-ultimo-admin.png  (width=0.9\textwidth)
+fig-4-59-vista-admin-usuarios.png  (width=\textwidth)  vista /admin, pestaña
     Usuarios (misma sesión promovida que la figura 4.61).
-fig-4-74-vista-cambiar-contrasena.png  (width=\textwidth)  vista
+fig-4-60-vista-cambiar-contrasena.png  (width=\textwidth)  vista
     /cambiar-contrasena.
-fig-4-75-resultado-pruebas-admin.png  (width=0.9\textwidth)  salida real de
+fig-4-61-resultado-pruebas-admin.png  (width=0.9\textwidth)  salida real de
     "npx jest admin accountStatus auth.login" (60 pruebas, 3 archivos; 34 de
     esta iteración).
 
 Iteración 10 (métricas de uso y Mi estudio). Diagramas y recortes de código
 generados con node; capturas de la aplicación corriendo en Docker.
-fig-4-76-secuencia-metricas.png  (width=\textwidth)
-fig-4-77-secuencia-mi-estudio.png  (width=\textwidth)
-fig-4-78-implementacion-metricas.png  (width=0.9\textwidth)
-fig-4-79-implementacion-resumen.png  (width=0.9\textwidth)
-fig-4-80-vista-admin-metricas.png  (width=\textwidth)  vista /admin, pestaña
+fig-4-62-secuencia-mi-estudio.png  (width=\textwidth)
+fig-4-63-implementacion-metricas.png  (width=0.9\textwidth)
+fig-4-64-implementacion-resumen.png  (width=0.9\textwidth)
+fig-4-65-vista-admin-metricas.png  (width=\textwidth)  vista /admin, pestaña
     Estudios, con el buscador aplicado para que se vea un estudio con datos.
-fig-4-81-vista-mi-estudio.png  (width=\textwidth)  vista /mi-estudio, con el
+fig-4-66-vista-mi-estudio.png  (width=\textwidth)  vista /mi-estudio, con el
     segundo tatuador sembrado para la captura.
-fig-4-82-resultado-pruebas-metricas.png  (width=0.9\textwidth)  salida real
+fig-4-67-resultado-pruebas-metricas.png  (width=0.9\textwidth)  salida real
     de "npx jest admin studio" (33 pruebas, 2 archivos; 8 de esta iteración).
+
+Nota: la memoria reproduce un solo diagrama de secuencia por iteración. Los
+de los demás flujos se quitaron en noviembre de 2026 para no extender el
+documento; están en el historial de git si hicieran falta.
