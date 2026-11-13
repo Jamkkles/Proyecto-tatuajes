@@ -2706,7 +2706,11 @@ El entorno de ejecución es el mismo que describe el Capítulo 4: el backend sob
 
 \vspace{\parskip}
 \tituloparpegado{Pruebas unitarias y de integración}
-Las pruebas de caja blanca son las que el Capítulo 4 va presentando iteración por iteración. Están escritas con Jest y Supertest: las primeras ejercitan funciones puras —el motor de cotización, el emparejamiento de color, la normalización de teléfonos, el cifrado de la sesión de WhatsApp— y las segundas levantan la aplicación Express en memoria y le hacen peticiones, con la base de datos sustituida por dobles de prueba. Esa sustitución es importante para leer la cobertura, y se retoma al analizarla.
+Las pruebas de caja blanca son las que el Capítulo 4 va presentando iteración por iteración. Están escritas con Jest y Supertest, y se agrupan en dos baterías que se ejecutan en una sola corrida.
+
+La primera son las \textbf{pruebas unitarias}: ejercitan funciones puras —el motor de cotización, el emparejamiento de color, la normalización de teléfonos, el cifrado de la sesión de WhatsApp— y levantan la aplicación Express en memoria para hacerle peticiones, con la base de datos sustituida por dobles. Al no depender de una base levantada corren en segundos, pero dejan sin ejecutar justamente las consultas SQL.
+
+La segunda son las \textbf{pruebas de integración}, que cubren ese hueco: corren contra un PostgreSQL de verdad, en una base aparte que la propia corrida crea, a la que aplica el esquema del proyecto y cuyas tablas vacía antes de cada caso. Son las que permiten comprobar lo que solo el motor de base de datos puede demostrar: que dos peticiones simultáneas no agendan la misma hora, que el stock no queda negativo, que una cotización no se descuenta dos veces y que las consultas filtran siempre por el artista dueño de los datos. Una comprobación en el arranque impide que esta batería apunte por error a la base de desarrollo: si el nombre de la base conectada no es el de pruebas, se detiene antes de vaciar nada.
 
 \vspace{\parskip}
 \tituloparpegado{Verificación estática}
@@ -2825,43 +2829,46 @@ Se ejecutaron los 35 casos y los 35 resultaron conformes. Las Tablas \ref{tab:ca
 Un resultado de 35 sobre 35 pide una advertencia para leerse bien: estos casos se escribieron sobre un sistema ya terminado y estabilizado, de modo que lo que miden es que las reglas comprometidas siguen cumpliéndose, no la cantidad de defectos que el proyecto tuvo. Los defectos reales aparecieron durante el desarrollo y están documentados en las retrospectivas del Capítulo 4, con el cambio que cada uno obligó a hacer.
 
 \vspace{\parskip}
-\tituloparpegado{Pruebas unitarias}
-La batería completa reúne \textbf{517 pruebas en 29 archivos} y se ejecuta en algo más de veinte segundos. La Tabla \ref{tab:unitariasmodulo} las agrupa por módulo y la Figura \ref{fig:corridaunitaria} muestra la ejecución.
+\tituloparpegado{Pruebas unitarias y de integración}
+La batería completa reúne \textbf{715 pruebas en 39 archivos} —604 unitarias y 111 de integración— y se ejecuta entera en algo menos de un minuto. La Tabla \ref{tab:unitariasmodulo} las agrupa por módulo y la Figura \ref{fig:corridaunitaria} muestra la ejecución.
 
 \begin{table}[H]
   \centering
-  \caption{Pruebas unitarias por módulo}
+  \caption{Pruebas automatizadas por módulo}
   \label{tab:unitariasmodulo}
   \renewcommand{\arraystretch}{1.2}
-  \begin{tabular}{|p{7.2cm}|c|c|}
+  \begin{tabular}{|p{6.4cm}|c|c|c|}
     \hline
-    \textbf{Módulo} & \textbf{Archivos} & \textbf{Pruebas} \\
+    \textbf{Módulo} & \textbf{Unitarias} & \textbf{Integración} & \textbf{Total} \\
     \hline
-    Mensajes al cliente y avisos & 14 & 222 \\ \hline
-    Cotizaciones y reparto de tinta & 3 & 90 \\ \hline
-    Agenda, sesiones y pagos & 2 & 64 \\ \hline
-    Autenticación y control de acceso & 3 & 52 \\ \hline
-    Inventario & 3 & 35 \\ \hline
-    Administración y estudios & 2 & 33 \\ \hline
-    Bocetos & 1 & 16 \\ \hline
-    Valores por defecto del esquema & 1 & 5 \\ \hline
-    Previsualización 3D & 0 & 0 \\ \hline
-    \textbf{Total} & \textbf{29} & \textbf{517} \\ \hline
+    Mensajes al cliente y avisos & 222 & 26 & 248 \\ \hline
+    Agenda, sesiones y pagos & 91 & 29 & 120 \\ \hline
+    Cotizaciones y reparto de tinta & 90 & 13 & 103 \\ \hline
+    Autenticación y control de acceso & 66 & 13 & 79 \\ \hline
+    Inventario & 35 & 11 & 46 \\ \hline
+    Administración y estudios & 33 & 8 & 41 \\ \hline
+    Previsualización 3D & 30 & 5 & 35 \\ \hline
+    Bocetos & 16 & 6 & 22 \\ \hline
+    Almacenamiento de archivos & 16 & --- & 16 \\ \hline
+    Valores por defecto del esquema & 5 & --- & 5 \\ \hline
+    \textbf{Total} & \textbf{604} & \textbf{111} & \textbf{715} \\ \hline
   \end{tabular}
 \end{table}
 
-La fila en cero no es un olvido. La previsualización 3D no tiene pruebas automatizadas propias, y la Iteración 8 explica por qué: lo que habría que verificar es geométrico y visual —que la calca se adapte a la curvatura, que no se repita en la cara opuesta del miembro, que el arrastre se sienta fluido—, y eso se comprobó midiendo el rendimiento en el navegador (Tabla \ref{tab:rendimiento8}) y mirando el resultado, no con aserciones. Es la deuda técnica más clara que deja el proyecto, y vuelve a aparecer en el análisis de esta evaluación.
+Dos filas merecen una aclaración. La de \textbf{previsualización 3D} aparece aquí con 35 pruebas, mientras que la Iteración 8 declaraba no tener ninguna: esas pruebas se escribieron durante esta evaluación y cubren el lado del servidor —qué se acepta como escena válida, que una calca no pueda referenciar el boceto de otro artista, que la escena ajena no se vea ni se edite—. Lo que sigue sin comprobarse con aserciones es la geometría del visor, que vive en el navegador: que la calca se adapte a la curvatura, que no se repita en la cara opuesta del miembro, que el arrastre se sienta fluido. Eso se verificó midiendo el rendimiento (Tabla \ref{tab:rendimiento8}) y mirando el resultado, y sigue siendo la deuda técnica más clara del proyecto.
+
+La otra es la de \textbf{almacenamiento de archivos}, que no existía en el capítulo anterior: el driver de disco se prueba escribiendo de verdad en una carpeta temporal, y el de nube con el SDK sustituido por un doble, de modo que se puede verificar sin tener una cuenta contratada.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.82\textwidth]{fig-5-2-resultado-pruebas-unitarias}
-  \caption[Ejecución de la batería completa]{Ejecución de los 29 archivos de prueba del backend: 517 pruebas, todas aprobadas.}
+  \caption[Ejecución de la batería completa]{Ejecución de las dos baterías del backend: 39 archivos y 715 pruebas, todas aprobadas.}
   \label{fig:corridaunitaria}
 \end{figure}
 
 \vspace{\parskip}
 \tituloparpegado{Cobertura de código}
-La cobertura se midió sobre todo el código del backend y se resume en la Tabla \ref{tab:cobertura}. El total es de 67,21 \% de las sentencias, bastante por debajo del 95 \% que el proyecto se fijó como objetivo.
+La cobertura se midió sobre todo el código del servicio y se resume en la Tabla \ref{tab:cobertura}. El total es de 90,6 \% de las sentencias y 92,7 \% de las líneas, por debajo del 95 \% que el proyecto se fijó como objetivo. Quedan fuera de la medición los scripts de consola (\texttt{db:init}, \texttt{admin:create} y los demás de mantenimiento), que se ejecutan a mano y no forman parte de la aplicación en marcha; la exclusión está declarada en la configuración de las pruebas.
 
 \begin{table}[H]
   \centering
@@ -2874,20 +2881,21 @@ La cobertura se midió sobre todo el código del backend y se resume en la Tabla
     \hline
     Rutas & 100 \% & 100 \% & 100 \% \\ \hline
     Datos de catálogo & 100 \% & 100 \% & 100 \% \\ \hline
+    Almacenamiento de archivos & 97,0 \% & 77,1 \% & 100 \% \\ \hline
+    Modelos (consultas SQL) & 96,7 \% & 90,7 \% & 97,2 \% \\ \hline
     Utilidades & 96,0 \% & 87,1 \% & 100 \% \\ \hline
     Configuración & 95,2 \% & 100 \% & 66,7 \% \\ \hline
     Middleware & 95,2 \% & 95,0 \% & 100 \% \\ \hline
     Servicios & 89,7 \% & 79,1 \% & 90,0 \% \\ \hline
     Servicios de WhatsApp vinculado & 89,6 \% & 79,2 \% & 62,3 \% \\ \hline
-    Controladores & 70,2 \% & 59,9 \% & 78,8 \% \\ \hline
-    Almacenamiento de archivos & 28,4 \% & 14,3 \% & 26,7 \% \\ \hline
-    Modelos (consultas SQL) & 22,0 \% & 13,0 \% & 6,3 \% \\ \hline
-    Scripts de base de datos & 0 \% & 0 \% & 0 \% \\ \hline
-    \textbf{Total} & \textbf{67,2 \%} & \textbf{58,1 \%} & \textbf{56,8 \%} \\ \hline
+    Controladores & 85,4 \% & 77,4 \% & 93,2 \% \\ \hline
+    \textbf{Total} & \textbf{90,6 \%} & \textbf{81,5 \%} & \textbf{89,5 \%} \\ \hline
   \end{tabular}
 \end{table}
 
-El reparto por capa explica el número mejor que el total. Las capas que las pruebas sí ejercitan están altas: las rutas al 100 \%, el middleware y las utilidades sobre el 95 \%, los servicios cerca del 90 \%. Las tres que hunden el promedio son las que las pruebas no ejecutan por diseño: los \textbf{modelos}, que son consultas SQL sustituidas por dobles para que la batería corra sin base de datos; el \textbf{almacenamiento de archivos}, cuyo controlador de nube no se puede ejercitar sin credenciales; y los \textbf{scripts de base de datos}, que son utilidades de línea de comandos que se ejecutan a mano. Midiendo solo el código que las pruebas alcanzan, es decir, dejando fuera modelos y scripts, la cobertura sube a \textbf{80,5 \% de las sentencias y 83,1 \% de las líneas}. Sigue sin llegar al 95 \% comprometido.
+El reparto por capa muestra dónde está lo que falta. Las rutas y los datos de catálogo están completos; el almacenamiento, los modelos, las utilidades, la configuración y el middleware pasan del 95 \%; los servicios rondan el 90 \%. Los \textbf{controladores}, con 85,4 \%, son los que concentran el resto: lo que queda sin ejecutar en ellos son casi siempre las ramas de error, los \texttt{catch} que responden 500 cuando la base o el almacenamiento fallan, que para recorrerlas exigen simular una falla distinta en cada ruta. A ellas se suman el programador de recordatorios, que es un temporizador y no se deja arrancar dentro de una prueba, y las partes del WhatsApp vinculado que solo ocurren contra un socket real.
+
+Vale contrastarlo con el punto de partida. Antes de escribir las pruebas de integración la cobertura era de 67,2 \% de las sentencias, con la capa de modelos en 22 \%: las consultas SQL se sustituían por dobles y por lo tanto nunca llegaban a ejecutarse. Hoy esa capa está en 96,7 \%, y el total subió a 90,6 \%.
 
 \vspace{\parskip}
 \tituloparpegado{Verificación estática}
@@ -2921,7 +2929,9 @@ Puestos los resultados junto a los objetivos específicos del Capítulo 1, el ba
 
 El objetivo de \textbf{implementar la gestión de bocetos en la nube} está cumplido y verificado: cinco casos funcionales recorren la subida con medición de tinta, el filtrado de la galería, la edición y el rechazo del acceso ajeno, y el módulo tiene además sus pruebas unitarias.
 
-El objetivo de \textbf{evaluar la calidad mediante pruebas unitarias, de caja negra y de caja blanca con cobertura de al menos 95 \%} se cumple en sus dos primeras partes y no en la tercera. Hay 517 pruebas unitarias y de integración, y 35 casos de caja negra ejecutados sobre el sistema en funcionamiento, todos conformes. La cobertura, en cambio, llega al 67,2 \% sobre todo el backend y al 80,5 \% sobre las capas que las pruebas ejercitan. Vale la pena ser preciso sobre qué faltaría para cerrar esa brecha, porque no es escribir más aserciones sobre lo mismo: habría que levantar una base de datos de prueba y ejecutar las consultas SQL de verdad contra ella, que es la capa que hoy está sustituida por dobles. Es un trabajo acotado y conocido —contenedores de prueba y una base que se crea y se destruye en cada corrida—, pero no se hizo, y por lo tanto el objetivo no está cumplido. A esa deuda se suma la ausencia de pruebas automatizadas en la previsualización 3D.
+El objetivo de \textbf{evaluar la calidad mediante pruebas unitarias, de caja negra y de caja blanca con cobertura de al menos 95 \%} se cumple en sus dos primeras partes y queda cerca en la tercera. Hay 715 pruebas unitarias y de integración, y 35 casos de caja negra ejecutados sobre el sistema en funcionamiento, todos conformes. La cobertura llega al 90,6 \% de las sentencias y al 92,7 \% de las líneas, de modo que faltan algo menos de cinco puntos para la meta.
+
+Conviene decir con precisión qué son esos puntos, porque no es código sin probar sino caminos de falla sin simular: la mayor parte de lo que queda son las ramas \texttt{catch} de los controladores, que responden con un error 500 cuando la base de datos o el almacenamiento dejan de responder. Cubrirlas exige un caso por ruta que haga fallar a propósito la capa de abajo; se hizo en las rutas donde ese camino tiene consecuencias visibles —el descuento de stock que falla sin perder la sesión completada, por ejemplo— y no en el resto. El objetivo, en rigor, no está cumplido, y esa es la conclusión que corresponde anotar.
 
 Los objetivos de \textbf{reducción de tiempos y de ausentismo} —50 \% en inasistencia, 40 \% en cotización, 30 \% en previsualización— no pueden darse por cumplidos ni por incumplidos con la evidencia disponible, porque son medidas sobre el trabajo de una persona y exigen la encuesta de contraste. Lo que sí está verificado es que los mecanismos que deberían producir esas reducciones funcionan: el recordatorio sale solo 24 horas antes de la cita y no se repite aunque el programador corra dos veces, el cambio de hora genera el aviso al cliente, la cotización calcula el costo de insumos a partir del boceto medido y descuenta el inventario al cerrar la sesión, y la escena 3D guarda la posición y el tamaño del diseño sobre el modelo. Que esos mecanismos funcionen es condición necesaria de las reducciones esperadas, pero no es la medición de las reducciones.
 
@@ -2967,7 +2977,7 @@ La plataforma se opera hoy sin costo mensual, como detalla el análisis de facti
 
 \vspace{\parskip}
 \tituloparpegado{Sostenibilidad técnica}
-Lo que permite que el sistema siga vivo después de esta memoria es, sobre todo, que tiene 517 pruebas que se ejecutan en veinte segundos: quien venga después puede cambiar algo y saber en el acto si rompió otra cosa. A eso se suman decisiones tomadas para no quedar atados a un proveedor —el almacenamiento de archivos pasa por una capa con controladores intercambiables, el envío de mensajes al cliente tiene tres vías posibles— y una sola base de código para todos los dispositivos, que es lo que hace sostenible el mantenimiento para una persona sola. Las deudas conocidas son dos: la capa de consultas SQL sin pruebas contra una base real y la previsualización 3D sin pruebas automatizadas.
+Lo que permite que el sistema siga vivo después de esta memoria es, sobre todo, que tiene 715 pruebas que se ejecutan en menos de un minuto: quien venga después puede cambiar algo y saber en el acto si rompió otra cosa. A eso se suman decisiones tomadas para no quedar atados a un proveedor —el almacenamiento de archivos pasa por una capa con controladores intercambiables, el envío de mensajes al cliente tiene tres vías posibles— y una sola base de código para todos los dispositivos, que es lo que hace sostenible el mantenimiento para una persona sola. La deuda conocida que queda es la geometría del visor 3D, que se verifica mirando y midiendo en el navegador y no con aserciones.
 
 \vspace{\parskip}
 \tituloparpegado{Sostenibilidad ambiental}
@@ -2981,7 +2991,7 @@ La plataforma guarda los datos de cada artista separados de los del resto, inclu
 
 \section{Resumen del capítulo}
 
-En este capítulo se evaluó la plataforma en tres planos. Las pruebas funcionales de caja negra, 35 casos ejecutados sobre el sistema en funcionamiento, resultaron todas conformes, incluidos los once casos que esperan un rechazo y los cuatro que comprueban que un artista no alcanza los datos de otro. Las pruebas unitarias y de integración suman 517 en 29 archivos, todas aprobadas, con una cobertura de 67,2 \% sobre todo el backend y de 80,5 \% sobre las capas que las pruebas ejercitan: por debajo del 95 \% comprometido, con la causa identificada y el camino para cerrarla descrito. La verificación estática del frontend está limpia.
+En este capítulo se evaluó la plataforma en tres planos. Las pruebas funcionales de caja negra, 35 casos ejecutados sobre el sistema en funcionamiento, resultaron todas conformes, incluidos los once casos que esperan un rechazo y los cuatro que comprueban que un artista no alcanza los datos de otro. Las pruebas unitarias y de integración suman 715 en 39 archivos, todas aprobadas, con una cobertura de 90,6 \% de las sentencias y 92,7 \% de las líneas: por debajo del 95 \% comprometido, con lo que falta identificado —las ramas de error de los controladores— y la capa de consultas SQL, que antes no se ejecutaba, hoy cubierta al 96,7 \% por una batería que corre contra una base de datos real. La verificación estática del frontend está limpia.
 
 La evaluación de usabilidad con el cuestionario SUS y la encuesta de contraste de tiempos quedaron pendientes: su instrumento y su procedimiento están definidos en este capítulo, pero no se han aplicado, y por lo tanto los objetivos de reducción de tiempos y de validación con el usuario no pueden darse por cumplidos. El análisis de accesibilidad encontró resueltos los criterios estructurales y tres incumplimientos de ajuste —contraste, región principal y tamaño de los objetivos—, todos de corrección acotada. El análisis de sostenibilidad mostró un sistema que opera sin costo mensual, que descarga lo pesado solo cuando se usa y que deja dos deudas técnicas declaradas.
 

@@ -33,6 +33,9 @@ ENV/
 /lib/
 
 node_modules/
+
+# Reporte de cobertura de las pruebas (se regenera con npx jest --coverage)
+backend/coverage/
 jspm_packages/
 
 # Build outputs

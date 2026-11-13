@@ -42,6 +42,24 @@ docker compose up postgres # solo la base de datos
 ```bash
 docker exec proyecto-tatuajes-backend-1 npx jest --runInBand
 ```
+La configuración vive en `backend/jest.config.js` (no en `package.json`) y define
+**dos proyectos** que corren juntos; `--selectProjects unitarias|integracion`, o
+`npm run test:unitarias` / `test:integracion`, corre solo uno:
+- **unitarias** (`tests/*.test.js`): los modelos y el almacenamiento van
+  sustituidos por dobles, así que no necesitan base de datos.
+- **integracion** (`tests/integracion/*.test.js`): ejercitan los modelos contra
+  PostgreSQL de verdad. La corrida crea sola la base `tatuajes_test`, le aplica
+  `db/schema.sql` y **vacía todas las tablas antes de cada prueba**; `limpiar.js`
+  se niega a hacerlo si la base conectada no se llama así, que es lo único que
+  protege a la de desarrollo. `tests/integracion/datos.js` tiene los atajos para
+  crear artistas, clientes, proyectos, sesiones, bocetos e insumos.
+  **Van con `--runInBand`**: dos archivos en paralelo se vaciarían las tablas
+  entre sí.
+
+Cobertura: `npx jest --runInBand --coverage` (deja fuera `src/db`, que son
+scripts de consola). Al escribir estas líneas: 90,6 % de sentencias y 92,7 % de
+líneas, con 715 pruebas en 39 archivos.
+
 Se corren **dentro del contenedor**: en el host `jest` se cuelga cuando el
 proyecto está en una carpeta sincronizada con iCloud. Lo mismo pasa con `tsc` y
 `eslint` del frontend (leen `node_modules` desde iCloud y se quedan bloqueados sin
