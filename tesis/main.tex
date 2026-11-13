@@ -2899,6 +2899,15 @@ Vale contrastarlo con el punto de partida. La primera medición de esta evaluaci
 
 La cobertura de \textbf{ramas} es la que sigue más baja, en 85,7 \%, y conviene no disimularlo: mide cada bifurcación por separado, de modo que una condición con tres causas posibles exige tres pruebas aunque la línea ya se haya ejecutado. El objetivo del proyecto se fijó sobre la cobertura de código sin distinguir la métrica, y es la de sentencias y líneas la que se informa habitualmente.
 
+La Figura \ref{fig:informecobertura} es el informe que la propia herramienta de medición deja escrito al terminar la corrida. No es un resumen redactado para esta memoria: se genera con \texttt{npx jest --coverage} y queda en \texttt{coverage/index.html}, con el detalle de cada capa —cuántas sentencias, ramas, funciones y líneas se ejecutaron sobre el total— y la fecha en que se midió.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-5-3-cobertura-informe}
+  \caption[Informe de cobertura]{Informe de cobertura generado por la herramienta tras la corrida completa: 2.866 de 3.000 sentencias y 2.596 de 2.670 líneas ejecutadas.}
+  \label{fig:informecobertura}
+\end{figure}
+
 \vspace{\parskip}
 \tituloparpegado{Verificación estática}
 El compilador de TypeScript recorre el frontend completo sin reportar un solo error de tipos, y ESLint no levanta advertencias sobre el código del proyecto. Las dos revisiones están limpias.

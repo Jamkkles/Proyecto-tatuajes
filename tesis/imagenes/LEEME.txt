@@ -145,3 +145,5 @@ fig-5-1-resultado-pruebas-funcionales.png  (width=0.86)  — corrida de los 35 c
     caja negra contra el sistema en ejecución (scratchpad/pruebas-funcionales.js).
 fig-5-2-resultado-pruebas-unitarias.png  (width=0.82)  — salida real de
     `npx jest --runInBand`: 29 archivos y 517 pruebas aprobadas.
+fig-5-3-cobertura-informe.png  (width=1.0)  — captura del informe HTML que genera
+    `npx jest --coverage` (backend/coverage/index.html), recortada al contenido.
