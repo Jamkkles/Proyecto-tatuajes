@@ -371,7 +371,7 @@ Para asegurar la trazabilidad entre el plan de trabajo y las metas del proyecto,
 
 En este capítulo, se dió a conocer el tema del proyecto, permitiendo comprender el contexto, el cual se centra en la transformación en el mundo del tatuaje, como su popularidad a lo largo de la historia y los métodos de trabajo. También se presenta la problemática que se poseen en el y rubro y la solución propuesta a este problema, el cual es la construcción de un sistema de un sistema que permita gestionar la mayor de procesos de un tatuador para la optimización de su flujo de trabajo.
 
-A continuación, el Capítulo 2 detallará conceptos básicos del proyecto, tecnologías a utilizarm estado del arte y metodologías, tanto de desarrollo como de evaluación.
+A continuación, el Capítulo 2 detallará conceptos básicos del proyecto, tecnologías a utilizar, trabajo relacionado y metodologías, tanto de desarrollo como de evaluación.
 %======================================================================
 %  02-MARCO-TEORICO
 %======================================================================
@@ -440,45 +440,37 @@ A continuación, se presentan algunos conceptos para entender de mejor manera el
   \item Frontend: Es la parte de un programa, sitio web o dispositivo en la que un usuario puede acceder e intereactuar directamente. En el contexto de diseño web y desarrollo web, se refiere a todas las tecnologías que corren en el navegador y que se encargan de la interactividad con los usuarios \cite{perez2021}.
 \end{itemize}
 
-\section{Tecnologías }
+\subsection{Conceptos de protocolos de comunicación}
 
-A continuación se presentan las principales tecnologías utilizados para el desarrollo del proyecto.
+Las piezas de la plataforma no viven en el mismo lugar: la aplicación que corre en el navegador, el servidor que guarda los datos y los servicios de correo y mensajería están en servidores distintos y se hablan por la red. Conviene entonces fijar qué protocolos intervienen y para qué sirve cada uno.
 
-\subsection{Frontend}
+\tituloparpegado{HTTP y HTTPS}
+HTTP es el protocolo sobre el que funciona la web. Trabaja por petición y respuesta: el cliente pide algo indicando un método —\texttt{GET} para leer, \texttt{POST} para crear, \texttt{PATCH} para modificar, \texttt{DELETE} para eliminar— y el servidor contesta con un código de estado que resume qué ocurrió: 200 y 201 cuando la operación salió bien, 400 cuando lo enviado no es válido, 401 cuando falta identificarse, 403 cuando la identidad no basta para esa acción, 404 cuando el recurso no existe, 409 cuando choca con algo ya existente y 500 cuando el error es del servidor. HTTPS es el mismo protocolo cifrado con TLS; en producción la plataforma se sirve solo por HTTPS, porque por ahí viajan las credenciales del artista y los datos de sus clientes.
 
-Para la contrucción del frontend se utiliza React\cite{react} como biblioteca de JavaScript\cite{javascript} para construir la interfaz de usuario. React es ampliamente reconocido por su eficiencia en la creación de interfaces dinámicas y su capacidad para manejar el estado de la aplicación de manera efectiva. Además, React permite desarrollar componentes reutilizables, facilita la gestión del estado de la aplicación y ofrece una integración natural con las APIs necesarias para construir una PWA. Su popularidad, documentación extensa y curva de aprendizaje razonable lo convierten en la opción más adecuada para un desarrollo individual y con plazos acotados.
+\tituloparpegado{Estilo REST}
+REST es el estilo arquitectónico descrito por Fielding\cite{fielding2000} para diseñar servicios sobre HTTP. Sus ideas centrales son que cada cosa del sistema es un \textit{recurso} identificado por una dirección, que las operaciones sobre él se expresan con los métodos del propio HTTP, y que el servidor no guarda el estado de la conversación: cada petición trae todo lo necesario para entenderse por sí sola. La interfaz del backend sigue ese estilo, de modo que una misma dirección sirve para leer, modificar o eliminar el mismo recurso según el método con que se la invoque.
 
-Para el manejo del entorno gráfico se utiliza Three.js\cite{threejs} mediante React Three Fiber (R3F)\cite{r3f}. La elección de esta librería frente a motores completos como Unity\cite{unity} radica en su ligereza; permite renderizar la anatomía 3D y proyectar los tatuajes utilizando directamente la aceleración por hardware (WebGL)\cite{webgl} del navegador, además de que se integra de manera nativa con React, lo que facilita la gestión del estado y la interacción entre la interfaz de usuario y el entorno 3D. Lo que permite mantener una experiencia fluida y responsiva en una PWA, evitando la sobrecarga que implicaría un motor gráfico completo, y permitiendo un desarrollo más ágil sin obligar al usuario a instalar complementos externos.
+\tituloparpegado{JSON}
+Los datos viajan en JSON\cite{bray2017}, un formato de texto que representa objetos y listas y que el navegador interpreta de forma nativa. Es también el formato en que la base de datos guarda las estructuras que no conviene desarmar en columnas, como la posición de un tatuaje sobre el modelo tridimensional.
 
-\subsection{Backend}
+\tituloparpegado{Autenticación por token}
+Como el servidor no guarda el estado de la sesión, la identidad viaja en cada petición. Al iniciar sesión el servidor emite un token firmado (JWT) y el cliente lo adjunta en la cabecera \texttt{Authorization} de todas las peticiones siguientes. El servidor comprueba la firma para saber que el token lo emitió él y no fue alterado.
 
-Para el desarrollo del backend se utiliza Node.js \cite{nodejs} con Express \cite{express} como framework para construir la API RESTful\cite{fielding2000}. Node.js es una plataforma de JavaScript que permite ejecutar código en el servidor, lo que facilita la creación de aplicaciones web escalables. Express es un framework flexible que proporciona un conjunto robusto de características para desarrollar aplicaciones web y APIs, lo que lo convierte en una opción ideal para manejar las operaciones del backend de manera sencilla. Se justifica la elección de esta tecnología por su compatibilidad con JavaScript, lo que permite un desarrollo full-stack con un solo lenguaje, y su amplia comunidad de soporte, lo que facilita la resolución de problemas y la integración de funcionalidades adicionales.
+\tituloparpegado{Política de origen cruzado (CORS)}
+Por seguridad, el navegador impide que una página pida datos a un servidor de otro origen salvo que ese servidor lo autorice. Como el frontend y el backend de esta plataforma viven en dominios distintos, el servidor declara explícitamente desde qué orígenes acepta peticiones; sin esa declaración, el navegador bloquearía las respuestas aunque el servidor las hubiera enviado.
 
-\subsection{Sistema gestor de base de datos (SGBD) }
+\tituloparpegado{Notificaciones push}
+Los avisos al artista no se consiguen con HTTP corriente, porque el servidor no puede iniciar una conversación con un navegador que no le está preguntando nada. El protocolo de \textit{Web Push} resuelve esa asimetría: el navegador se suscribe y entrega una dirección propia del servicio de push de su fabricante, y el servidor envía el aviso a ese servicio, que es quien lo hace llegar al dispositivo. El servidor se identifica ante el servicio con un par de claves (VAPID), de modo que nadie más puede usar esa suscripción.
 
-Para este proyecto se opta por un sistema gestor de base de datos relacional en lenguaje SQL\cite{iso9075}, dado que el sistema debe soportar con precisión tanto operaciones gráficas tridimensionales como tareas administrativas transacionales de inventario y agenda. Tras un análisis comparativo frente a alternativas tradicionales como MySQL\cite{mysql} o MariaDB\cite{mariadb}, se selecciono PostgreSQL\cite{postgresql} debido a su cumplimiento de las propiedades ACID (MVCC)\cite{harder1983}. Esta característica garantiza que los procesos de lectura no bloqueen a los de escritura, resolviendo cualquier colisión de datos en caso de que ocurran solicitudes simultáneas para reservar un mismo bloque horario o para ir descontando insumos del inventario.
+\tituloparpegado{Correo: SMTP frente a API sobre HTTPS}
+El correo electrónico se transporta tradicionalmente por SMTP, un protocolo propio que usa los puertos 25, 465 y 587. Cuando el entorno de despliegue bloquea esos puertos —algo habitual en los planes gratuitos de alojamiento—, el envío se hace llamando por HTTPS a la interfaz del proveedor de correo, que es quien habla SMTP por detrás. Son dos caminos para el mismo fin, y la diferencia entre ellos es puramente de transporte.
 
-Tomando en consideración la utilización de que se trabaja con modelado 3D, es necesario persistir la configuración exacta de cómo un boceto 2D se proyecta sobre el modelo antatómico. Guardar variabes individuales como (X,Y,Z), rotación y escala para cada sesión generaría esquemas de tablas rígidos y costosos de consultar. PostgreSQL resuelve esto mediante un soporte nativo de datos JSONB (JSON Binario)\cite{postgresjson}. JSONB descomopone el documento JSON\cite{bray2017} en un formato binario indexado lo que permite almacenar estructuras de datos dinámmicas, anidadas y flexibles dentro de una fila relacional. De este modo, las coordenadas espaciales calculadas por Three.js se guardan en un solo campo optimizado. Al estar indexado binariamente, el backend puede consultar, filtrar y descomponer los datos espaciales a gran velocidad, logrando que la reconstrucción del modelo 3D en el navegador sea prácticamente instantánea cada vez que el tatuador reabra el perfil de un cliente.
+\tituloparpegado{Mensajería instantánea}
+El envío de mensajes al cliente final usa la interfaz de WhatsApp\cite{whatsappapi}, que también es HTTPS: el servidor hace una petición con los datos de la plantilla y el proveedor se encarga de la entrega. El canal alternativo, en cambio, no usa una interfaz pública sino el mismo protocolo con que WhatsApp conecta sus dispositivos vinculados, a través de una biblioteca que lo implementa\cite{baileys}.
 
-\subsection{Servicio de mensajería}
+\section{Trabajo relacionado}
 
-Para la integración de recordatorios personalizados, se utiliza la API de WhatsApp. Esta API permite enviar mensajes automatizados a los clientes a través de WhatsApp, lo que es esencial para reducir el ausentismo y mejorar la comunicación con los clientes. La elección de esta API se justifica por la amplia adopción de WhatsApp como plataforma de mensajería, su capacidad para enviar mensajes programados y personalizados, y su compatibilidad con la arquitectura del proyecto, lo que facilita su integración con el backend desarrollado en Node.js. El envío automático se resuelve con una biblioteca que vincula el WhatsApp del propio tatuador al servidor como un dispositivo más\cite{baileys}, de modo que los recordatorios salen desde su número; la vía oficial de Meta queda disponible para el estudio que la tenga contratada.
-
-\subsection{Despliegue de aplicaciones}
-
-Como herramienta de despliegue de aplicación se utilizará Docker\cite{docker}, que es una plataforma de contenedorización que permite empaquetar la aplicación y sus dependencias en un contenedor portátil. Esto facilita el despliegue en diferentes entornos sin preocuparse por las inconsistencias de configuración. Docker también simplifica la gestión de versiones y la escalabilidad, lo que es beneficioso para el desarrollo iterativo y la implementación continua del proyecto.
-
-\subsection{Herramienta para repositorio GithHub}
-
-Para el control de versiones y el respaldo del código fuente, se utiliza GitHub\cite{github}. La gestión de las ramas de desarrollo y los ``commits'', se realiza mediante interfaces gráficas como GitKraken\cite{gitkraken} o GitHub Desktop\cite{githubdesktop}. Esta elección agiliza la visualización del historial del proyecto sin depender estrictamente de la interfaz de línea de comandos, minimizando errores al revertir cambios durante la fase de refactorización de PXP.
-
-\subsection{Sistema gestor de proyectos }
-
-Para administrar la planificación iterativa y el seguimiento de las Historias de Usuario, se emplea Trello\cite{trello}. A diferencia de herramientas más complejas como Jira\cite{jira} orientadas a grandes equipos corporativos, Trello ofrece un sistema de tableros Kanban\cite{anderson2010} intuitivo y directo. Esta simplicidad se alinea a la perfección con las prácticas ágiles de un desarrollador en solitario (PXP), permitiendo gestionar las listas de comprobación (checklists) de las pruebas de software de manera visual y eficiente.
-
-\section{Estado del arte}
-
-En cuanto al estado del arte del proyecto, existen distintos tipos de sistemas digitalizados como herramientas para los tatuadores, tanto de código libre como de pago, a continuación, se mencionan y describen algunos sistemas reconocidos y que están en relación con el proyecto a desarrollar:
+En cuanto al trabajo relacionado con el proyecto, existen distintos tipos de sistemas digitalizados como herramientas para los tatuadores, tanto de código libre como de pago, a continuación, se mencionan y describen algunos sistemas reconocidos y que están en relación con el proyecto a desarrollar:
 
 \begin{itemize}
   \item \textbf{ REV23 Desktop\cite{rev23}:} Es un software de gestión y punto de venta diseñado, creado de manera exclusiva para satisfacer las necesidades administrativas de los estudios de tatuajes y perforaciones. Este programa centraliza todas las operaciones del negocio en un solo lugar, permitiendo organizar calendarios de citas, automatizar recordatorios, procesar pagos y calcular las comisiones de los artistas.
@@ -519,6 +511,42 @@ En cuanto al estado del arte del proyecto, existen distintos tipos de sistemas d
 
   \item[] En resumen, no existe actualmente un software o herramienta unificado que considere todas las funcionalidades propuestas para ser considerado un sistema que optimice el flujo del trabajo del tatuador.
 \end{itemize}
+
+\section{Tecnologías }
+
+A continuación se presentan las principales tecnologías utilizados para el desarrollo del proyecto.
+
+\subsection{Frontend}
+
+Para la contrucción del frontend se utiliza React\cite{react} como biblioteca de JavaScript\cite{javascript} para construir la interfaz de usuario. React es ampliamente reconocido por su eficiencia en la creación de interfaces dinámicas y su capacidad para manejar el estado de la aplicación de manera efectiva. Además, React permite desarrollar componentes reutilizables, facilita la gestión del estado de la aplicación y ofrece una integración natural con las APIs necesarias para construir una PWA. Su popularidad, documentación extensa y curva de aprendizaje razonable lo convierten en la opción más adecuada para un desarrollo individual y con plazos acotados.
+
+Para el manejo del entorno gráfico se utiliza Three.js\cite{threejs} mediante React Three Fiber (R3F)\cite{r3f}. La elección de esta librería frente a motores completos como Unity\cite{unity} radica en su ligereza; permite renderizar la anatomía 3D y proyectar los tatuajes utilizando directamente la aceleración por hardware (WebGL)\cite{webgl} del navegador, además de que se integra de manera nativa con React, lo que facilita la gestión del estado y la interacción entre la interfaz de usuario y el entorno 3D. Lo que permite mantener una experiencia fluida y responsiva en una PWA, evitando la sobrecarga que implicaría un motor gráfico completo, y permitiendo un desarrollo más ágil sin obligar al usuario a instalar complementos externos.
+
+\subsection{Backend}
+
+Para el desarrollo del backend se utiliza Node.js \cite{nodejs} con Express \cite{express} como framework para construir la API RESTful\cite{fielding2000}. Node.js es una plataforma de JavaScript que permite ejecutar código en el servidor, lo que facilita la creación de aplicaciones web escalables. Express es un framework flexible que proporciona un conjunto robusto de características para desarrollar aplicaciones web y APIs, lo que lo convierte en una opción ideal para manejar las operaciones del backend de manera sencilla. Se justifica la elección de esta tecnología por su compatibilidad con JavaScript, lo que permite un desarrollo full-stack con un solo lenguaje, y su amplia comunidad de soporte, lo que facilita la resolución de problemas y la integración de funcionalidades adicionales.
+
+\subsection{Sistema gestor de base de datos (SGBD) }
+
+Para este proyecto se opta por un sistema gestor de base de datos relacional en lenguaje SQL\cite{iso9075}, dado que el sistema debe soportar con precisión tanto operaciones gráficas tridimensionales como tareas administrativas transacionales de inventario y agenda. Tras un análisis comparativo frente a alternativas tradicionales como MySQL\cite{mysql} o MariaDB\cite{mariadb}, se selecciono PostgreSQL\cite{postgresql} debido a su cumplimiento de las propiedades ACID (MVCC)\cite{harder1983}. Esta característica garantiza que los procesos de lectura no bloqueen a los de escritura, resolviendo cualquier colisión de datos en caso de que ocurran solicitudes simultáneas para reservar un mismo bloque horario o para ir descontando insumos del inventario.
+
+Tomando en consideración la utilización de que se trabaja con modelado 3D, es necesario persistir la configuración exacta de cómo un boceto 2D se proyecta sobre el modelo antatómico. Guardar variabes individuales como (X,Y,Z), rotación y escala para cada sesión generaría esquemas de tablas rígidos y costosos de consultar. PostgreSQL resuelve esto mediante un soporte nativo de datos JSONB (JSON Binario)\cite{postgresjson}. JSONB descomopone el documento JSON\cite{bray2017} en un formato binario indexado lo que permite almacenar estructuras de datos dinámmicas, anidadas y flexibles dentro de una fila relacional. De este modo, las coordenadas espaciales calculadas por Three.js se guardan en un solo campo optimizado. Al estar indexado binariamente, el backend puede consultar, filtrar y descomponer los datos espaciales a gran velocidad, logrando que la reconstrucción del modelo 3D en el navegador sea prácticamente instantánea cada vez que el tatuador reabra el perfil de un cliente.
+
+\subsection{Servicio de mensajería}
+
+Para la integración de recordatorios personalizados, se utiliza la API de WhatsApp. Esta API permite enviar mensajes automatizados a los clientes a través de WhatsApp, lo que es esencial para reducir el ausentismo y mejorar la comunicación con los clientes. La elección de esta API se justifica por la amplia adopción de WhatsApp como plataforma de mensajería, su capacidad para enviar mensajes programados y personalizados, y su compatibilidad con la arquitectura del proyecto, lo que facilita su integración con el backend desarrollado en Node.js. El envío automático se resuelve con una biblioteca que vincula el WhatsApp del propio tatuador al servidor como un dispositivo más\cite{baileys}, de modo que los recordatorios salen desde su número; la vía oficial de Meta queda disponible para el estudio que la tenga contratada.
+
+\subsection{Despliegue de aplicaciones}
+
+Como herramienta de despliegue de aplicación se utilizará Docker\cite{docker}, que es una plataforma de contenedorización que permite empaquetar la aplicación y sus dependencias en un contenedor portátil. Esto facilita el despliegue en diferentes entornos sin preocuparse por las inconsistencias de configuración. Docker también simplifica la gestión de versiones y la escalabilidad, lo que es beneficioso para el desarrollo iterativo y la implementación continua del proyecto.
+
+\subsection{Herramienta para repositorio GithHub}
+
+Para el control de versiones y el respaldo del código fuente, se utiliza GitHub\cite{github}. La gestión de las ramas de desarrollo y los ``commits'', se realiza mediante interfaces gráficas como GitKraken\cite{gitkraken} o GitHub Desktop\cite{githubdesktop}. Esta elección agiliza la visualización del historial del proyecto sin depender estrictamente de la interfaz de línea de comandos, minimizando errores al revertir cambios durante la fase de refactorización de PXP.
+
+\subsection{Sistema gestor de proyectos }
+
+Para administrar la planificación iterativa y el seguimiento de las Historias de Usuario, se emplea Trello\cite{trello}. A diferencia de herramientas más complejas como Jira\cite{jira} orientadas a grandes equipos corporativos, Trello ofrece un sistema de tableros Kanban\cite{anderson2010} intuitivo y directo. Esta simplicidad se alinea a la perfección con las prácticas ágiles de un desarrollador en solitario (PXP), permitiendo gestionar las listas de comprobación (checklists) de las pruebas de software de manera visual y eficiente.
 
 \section{Metodologías }
 
@@ -601,9 +629,9 @@ Para complementar las métricas de software y validar el impacto del sistema en 
   \item \textbf{Contraste de Resultados:} Una vez implementado el MVP y tras un periodo de prueba real, se vuelven a medir estos parámetros operando con el sistema. El objetivo es validar estadísticamente el logro en la reducción de los tiempos de previsualización en un 30 \% los tiempos de previsualización (módulo 3D), en un 40 \% los tiempos de cotización (módulo de inventario) y en un 50 \% el ausentismo (módulo de agendamiento con WhatsApp).
 \end{itemize}
 
-\section{Resumen capítulo}
+\section{Resumen del capítulo}
 
-En este capítulo se explicaron los conceptos básicos necesarios para entender el proyecto, se describieron las tecnologías a utilizar, evaluando alternativas y justificando la elección de cada una. También se revisó el estado del arte, presentando aplicaciones que ofrecen funcionalidades similares a la solución propuesta. Finalmente, detallaron las metodologías de desarrollo y evaluación, justificando la elección de cada una.
+En este capítulo se explicaron los conceptos básicos necesarios para entender el proyecto, se describieron las tecnologías a utilizar, evaluando alternativas y justificando la elección de cada una. También se revisó el trabajo relacionado, presentando aplicaciones que ofrecen funcionalidades similares a la solución propuesta. Finalmente, detallaron las metodologías de desarrollo y evaluación, justificando la elección de cada una.
 
 En el siguiente capítulo se abordará la aplicación de estas metodologías, junto con las adaptiones necesarias para el proyecto y los resultados esperados de los objetivos específicos.
 % En el original la raya baja con la «g» de «Metodologías» (5 pt) sin mover el texto.
@@ -612,142 +640,22 @@ En el siguiente capítulo se abordará la aplicación de estas metodologías, ju
 %======================================================================
 %  03-METODOLOGIAS
 %==========================================================s============
-\chapter{Metodologías}
+\chapter{Metodología y requisitos}
 
 El presente capítulo está orientado a describir la manera en que se aplicará las metodologías propuestas en el capítulo anterior y los resultados esperados de los objeticos específicos.
 
 \section{Personal Extreme Programming (PXP)}
 
-Como se mencionó en el Capítulo 2.4.1, la metodología PXP adopta las mejores prácticas de las metodologías Personal Software Process (PSP) y Extreme Programming (XP). Se basa en un desarrollo personal pero a la vez sigue manteniendo las fases claves como Requerimientos, Planififcación e Iteración.
+Como se mencionó en el Capítulo 2.5.1, la metodología PXP adopta las mejores prácticas de las metodologías Personal Software Process (PSP) y Extreme Programming (XP). Se basa en un desarrollo personal pero a la vez sigue manteniendo las fases claves como Requerimientos, Planififcación e Iteración.
 
 \subsection{Requerimientos }
+\label{sec:requerimientos}
 
 Durante esta fase, se realiza una entrevista entre el desarrollador y el cliente para capturar los requerimientos iniciales del sistema. Estos requerimientos se transforman en la fase siguiente en historias de usuario, lo que permite enfocar el desarrollo en la experiencia del usuario.
 
 \subsection{Planificación}
 
-Durante esta fase, la actividad central consiste en la creación, priorización y organización de las historias de usuario (HU), las cuales se dividen y asignan a iteraciones específicas. En esta fase también se toman las decisiones de diseño de la aplicación, tales como las configuraciones base de las tecnologías a utilizar, arquitecturas de software y mockups, que permitirán el flujo de las distitnas vistas que tendrá la aplicación y su interacción con los usuarios.
-
-\tituloparpegado{Historias de usuario}
-A continuación, la Tabla \ref{tab:hu} ilustra las historias de usuario obtenidas a partir de la entrevista inicial con el cliente.
-
-\begin{longtable}{|l|p{3.5cm}|p{9.5cm}|}
-  \caption{Historias de Usuario} \label{tab:hu}\\
-  \hline
-  \textbf{HU} & \textbf{Actor(es)} & \textbf{Descripción} \\
-  \hline
-  \endfirsthead
-  \multicolumn{3}{c}{\textbf{\tablename\ \thetable{} -- Continuación de la página anterior}} \\
-  \hline
-  \textbf{HU} & \textbf{Actor(es)} & \textbf{Descripción} \\
-  \hline
-  \endhead
-  \hline
-  \multicolumn{3}{|r|}{Continúa en la siguiente página...} \\
-  \hline
-  \endfoot
-  \hline
-  \endlastfoot
-  HU01 & Tatuador & quiero registrarme en la plataforma ingresando mis datos, para tener un espacio de trabajo integral. \\ \hline
-  HU02 & Tatuador & quiero iniciar y cerrar sesión mediante mis credenciales, para proteger la privacidad de mi negocio. \\ \hline
-  HU03 & Tatuador & quiero recuperar mi contraseña en caso de olvido, para no perder el acceso a mi agenda e inventario. \\ \hline
-  HU04 & Tatuador & quiero importar imágenes a la plataforma, para almacenarlas en la nube. \\ \hline
-  HU05 & Tatuador & quiero ver todos mis diseños en una galería, para acceder a ellas de manera expedita. \\ \hline
-  HU06 & Tatuador & quiero eliminar un boceto antiguo de la galería, para mantener mi espacio ordenado y liberar almacenamiento. \\ \hline
-  HU07 & Tatuador & quiero añadir etiquetas a mis bocetos, para filtrarlos y encontrarlos ágilmente frente al cliente. \\ \hline
-  HU08 & Tatuador & quiero elegir entre distintos modelos anatómicos 3D ya integrados, para utilizarlos como lienzo de previsualización. \\ \hline
-  HU09 & Tatuador & quiero proyectar un boceto 2D (PNG) sobre el modelo 3D, para evaluar cómo se adapta a la curvatura de la piel. \\ \hline
-  HU10 & Tatuador & quiero escalar, mover y rotar el diseño sobre el modelo 3D, para definir la posición exacta. \\ \hline
-  HU11 & Tatuador & quiero registrar un material con su cantidad y costo unitario, para mantener un control inicial de mi stock. \\ \hline
-  HU12 & Tatuador & quiero modificar el stock manual o borrar insumos descontinuados, para mantener la realidad operativa de mi estudio. \\ \hline
-  HU13 & Tatuador & quiero visualizar una advertencia cuando un insumo llegue a un nivel crítico, para comprar reposiciones a tiempo. \\ \hline
-  HU14 & Tatuador & quiero que el sistema calcule el costo de los insumos basándose en el tamaño del boceto y variables de trazado, para obtener un presupuesto automatizado. \\ \hline
-  HU15 & Tatuador & quiero agregar o quitar materiales específicos sugeridos por el algoritmo, para refinar el cálculo final de la cotización. \\ \hline
-  HU16 & Tatuador & quiero que al dar por finalizada una sesión cotizada los materiales se descuenten solos, para automatizar el control de stock. \\ \hline
-  HU17 & Tatuador & quiero agendar a un cliente especificando fecha, hora, número de contacto y precio del proyecto, para organizar mis tiempos. \\ \hline
-  HU18 & Tatuador & quiero ver mis citas en un formato de calendario mensual y semanal, para organizar visualmente mi jornada. \\ \hline
-  HU19 & Tatuador & quiero poder crear distintos proyectos para clientes específicos junto con sus sesiones. \\ \hline
-  HU20 & Tatuador & quiero poder subir una foto de cada sesión para ver los progresos del proyecto. \\ \hline
-  HU21 & Tatuador & quiero cambiar la fecha de una cita o cancelarla, para mantener la agenda actualizada frente a imprevistos. \\ \hline
-  HU22 & Tatuador & quiero que el sistema envíe automáticamente un mensaje de WhatsApp 24 horas antes de la sesión, para evitar olvidos o retrasos. \\ \hline
-  HU23 & Tatuador & quiero que al cancelar o cambiar una hora el sistema avise al cliente por WhatsApp, para mantener una comunicación profesional. \\ \hline
-  HU24 & Tatuador & quiero ver el historial de todas las sesiones pasadas y futuras asociadas a un cliente, para hacer seguimiento de piezas grandes. \\ \hline
-  HU25 & Tatuador & quiero ver un panel de control al iniciar sesión con las citas programadas y alertas de stock bajo, para organizar mi jornada de un vistazo. \\ \hline
-  HU26 & Tatuador & quiero visualizar una suma básica de los ingresos generados en el mes actual, para evaluar la rentabilidad del estudio. \\ \hline
-  HU27 & Tatuador & quiero definir mis días y horas de trabajo, para que el calendario bloquee automáticamente mis días libres. \\ \hline
-  HU28 & Tatuador & quiero poder editar el texto base del mensaje que se envía por WhatsApp, para darle recomendaciones del trato del tatuajes posteriormente al trabajo realizado. \\ \hline
-  HU29 & Tatuador & quiero tener el resgistro de todos mis clientes atendidos con su información. \\ \hline
-  HU30 & Tatuador & quiero poder visualizar un marcardor de todos mis clientes y asignarles puntaje para saber su responsabilidad de llegada y poder filtrarlos de acuerdo a ello. \\ \hline
-  HU31 & Administrador & quiero registrar nuevos estudios de tatuaje en la plataforma indicando nombre, correo y plan contratado, para incorporar a nuevos clientes del sistema. \\ \hline
-  HU32 & Administrador & quiero activar o desactivar una cuenta de estudio, para gestionar el acceso a la plataforma ante impagos o solicitudes de baja. \\ \hline
-  HU33 & Administrador & quiero agregar tatuadores adicionales dentro de un estudio existente, para dar soporte a estudios con más de un profesional. \\ \hline
-  HU34 & Administrador & quiero eliminar o desactivar la cuenta de un tatuador específico dentro de un estudio, para mantener actualizada la nómina de usuarios activos. \\ \hline
-  HU35 & Administrador & quiero visualizar un listado de todos los estudios y tatuadores registrados, para monitorear el uso general de la plataforma. \\ \hline
-  HU36 & Administrador & quiero ver métricas globales de uso por estudio (número de sesiones, citas agendadas, bocetos almacenados), para evaluar la adopción de la plataforma. \\ \hline
-  HU37 & Administrador & quiero gestionar los modelos anatómicos 3D disponibles en la plataforma (agregar, actualizar o eliminar), para mantener actualizado el catálogo compartido entre estudios. \\ \hline
-  HU38 & Administrador & quiero restablecer la contraseña de cualquier usuario registrado, para brindar soporte ante bloqueos de acceso. \\
-\end{longtable}
-
-\tituloparpegado{Priorización y estimación de historias de usuario}
-En PXP, luego de realizar la creación de historias de usuario, se deben priorizar y estimar en base al esfuerzo que toma implementar cada una. Para priorizar se utiliza una escala que va desde el valor más bajo correspondiente a ``Baja'' hasta ``Crítica'' siendo el valor más alto, categorizándolas en base a su impacto sobre los objetivos específicos del proyecto.\\
-\indent Por el lado de la estimación, si bien existen distintos métodos, se utilizará Planning Poker\cite{planningpoker}, el cual se elige debido a que emplea la escala de la serie de Fibonacci\cite{viggiani2006} para estimar cada historia, en el que entre más bajo sea el número otorgado, representará un menor esfuerzo técnico y cognitivo. A continuación, la Tabla \ref{tab:prioridad} ilustra el resultado de los métodos mencionados aplicados al catálogo del sistema.
-
-\begin{longtable}{|c|c|c|}
-  \caption{Priorización y estimación de esfuerzo para cada historia de usuario} \label{tab:prioridad}\\
-  \hline
-  \textbf{HU} & \textbf{Priorización} & \textbf{Estimación de esfuerzo} \\
-  \hline
-  \endfirsthead
-  \multicolumn{3}{c}{\textbf{\tablename\ \thetable{} -- Continuación de la página anterior}} \\
-  \hline
-  \textbf{HU} & \textbf{Priorización} & \textbf{Estimación de esfuerzo} \\
-  \hline
-  \endhead
-  \hline
-  \multicolumn{3}{|r|}{Continúa en la siguiente página...} \\
-  \hline
-  \endfoot
-  \hline
-  \endlastfoot
-  HU01 & Crítica & 3 \\ \hline
-  HU02 & Crítica & 2 \\ \hline
-  HU03 & Media & 3 \\ \hline
-  HU04 & Crítica & 3 \\ \hline
-  HU05 & Alta & 3 \\ \hline
-  HU06 & Baja & 2 \\ \hline
-  HU07 & Media & 3 \\ \hline
-  HU08 & Crítica & 5 \\ \hline
-  HU09 & Crítica & 8 \\ \hline
-  HU10 & Crítica & 8 \\ \hline
-  HU11 & Alta & 3 \\ \hline
-  HU12 & Media & 2 \\ \hline
-  HU13 & Baja & 2 \\ \hline
-  HU14 & Crítica & 5 \\ \hline
-  HU15 & Media & 3 \\ \hline
-  HU16 & Alta & 5 \\ \hline
-  HU17 & Crítica & 5 \\ \hline
-  HU18 & Alta & 3 \\ \hline
-  HU19 & Media & 3 \\ \hline
-  HU20 & Alta & 3 \\ \hline
-  HU21 & Alta & 5 \\ \hline
-  HU22 & Crítica & 5 \\ \hline
-  HU23 & Alta & 3 \\ \hline
-  HU24 & Media & 3 \\ \hline
-  HU25 & Media & 3 \\ \hline
-  HU26 & Baja & 2 \\ \hline
-  HU27 & Media & 2 \\ \hline
-  HU28 & Baja & 2 \\ \hline
-  HU29 & Media & 3 \\ \hline
-  HU30 & Media & 3 \\ \hline
-  HU31 & Crítica & 3 \\ \hline
-  HU32 & Crítica & 2 \\ \hline
-  HU33 & Alta & 3 \\ \hline
-  HU34 & Media & 2 \\ \hline
-  HU35 & Alta & 3 \\ \hline
-  HU36 & Media & 5 \\ \hline
-  HU37 & Media & 3 \\ \hline
-  HU38 & Baja & 2 \\
-\end{longtable}
+Durante esta fase, la actividad central consiste en la creación, priorización y organización de las historias de usuario (HU), las cuales se dividen y asignan a iteraciones específicas. En esta fase también se toman las decisiones de diseño de la aplicación, tales como las configuraciones base de las tecnologías a utilizar, arquitecturas de software y mockups, que permitirán el flujo de las distitnas vistas que tendrá la aplicación y su interacción con los usuarios. Las historias de usuario y su priorización se presentan en la Sección \ref{sec:requisitos}; lo que corresponde aquí es cómo se reparten entre las iteraciones.
 
 \tituloparpegado{Planificación de historias de usuario}
 A continuación, la Tabla \ref{tab:iteraciones} ilustra las iteraciones y las historias de usuario asociadas a cada una de ellas, distribuidas estratégicamente a lo largo de la fase de implementación del proyecto.
@@ -885,6 +793,160 @@ Este método de evaluación, como se detalla en el Capítulo 2.5.2, permite medi
   \mbox{}\\[-1.01pt]
 \end{enumerate}
 
+\section{Requisitos}
+\label{sec:requisitos}
+
+Los requisitos del sistema se levantaron en la fase de requerimientos descrita en la Sección \ref{sec:requerimientos}, a partir de las entrevistas con el tatuador profesional que planteó el problema. Esta sección presenta primero el proceso de negocio que se quiere mejorar y después los requisitos de usuario que de él se derivaron.
+
+\subsection{Modelo de proceso de negocio}
+
+El flujo de trabajo de un estudio de tatuajes, desde que llega el cliente hasta que termina el proyecto, se modeló con notación BPMN en la Figura \ref{fig:bpmn} del Capítulo 1. Ese modelo es el punto de partida de los requisitos: cada actividad que hoy se resuelve con una herramienta distinta —o con papel— es una oportunidad de integración, y de ahí salieron los módulos de la plataforma.
+
+La Tabla \ref{tab:procesohu} muestra esa correspondencia: qué actividad del proceso atiende cada grupo de historias de usuario.
+
+\begin{table}[H]
+  \centering
+  \caption{Correspondencia entre las actividades del proceso y las historias de usuario}
+  \label{tab:procesohu}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|p{7.4cm}|p{4.6cm}|}
+    \hline
+    \textbf{Actividad del proceso} & \textbf{Historias de usuario} \\
+    \hline
+    Preparar el diseño y conservarlo para consultarlo después & HU04 a HU07 \\ \hline
+    Probar el tamaño y la ubicación sobre el cuerpo del cliente & HU08 a HU10 \\ \hline
+    Calcular lo que cuesta el trabajo en materiales & HU14 a HU16 \\ \hline
+    Acordar la cita y recordársela al cliente & HU17, HU18, HU21 a HU23 \\ \hline
+    Realizar la sesión y registrar el avance del proyecto & HU19, HU20, HU24, HU30 \\ \hline
+    Controlar los insumos y reponerlos a tiempo & HU11 a HU13, HU25 \\ \hline
+    Revisar lo cobrado y lo pendiente del mes & HU26 \\ \hline
+  \end{tabular}
+\end{table}
+
+Las historias que no aparecen en la tabla no corresponden a una actividad del proceso del tatuador sino al soporte de la plataforma: el acceso a la cuenta (HU01 a HU03), la configuración de los mensajes (HU28), el registro de clientes (HU29) y la administración de estudios y usuarios (HU31 a HU38).
+
+\subsection{Requisitos de usuario: historias de usuario}
+
+A continuación, la Tabla \ref{tab:hu} ilustra las historias de usuario obtenidas a partir de la entrevista inicial con el cliente.
+
+\begin{longtable}{|l|p{3.5cm}|p{9.5cm}|}
+  \caption{Historias de Usuario} \label{tab:hu}\\
+  \hline
+  \textbf{HU} & \textbf{Actor(es)} & \textbf{Descripción} \\
+  \hline
+  \endfirsthead
+  \multicolumn{3}{c}{\textbf{\tablename\ \thetable{} -- Continuación de la página anterior}} \\
+  \hline
+  \textbf{HU} & \textbf{Actor(es)} & \textbf{Descripción} \\
+  \hline
+  \endhead
+  \hline
+  \multicolumn{3}{|r|}{Continúa en la siguiente página...} \\
+  \hline
+  \endfoot
+  \hline
+  \endlastfoot
+  HU01 & Tatuador & quiero registrarme en la plataforma ingresando mis datos, para tener un espacio de trabajo integral. \\ \hline
+  HU02 & Tatuador & quiero iniciar y cerrar sesión mediante mis credenciales, para proteger la privacidad de mi negocio. \\ \hline
+  HU03 & Tatuador & quiero recuperar mi contraseña en caso de olvido, para no perder el acceso a mi agenda e inventario. \\ \hline
+  HU04 & Tatuador & quiero importar imágenes a la plataforma, para almacenarlas en la nube. \\ \hline
+  HU05 & Tatuador & quiero ver todos mis diseños en una galería, para acceder a ellas de manera expedita. \\ \hline
+  HU06 & Tatuador & quiero eliminar un boceto antiguo de la galería, para mantener mi espacio ordenado y liberar almacenamiento. \\ \hline
+  HU07 & Tatuador & quiero añadir etiquetas a mis bocetos, para filtrarlos y encontrarlos ágilmente frente al cliente. \\ \hline
+  HU08 & Tatuador & quiero elegir entre distintos modelos anatómicos 3D ya integrados, para utilizarlos como lienzo de previsualización. \\ \hline
+  HU09 & Tatuador & quiero proyectar un boceto 2D (PNG) sobre el modelo 3D, para evaluar cómo se adapta a la curvatura de la piel. \\ \hline
+  HU10 & Tatuador & quiero escalar, mover y rotar el diseño sobre el modelo 3D, para definir la posición exacta. \\ \hline
+  HU11 & Tatuador & quiero registrar un material con su cantidad y costo unitario, para mantener un control inicial de mi stock. \\ \hline
+  HU12 & Tatuador & quiero modificar el stock manual o borrar insumos descontinuados, para mantener la realidad operativa de mi estudio. \\ \hline
+  HU13 & Tatuador & quiero visualizar una advertencia cuando un insumo llegue a un nivel crítico, para comprar reposiciones a tiempo. \\ \hline
+  HU14 & Tatuador & quiero que el sistema calcule el costo de los insumos basándose en el tamaño del boceto y variables de trazado, para obtener un presupuesto automatizado. \\ \hline
+  HU15 & Tatuador & quiero agregar o quitar materiales específicos sugeridos por el algoritmo, para refinar el cálculo final de la cotización. \\ \hline
+  HU16 & Tatuador & quiero que al dar por finalizada una sesión cotizada los materiales se descuenten solos, para automatizar el control de stock. \\ \hline
+  HU17 & Tatuador & quiero agendar a un cliente especificando fecha, hora, número de contacto y precio del proyecto, para organizar mis tiempos. \\ \hline
+  HU18 & Tatuador & quiero ver mis citas en un formato de calendario mensual y semanal, para organizar visualmente mi jornada. \\ \hline
+  HU19 & Tatuador & quiero poder crear distintos proyectos para clientes específicos junto con sus sesiones. \\ \hline
+  HU20 & Tatuador & quiero poder subir una foto de cada sesión para ver los progresos del proyecto. \\ \hline
+  HU21 & Tatuador & quiero cambiar la fecha de una cita o cancelarla, para mantener la agenda actualizada frente a imprevistos. \\ \hline
+  HU22 & Tatuador & quiero que el sistema envíe automáticamente un mensaje de WhatsApp 24 horas antes de la sesión, para evitar olvidos o retrasos. \\ \hline
+  HU23 & Tatuador & quiero que al cancelar o cambiar una hora el sistema avise al cliente por WhatsApp, para mantener una comunicación profesional. \\ \hline
+  HU24 & Tatuador & quiero ver el historial de todas las sesiones pasadas y futuras asociadas a un cliente, para hacer seguimiento de piezas grandes. \\ \hline
+  HU25 & Tatuador & quiero ver un panel de control al iniciar sesión con las citas programadas y alertas de stock bajo, para organizar mi jornada de un vistazo. \\ \hline
+  HU26 & Tatuador & quiero visualizar una suma básica de los ingresos generados en el mes actual, para evaluar la rentabilidad del estudio. \\ \hline
+  HU27 & Tatuador & quiero definir mis días y horas de trabajo, para que el calendario bloquee automáticamente mis días libres. \\ \hline
+  HU28 & Tatuador & quiero poder editar el texto base del mensaje que se envía por WhatsApp, para darle recomendaciones del trato del tatuajes posteriormente al trabajo realizado. \\ \hline
+  HU29 & Tatuador & quiero tener el resgistro de todos mis clientes atendidos con su información. \\ \hline
+  HU30 & Tatuador & quiero poder visualizar un marcardor de todos mis clientes y asignarles puntaje para saber su responsabilidad de llegada y poder filtrarlos de acuerdo a ello. \\ \hline
+  HU31 & Administrador & quiero registrar nuevos estudios de tatuaje en la plataforma indicando nombre, correo y plan contratado, para incorporar a nuevos clientes del sistema. \\ \hline
+  HU32 & Administrador & quiero activar o desactivar una cuenta de estudio, para gestionar el acceso a la plataforma ante impagos o solicitudes de baja. \\ \hline
+  HU33 & Administrador & quiero agregar tatuadores adicionales dentro de un estudio existente, para dar soporte a estudios con más de un profesional. \\ \hline
+  HU34 & Administrador & quiero eliminar o desactivar la cuenta de un tatuador específico dentro de un estudio, para mantener actualizada la nómina de usuarios activos. \\ \hline
+  HU35 & Administrador & quiero visualizar un listado de todos los estudios y tatuadores registrados, para monitorear el uso general de la plataforma. \\ \hline
+  HU36 & Administrador & quiero ver métricas globales de uso por estudio (número de sesiones, citas agendadas, bocetos almacenados), para evaluar la adopción de la plataforma. \\ \hline
+  HU37 & Administrador & quiero gestionar los modelos anatómicos 3D disponibles en la plataforma (agregar, actualizar o eliminar), para mantener actualizado el catálogo compartido entre estudios. \\ \hline
+  HU38 & Administrador & quiero restablecer la contraseña de cualquier usuario registrado, para brindar soporte ante bloqueos de acceso. \\
+\end{longtable}
+
+\tituloparpegado{Priorización y estimación de historias de usuario}
+En PXP, luego de realizar la creación de historias de usuario, se deben priorizar y estimar en base al esfuerzo que toma implementar cada una. Para priorizar se utiliza una escala que va desde el valor más bajo correspondiente a ``Baja'' hasta ``Crítica'' siendo el valor más alto, categorizándolas en base a su impacto sobre los objetivos específicos del proyecto.\\
+\indent Por el lado de la estimación, si bien existen distintos métodos, se utilizará Planning Poker\cite{planningpoker}, el cual se elige debido a que emplea la escala de la serie de Fibonacci\cite{viggiani2006} para estimar cada historia, en el que entre más bajo sea el número otorgado, representará un menor esfuerzo técnico y cognitivo. A continuación, la Tabla \ref{tab:prioridad} ilustra el resultado de los métodos mencionados aplicados al catálogo del sistema.
+
+\begin{longtable}{|c|c|c|}
+  \caption{Priorización y estimación de esfuerzo para cada historia de usuario} \label{tab:prioridad}\\
+  \hline
+  \textbf{HU} & \textbf{Priorización} & \textbf{Estimación de esfuerzo} \\
+  \hline
+  \endfirsthead
+  \multicolumn{3}{c}{\textbf{\tablename\ \thetable{} -- Continuación de la página anterior}} \\
+  \hline
+  \textbf{HU} & \textbf{Priorización} & \textbf{Estimación de esfuerzo} \\
+  \hline
+  \endhead
+  \hline
+  \multicolumn{3}{|r|}{Continúa en la siguiente página...} \\
+  \hline
+  \endfoot
+  \hline
+  \endlastfoot
+  HU01 & Crítica & 3 \\ \hline
+  HU02 & Crítica & 2 \\ \hline
+  HU03 & Media & 3 \\ \hline
+  HU04 & Crítica & 3 \\ \hline
+  HU05 & Alta & 3 \\ \hline
+  HU06 & Baja & 2 \\ \hline
+  HU07 & Media & 3 \\ \hline
+  HU08 & Crítica & 5 \\ \hline
+  HU09 & Crítica & 8 \\ \hline
+  HU10 & Crítica & 8 \\ \hline
+  HU11 & Alta & 3 \\ \hline
+  HU12 & Media & 2 \\ \hline
+  HU13 & Baja & 2 \\ \hline
+  HU14 & Crítica & 5 \\ \hline
+  HU15 & Media & 3 \\ \hline
+  HU16 & Alta & 5 \\ \hline
+  HU17 & Crítica & 5 \\ \hline
+  HU18 & Alta & 3 \\ \hline
+  HU19 & Media & 3 \\ \hline
+  HU20 & Alta & 3 \\ \hline
+  HU21 & Alta & 5 \\ \hline
+  HU22 & Crítica & 5 \\ \hline
+  HU23 & Alta & 3 \\ \hline
+  HU24 & Media & 3 \\ \hline
+  HU25 & Media & 3 \\ \hline
+  HU26 & Baja & 2 \\ \hline
+  HU27 & Media & 2 \\ \hline
+  HU28 & Baja & 2 \\ \hline
+  HU29 & Media & 3 \\ \hline
+  HU30 & Media & 3 \\ \hline
+  HU31 & Crítica & 3 \\ \hline
+  HU32 & Crítica & 2 \\ \hline
+  HU33 & Alta & 3 \\ \hline
+  HU34 & Media & 2 \\ \hline
+  HU35 & Alta & 3 \\ \hline
+  HU36 & Media & 5 \\ \hline
+  HU37 & Media & 3 \\ \hline
+  HU38 & Baja & 2 \\
+\end{longtable}
+
 \section{Resultados esperados}
 
 A continuación, se detallan los resultados esperados para cada uno de los objetivos específicos planteados en el Capítulo 1.2.2:
@@ -907,7 +969,7 @@ A continuación, se detallan los resultados esperados para cada uno de los objet
   \end{itemize}
 \end{itemize}
 
-\section{Resumen capítulo}
+\section{Resumen del capítulo}
 
 En este capítulo se presentó detallademente la forma en que se aplicará la metodología PXP en el proyecto. También, se explican las metodologías de evaluación, mediante pruebas de software y, pruebas cualititativas y cuantitativas, en donde se agregan ejemplos de estas. Finalmente, se mencionan los resultados esperados, los cuales responden a los objetivos específicos planteados en el Capítulo 1.2.2.
 
@@ -997,7 +1059,7 @@ El envío de los recordatorios tampoco agrega costo: la biblioteca que vincula e
   \end{tabular}
 \end{table}
 
-La conclusión es que el proyecto es económicamente factible, y además lo es para quien lo va a usar: un estudio pequeño puede adoptar la plataforma sin pagar una suscripción mensual ni comprar equipamiento, que es precisamente la barrera que dejó fuera a las herramientas comerciales revisadas en el estado del arte.
+La conclusión es que el proyecto es económicamente factible, y además lo es para quien lo va a usar: un estudio pequeño puede adoptar la plataforma sin pagar una suscripción mensual ni comprar equipamiento, que es precisamente la barrera que dejó fuera a las herramientas comerciales revisadas en el trabajo relacionado del Capítulo 2.
 
 \section{Diseño de software }
 
@@ -1043,7 +1105,7 @@ Adicionalmente, la capa de aplicación se integra con un servicio externo de men
 
 \subsection{Modelo de datos }
 
-Como se mencionó en el Capítulo 2.3.3, el modelo de datos se basa en una base de datos relacional, utilizando PostgreSQL. A continuación, la Figura \ref{fig:er} muestra el diagrama entidad-relación del modelo de datos propuesto para el sistema.
+Como se mencionó en el Capítulo 2.4.3, el modelo de datos se basa en una base de datos relacional, utilizando PostgreSQL. A continuación, la Figura \ref{fig:er} muestra el diagrama entidad-relación del modelo de datos propuesto para el sistema.
 
 \begin{figure}[H]
   \centering
@@ -1121,7 +1183,14 @@ La Figura \ref{fig:mockupdashboard} y \ref{fig:mockupdashboardmovil} muestran el
 
 Por último, la Figura \ref{fig:mockup3d} y \ref{fig:mockup3dmovil} muestran el diseño propuesto para la vista de previsualización 3D, tanto web como móvil, en el cual se muestra la vista del modelo anatómico con el boceto proyectado sobre este, junto con las herramientas de ajuste para escalar, mover y rotar el diseño sobre el modelo 3D.
 
+\subsection{Diagramas de secuencia}
+
+Un diagrama de secuencia describe un flujo concreto del sistema mostrando qué partes intervienen y en qué orden se hablan: el tiempo avanza hacia abajo y cada flecha es un mensaje entre dos participantes. Es la notación adecuada para explicar un recorrido completo —de la acción del artista en la pantalla hasta la respuesta del servidor— sin entrar en el código que lo implementa. La Figura \ref{fig:secuencia} del Capítulo 3 muestra la notación empleada.
+
+Los diagramas de este proyecto no se agrupan aquí sino que acompañan a la iteración que les corresponde, en la Sección \ref{sec:iteraciones}, porque cada iteración implementa flujos distintos y el diagrama solo se entiende junto a las historias de usuario que lo originan. De cada iteración se reproduce el flujo más representativo, por la razón que explica el Capítulo 3: los demás repiten el mismo recorrido entre la vista, la interfaz de programación, la base de datos y la respuesta.
+
 \section{Iteraciones}
+\label{sec:iteraciones}
 
 A continuación, se detallan como se abordaron las iteraciones descritas en el Capítulo 3.1.2.
 
@@ -2681,6 +2750,16 @@ Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precis
 Siendo la iteración de cierre, conviene mirar el backlog completo. De las 38 historias de usuario definidas, 36 quedaron implementadas. Las otras dos no se abandonaron por falta de tiempo sino por decisión explícita: la HU27 se descartó porque describía una forma de trabajar que no era la del estudio, y la necesidad detrás de ella quedó cubierta por la revisión de horarios de la Iteración 6; la HU37 quedó como trabajo futuro porque su costo real, al examinarla, resultó desproporcionado frente a lo que aportaba. A ellas se suma la HU29, que no necesitó desarrollo propio porque lo que pedía ya estaba construido. Las tres aparecen documentadas en la iteración que les correspondía, con su razón, en lugar de quedar como casillas sin marcar.
 
 El aprendizaje de cierre es que la estimación inicial acertó en el total pero no en el reparto. Las historias que resultaron caras —la previsualización 3D, el reparto de tinta por color, los recordatorios por WhatsApp— lo fueron por motivos que no se ven al escribir la historia: geometría, costos de un servicio externo, formas de trabajo del oficio. Las que resultaron baratas lo fueron porque se apoyaron en decisiones tomadas en iteraciones anteriores, sobre todo en las reglas de propiedad de los datos que se fijaron temprano y no hubo que tocar nunca más.
+\section{Resumen del capítulo}
+
+En este capítulo se presentó la construcción de la plataforma. Se comenzó evaluando si el proyecto podía llevarse a cabo con los medios disponibles, concluyendo que es factible en lo técnico y en lo económico: las herramientas no tienen costo de licencia y cada pieza del sistema se publica en el plan gratuito de un servicio distinto. Se continuó con el diseño de software —la arquitectura física, la lógica, el modelo de datos y los mockups de las vistas— y con el grueso del capítulo, que son las diez iteraciones de desarrollo.
+
+Cada iteración se presentó con la misma estructura que define la metodología: las historias de usuario que aborda, las tareas en que se descompusieron, el diseño del flujo principal, la implementación con las decisiones que hubo que tomar, el resultado visible para el usuario, las pruebas unitarias y la retrospectiva. De las 38 historias de usuario del backlog, 36 quedaron implementadas; las dos restantes se documentaron con su razón en la iteración que les correspondía, en lugar de quedar como casillas sin marcar.
+
+Vale subrayar lo que las retrospectivas dejaron anotado, porque es lo que no se ve en el producto terminado: el costo real de una historia rara vez estuvo donde la estimación lo suponía, y las decisiones más rentables —las reglas de propiedad de los datos, el sello que impide descontar dos veces el inventario, el bloqueo que impide agendar dos citas en la misma hora— se tomaron temprano y no hubo que volver sobre ellas.
+
+En el siguiente capítulo se somete lo construido a prueba: pruebas funcionales sobre el sistema en funcionamiento, pruebas de caja blanca con su medición de cobertura, y el contraste de los resultados con los objetivos que el proyecto se fijó.
+
 %======================================================================
 %  05-PRUEBAS Y ANÁLISIS DE RESULTADOS
 %======================================================================
