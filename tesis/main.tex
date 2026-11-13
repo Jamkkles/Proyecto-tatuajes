@@ -289,6 +289,7 @@ En esta sección se presentan los alcances del proyecto.
 \end{itemize}
 
 \section{Plan de trabajo}
+\label{sec:plantrabajo}
 
 A continuación se presenta el plan de trabajo del proyecto.
 
@@ -461,7 +462,7 @@ Tomando en consideración la utilización de que se trabaja con modelado 3D, es 
 
 \subsection{Servicio de mensajería}
 
-Para la integración de recordatorios personalizados, se utiliza la API de WhatsApp. Esta API permite enviar mensajes automatizados a los clientes a través de WhatsApp, lo que es esencial para reducir el ausentismo y mejorar la comunicación con los clientes. La elección de esta API se justifica por la amplia adopción de WhatsApp como plataforma de mensajería, su capacidad para enviar mensajes programados y personalizados, y su compatibilidad con la arquitectura del proyecto, lo que facilita su integración con el backend desarrollado en Node.js.
+Para la integración de recordatorios personalizados, se utiliza la API de WhatsApp. Esta API permite enviar mensajes automatizados a los clientes a través de WhatsApp, lo que es esencial para reducir el ausentismo y mejorar la comunicación con los clientes. La elección de esta API se justifica por la amplia adopción de WhatsApp como plataforma de mensajería, su capacidad para enviar mensajes programados y personalizados, y su compatibilidad con la arquitectura del proyecto, lo que facilita su integración con el backend desarrollado en Node.js. El envío automático se resuelve con una biblioteca que vincula el WhatsApp del propio tatuador al servidor como un dispositivo más\cite{baileys}, de modo que los recordatorios salen desde su número; la vía oficial de Meta queda disponible para el estudio que la tenga contratada.
 
 \subsection{Despliegue de aplicaciones}
 
@@ -919,6 +920,84 @@ En el siguiente capítulo se detallará la implementación de la metodología de
 \chapter{Desarrollo}
 
 El presente capítulo está orientado a presentar la implementación de la metodología de desarrollo.
+
+\section{Análisis de factibilidad}
+
+Antes de diseñar la solución se evalúa si el proyecto puede llevarse a cabo con los medios disponibles. El análisis se hace en dos dimensiones: la técnica, que pregunta si existen la tecnología y el conocimiento para construirlo, y la económica, que pregunta cuánto cuesta construirlo y mantenerlo funcionando.
+
+\subsection{Factibilidad técnica}
+
+Todo el software empleado es gratuito o de código abierto, de modo que no hay licencias que adquirir: el entorno de desarrollo, el motor de base de datos, la contenedorización y las bibliotecas del lenguaje se distribuyen bajo licencias libres, y el control de versiones usa el plan gratuito de GitHub.
+
+La plataforma se entrega como una aplicación web progresiva, de modo que el tatuador solo necesita un navegador actualizado con soporte de WebGL, que es lo que traen hoy los teléfonos y computadores de uso corriente, y una conexión a internet. No hay que instalar nada ni comprar equipamiento.
+
+Respecto del conocimiento necesario, el proyecto se apoya en tecnologías ampliamente documentadas y de uso extendido en la industria, y en los contenidos de la carrera. La excepción es la previsualización tridimensional, que exige geometría computacional y manejo de mallas, un área que el desarrollo abordó con documentación y experimentación directa sobre los modelos.
+
+La Tabla \ref{tab:riesgostecnicos} reúne los riesgos técnicos que se identificaron al evaluar la factibilidad, junto con la decisión que se tomó para controlarlos. Los cuatro se materializaron durante el desarrollo, y el capítulo documenta en cada iteración cómo se resolvieron.
+
+\begin{table}[H]
+  \centering
+  \caption{Riesgos técnicos identificados y su tratamiento}
+  \label{tab:riesgostecnicos}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|p{4.2cm}|p{9cm}|}
+    \hline
+    \textbf{Riesgo} & \textbf{Tratamiento} \\
+    \hline
+    El visor 3D puede no rendir en equipos modestos & Se trabaja sobre modelos optimizados y se recorta la malla alrededor del tatuaje en lugar de recorrerla entera, lo que permitió sostener el arrastre a 60 fotogramas por segundo \\ \hline
+    Los servicios gratuitos imponen límites y pueden cambiar & Se elige una arquitectura desacoplada, donde cada pieza puede migrar por separado, y el almacenamiento de archivos pasa por una capa con controladores intercambiables \\ \hline
+    El envío de mensajes al cliente depende de un servicio externo & Cada mensaje se arma una sola vez y puede salir por tres vías: la biblioteca que vincula el WhatsApp del tatuador, que automatiza el envío sin costo por mensaje; la plantilla de la API oficial, si el estudio la contrata; y un enlace manual de respaldo \\ \hline
+    El desarrollo lo realiza una sola persona & Se adopta PXP, una metodología pensada para desarrolladores individuales, y una sola base de código para todos los dispositivos \\ \hline
+  \end{tabular}
+\end{table}
+
+Con el equipamiento disponible, herramientas sin costo de licencia, tecnologías documentadas y riesgos acotados, el proyecto es técnicamente factible.
+
+\subsection{Factibilidad económica}
+
+El proyecto se desarrolla en el contexto de una memoria de título, por lo que no hubo desembolso por el trabajo de desarrollo.
+
+La operación, en cambio, sí tiene un costo real, y la decisión de diseño fue dejarlo en cero. Cada pieza de la plataforma se publica en el plan gratuito de un servicio distinto, como resume la Tabla \ref{tab:infraestructura}. Ninguno de ellos exige tarjeta de crédito.
+
+\begin{table}[H]
+  \centering
+  \caption{Costo mensual de la infraestructura en la nube}
+  \label{tab:infraestructura}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|l|l|p{6.1cm}|c|}
+    \hline
+    \textbf{Pieza} & \textbf{Servicio} & \textbf{Plan gratuito} & \textbf{Costo} \\
+    \hline
+    Frontend & Cloudflare Pages & Tráfico sin límite & \$0 \\ \hline
+    Backend & Render & 750 horas al mes y 512 MB; se duerme tras 15 minutos sin uso & \$0 \\ \hline
+    Base de datos & Neon & 0,5 GB, sin vencimiento & \$0 \\ \hline
+    Imágenes & Cloudinary & 25 créditos al mes & \$0 \\ \hline
+    Correo & Brevo & Unos 300 correos al día & \$0 \\ \hline
+    Repositorio & GitHub & Repositorios privados sin límite & \$0 \\ \hline
+  \end{tabular}
+\end{table}
+
+Estos planes tienen una contrapartida que conviene dejar escrita: el backend se suspende tras unos minutos sin uso, de modo que la primera petición después de una pausa demora cerca de un minuto en responder. La plataforma lo advierte en pantalla mientras el servidor despierta. Es el precio de no pagar alojamiento, y para un estudio que consulta la agenda unas pocas veces al día resulta aceptable; si dejara de serlo, el plan de pago de Render resuelve exactamente ese punto sin cambiar el código.
+
+El envío de los recordatorios tampoco agrega costo: la biblioteca que vincula el WhatsApp del tatuador al servidor los manda desde su propio número, de modo que la automatización no depende de contratar un servicio de mensajería. La vía oficial de Meta, que cobra por cada mensaje de plantilla entregado, queda como alternativa configurable para el estudio que la prefiera. La Tabla \ref{tab:costos} resume el panorama completo.
+
+\begin{table}[H]
+  \centering
+  \caption{Resumen de costos del proyecto}
+  \label{tab:costos}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|p{6.4cm}|p{3.6cm}|p{3.4cm}|}
+    \hline
+    \textbf{Concepto} & \textbf{Desembolso real} & \textbf{Valorizado} \\
+    \hline
+    Licencias de software & \$0 & \$0 \\ \hline
+    Equipamiento (ya disponible) & \$0 & --- \\ \hline
+    Infraestructura en la nube, mensual & \$0 & \$0 \\ \hline
+    Mensajes al cliente, mensual & \$0 & \$0 \\ \hline
+  \end{tabular}
+\end{table}
+
+La conclusión es que el proyecto es económicamente factible, y además lo es para quien lo va a usar: un estudio pequeño puede adoptar la plataforma sin pagar una suscripción mensual ni comprar equipamiento, que es precisamente la barrera que dejó fuera a las herramientas comerciales revisadas en el estado del arte.
 
 \section{Diseño de software }
 
@@ -1976,7 +2055,7 @@ En esta etapa se crean y registran las tareas acordes a las historias de usuario
     HU22 & T0002 & Crear el registro de mensajes y su clave única \\ \hline
     HU22 & T0003 & Buscar las citas que necesitan recordatorio \\ \hline
     HU22 & T0004 & Crear el programador interno y la ruta para uno externo \\ \hline
-    HU22 & T0005 & Enviar por la API de WhatsApp o dejar el enlace manual \\ \hline
+    HU22 & T0005 & Enviar el mensaje por WhatsApp o dejar el enlace manual \\ \hline
     HU23 & T0001 & Crear diagrama de secuencia \\ \hline
     HU23 & T0002 & Decidir qué aviso corresponde a cada cambio de la cita \\ \hline
     HU23 & T0003 & Contar en pantalla qué pasó con el aviso \\ \hline
@@ -2006,7 +2085,7 @@ En esta etapa se crean los diagramas de secuencia de las historias de usuario as
 \tituloparpegado{Implementación}
 En esta etapa se desarrolla el backend y el frontend de las historias asignadas. La HU21 se apoya en la agenda de la iteración anterior: reagendar y cancelar son cambios de estado y de hora sobre una cita existente. Lo que hubo que afinar es cuándo corresponde volver a revisar el horario. Revisarlo en cada cambio bloqueaba operaciones legítimas —corregir el monto o las notas de una cita que, por datos antiguos, ya se solapaba con otra—, así que la revisión ocurre solo cuando el cambio puede crear un cruce: mover la hora, alargar la duración o reactivar una cita cancelada. Editar el monto, las notas o el estado de pago nunca se bloquea.
 
-El resto de la iteración gira en torno a un problema que no es técnico sino de costos. La API oficial de WhatsApp cobra por mensaje y solo acepta plantillas aprobadas por Meta, y un estudio pequeño no siempre puede pagarla. Por eso cada mensaje al cliente existe en \textbf{dos formas que salen de las mismas frases}: los parámetros de su plantilla aprobada, para cuando la API está configurada, y el texto equivalente para un enlace de WhatsApp que el artista abre con un toque. El cliente recibe lo mismo por cualquiera de las dos vías, y el camino manual —gratis y siempre disponible— es el que funciona sin configurar nada.
+El resto de la iteración es el mensaje al cliente. Cada aviso se arma \textbf{una sola vez, con las mismas frases para todas las vías}, y se entrega por la que esté disponible: la biblioteca que vincula el WhatsApp del propio artista, que automatiza el envío; los parámetros de la plantilla de la API oficial, si el estudio la tiene configurada; o el texto equivalente en un enlace de WhatsApp que el artista abre con un toque. El cliente recibe lo mismo por cualquiera de ellas, y el enlace manual —siempre disponible— es el que funciona sin configurar nada.
 
 El envío se reclama antes de mandarse, como muestra la Figura \ref{fig:implreclamo}. El registro de mensajes tiene una restricción de unicidad por artista y clave de deduplicación, de modo que si dos corridas del programador coinciden, la segunda no escribe al cliente de nuevo: la base rechaza el reclamo y el envío no ocurre. Es la misma idea del sello de la Iteración 5, aplicada a un mensaje en lugar de a un descuento de stock, y responde a que escribirle dos veces al mismo cliente es un error visible y molesto para quien lo recibe.
 
@@ -2032,7 +2111,7 @@ La HU23 no agrega una pantalla nueva: el aviso sale del mismo cambio que el tatu
 
 La HU28 convierte en configuración lo que de otro modo habría quedado fijo en el código. El artista decide qué mensajes quiere, y edita con sus palabras la nota del recordatorio y las indicaciones de cuidados posteriores, que son justamente las dos partes del mensaje donde cada estudio tiene su criterio. La pantalla muestra una vista previa de cómo le llegará el texto al cliente, con las frases fijas y las suyas ya combinadas.
 
-Como canal adicional se dejó implementada la posibilidad de que el artista vincule su propio WhatsApp como dispositivo vinculado, de modo que los mensajes salgan gratis desde su número. No es una vía oficial: contraviene los términos de servicio de WhatsApp y puede costarle el bloqueo del número. Por eso viene apagada, exige una variable de entorno en el servidor y que el artista acepte explícitamente el riesgo, y el orden de preferencia la deja siempre después de la API oficial. Se documentó así a propósito: es una alternativa real para un estudio que no puede pagar la API, pero no es la recomendada.
+La automatización del envío se apoya en la biblioteca de vinculación: el artista enlaza su propio WhatsApp al servidor como un dispositivo más y los mensajes salen de su número. La capa de envío respeta un ritmo humano —una fila por artista, pausas de algunos segundos, el aviso de ``escribiendo\ldots'' y un tope de mensajes por hora— y solo escribe a números que WhatsApp confirma. No es una vía oficial, de modo que viene apagada y exige que el artista acepte explícitamente el riesgo de que su número sea bloqueado, y donde el estudio tiene contratada la API oficial es esa la que tiene prioridad.
 
 La HU31 inaugura la administración de la plataforma. Aparece la noción de estudio, que agrupa cuentas de tatuadores, y el rol de administrador. Dos decisiones vale la pena dejar escritas. La primera es que el rol se lee de la base de datos en cada petición y no del token, de modo que degradar a alguien tiene efecto inmediato y no cuando expire su sesión. La segunda es que la contraseña del primer tatuador se genera en el servidor, se devuelve una sola vez en la respuesta y de ella solo se guarda el hash: el administrador se la entrega al tatuador, que está obligado a cambiarla al entrar. El estudio y su primer tatuador se crean en una misma transacción, para que no pueda quedar un estudio sin nadie dentro.
 
@@ -2120,9 +2199,9 @@ La ejecución de las pruebas evidenció un funcionamiento correcto del reagendam
 
 \vspace{\parskip}
 \tituloparpegado{Retrospectiva}
-Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precisas y se identifican posibles mejoras en el proceso de desarrollo. Fue la iteración más larga del proyecto y la que más se desvió de lo estimado, aunque no por la programación. La HU22 estaba escrita como ``enviar un WhatsApp 24 horas antes'', y recién al implementarla apareció que la API oficial es de pago, exige plantillas aprobadas por Meta y tarda días en aprobarlas. Rehacer el diseño para que el mismo mensaje pudiera salir por la API o por un enlace manual costó más que escribir el envío, pero es lo que permite que la historia funcione en un estudio que no paga la API, que era el caso del estudio real del proyecto.
+Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precisas y se identifican posibles mejoras en el proceso de desarrollo. Fue la iteración más larga del proyecto y la que más se desvió de lo estimado, aunque no por la programación. La HU22 estaba escrita como ``enviar un WhatsApp 24 horas antes'', y recién al implementarla apareció que el envío no se resolvía con una sola integración: la vía oficial exige plantillas aprobadas por Meta y tarda días en aprobarlas, así que la automatización se montó sobre la biblioteca de vinculación y el enlace manual quedó de respaldo. Armar el mensaje una sola vez para que pudiera salir por cualquiera de las tres vías costó más que escribir el envío, pero es lo que permite que la historia funcione en el estudio real del proyecto.
 
-Quedaron dos aprendizajes. El primero es que una historia que depende de un servicio externo hay que investigarla antes de estimarla: lo que se estimó en cinco puntos era en realidad un problema de costos y de plazos de aprobación ajenos al desarrollo. El segundo tiene que ver con la responsabilidad frente al usuario final: el canal gratuito que vincula el WhatsApp del propio artista es técnicamente la mejor opción y la que más se usaría, y aun así se dejó apagada y marcada como riesgosa, porque el costo de un bloqueo lo pagaría el tatuador y no el sistema.
+Quedaron dos aprendizajes. El primero es que una historia que depende de un servicio externo hay que investigarla antes de estimarla: lo que se estimó en cinco puntos era en realidad un problema de integración ajeno al desarrollo. El segundo tiene que ver con la responsabilidad frente al usuario final: el canal que vincula el WhatsApp del propio artista es el que automatiza el envío y el que más se usaría, y aun así se dejó apagado y marcado como riesgoso, porque el costo de un bloqueo del número lo pagaría el tatuador y no el sistema.
 \subsection{Iteración 8}
 
 En esta iteración se implementan las historias de usuario HU08, HU09 y HU10, que son la previsualización del tatuaje sobre un modelo anatómico en tres dimensiones. Es la funcionalidad que distingue a la plataforma de una agenda con inventario, y también la más cara del proyecto: 21 de los puntos de esfuerzo estimados, repartidos en solo tres historias. Se dejó para esta altura del desarrollo a propósito, porque necesita el boceto de la Iteración 3 y porque la medida que de aquí sale es la que alimenta la cotización de la Iteración 5.
