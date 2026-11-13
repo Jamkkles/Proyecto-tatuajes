@@ -3008,6 +3008,102 @@ La evaluación de usabilidad con el cuestionario SUS y la encuesta de contraste 
 
 En el siguiente capítulo se revisa el cumplimiento de los objetivos del proyecto, se reflexiona sobre el trabajo realizado y se propone el trabajo futuro.
 %======================================================================
+%  06-CONCLUSIONES Y TRABAJO FUTURO
+%======================================================================
+\chapter{Conclusiones y trabajo futuro}
+
+Este capítulo cierra la memoria. Primero se contrasta lo construido con los objetivos que el proyecto se fijó en el Capítulo 1, diciendo con claridad cuáles quedaron cumplidos y cuáles no. Después se reflexiona sobre el trabajo realizado: qué resultó distinto de lo previsto y qué deja como aprendizaje. Por último se propone el trabajo futuro, tanto el que el propio proyecto dejó anotado como el que surge de sus límites.
+
+\section{Cumplimiento de objetivos}
+
+El \textbf{objetivo general} era optimizar el flujo de trabajo artístico y administrativo de los tatuadores mediante una plataforma web que integrara previsualización 3D, agendamiento de citas, cotizaciones automatizadas y gestión de inventario. Los cuatro módulos están construidos, funcionan sobre un mismo conjunto de datos —el boceto que se coloca en el visor es el que alimenta la cotización, y la cotización se descuenta del inventario al cerrar la cita que la agenda registró— y la plataforma está publicada y en uso. Esa integración, que es lo que el objetivo pedía, se cumplió.
+
+Hay que ser preciso con el verbo «optimizar», sin embargo: que el flujo esté unificado no demuestra por sí solo que el trabajo del tatuador tome menos tiempo. Esa demostración exige medir en terreno, y es justamente lo que quedó pendiente.
+
+La Tabla \ref{tab:cumplimiento} contrasta cada objetivo específico con la evidencia que lo respalda.
+
+\begin{table}[H]
+  \centering
+  \caption{Cumplimiento de los objetivos específicos}
+  \label{tab:cumplimiento}
+  \renewcommand{\arraystretch}{1.2}
+  \footnotesize
+  \begin{tabular}{|p{4.3cm}|p{6.6cm}|p{2.3cm}|}
+    \hline
+    \textbf{Objetivo específico} & \textbf{Evidencia} & \textbf{Estado} \\
+    \hline
+    Analizar los procesos actuales mediante entrevistas para obtener métricas a optimizar
+    & El problema y el flujo de trabajo se levantaron con un tatuador profesional en ejercicio; de ahí salieron el modelo de proceso del Capítulo 1 y las 38 historias de usuario
+    & Cumplido \\ \hline
+    Implementar un módulo de importación y almacenamiento de bocetos en la nube
+    & Galería con subida, etiquetado, filtros y medición automática de tinta y color; almacenamiento con controladores intercambiables; verificado por cinco casos funcionales y sus pruebas
+    & Cumplido \\ \hline
+    Evaluar la calidad mediante pruebas unitarias, de caja negra y de caja blanca con cobertura de al menos 95 \%
+    & 783 pruebas automatizadas y 35 casos de caja negra, todos conformes; 95,5 \% de sentencias y 97,2 \% de líneas (Figura \ref{fig:informecobertura})
+    & Cumplido \\ \hline
+    Disminuir en al menos 50 \% el ausentismo mediante el agendamiento con recordatorios
+    & El recordatorio sale solo 24 horas antes y no se repite; el cambio de hora y la cancelación avisan al cliente. Falta medir la tasa de inasistencia con el estudio operando
+    & Pendiente\newline de medición \\ \hline
+    Reducir en al menos 40 \% el tiempo de cálculo de costos y revisión de stock
+    & La cotización calcula el costo de insumos desde el boceto medido y descuenta el inventario al cerrar la sesión. Falta el contraste de tiempos con el método manual
+    & Pendiente\newline de medición \\ \hline
+    Reducir en al menos 30 \% el tiempo de pruebas de tamaño y ubicación del diseño
+    & El visor coloca el boceto sobre el modelo anatómico y entrega la medida real en centímetros. Falta el contraste de tiempos con el stencil en papel
+    & Pendiente\newline de medición \\ \hline
+    Validar con pruebas de aceptación sobre 90 \% y un cuestionario SUS sobre 85 puntos
+    & El instrumento y el procedimiento están definidos en el Capítulo 5; la sesión con los participantes no se ha realizado
+    & Pendiente \\ \hline
+  \end{tabular}
+\end{table}
+
+El balance es que \textbf{tres de los siete objetivos específicos están cumplidos y verificados}, y los otros cuatro comparten una misma causa: todos miden el efecto de la plataforma sobre el trabajo de una persona, y ese efecto solo se puede medir después de un periodo de uso real. Lo que sí está demostrado es que los mecanismos que deberían producir esas mejoras funcionan como se especificó. Es una distinción incómoda pero necesaria: construir la herramienta y demostrar que mejora el trabajo son dos cosas distintas, y esta memoria alcanzó la primera.
+
+Desde el backlog, el cierre es el siguiente: de las \textbf{38 historias de usuario, 36 quedaron implementadas}. Las dos restantes no se abandonaron por falta de tiempo, sino por decisión documentada en la iteración que les correspondía. La HU27, que pedía bloquear el calendario según los días y horas de trabajo declarados, se descartó porque describía una forma de trabajar que no era la del estudio —el tatuador no tiene un horario fijo que declarar— y la necesidad detrás de ella quedó cubierta por la revisión de solapamientos. La HU37, la gestión del catálogo de modelos anatómicos por parte del administrador, quedó como trabajo futuro al comprobarse que su costo real era desproporcionado frente a lo que aportaba. Se suma la HU29, el registro de clientes atendidos, que no necesitó desarrollo propio porque la ficha de cliente de la agenda ya lo resolvía.
+
+\section{Reflexión final del proyecto}
+
+Mirando el proyecto completo, lo que más se repite es que \textbf{el costo de una funcionalidad casi nunca estaba donde parecía}. La planificación inicial acertó en el total de esfuerzo pero no en su reparto: las historias que resultaron caras lo fueron por motivos que no se ven al escribirlas. La previsualización 3D no fue difícil por el renderizado, que las bibliotecas resuelven, sino por la geometría: que una calca se adapte a la curvatura de un antebrazo sin repetirse en la cara opuesta ni cortarse en la silueta exigió entender cómo se proyecta una textura sobre una malla. El reparto de tinta por color no fue difícil por el cálculo, sino por el oficio: descubrir que los grises se consiguen rebajando el negro y no mezclando blanco cambió el algoritmo. Y los recordatorios no fueron difíciles por el envío, sino porque dependían de un servicio ajeno con sus propias reglas y costos.
+
+De ahí sale el aprendizaje que más vale la pena anotar: \textbf{una historia que depende de algo externo —un servicio, una técnica desconocida, una forma de trabajo del oficio— hay que investigarla antes de estimarla}, porque lo que se estima sin conocerla es solo la parte visible.
+
+El segundo aprendizaje es que \textbf{decidir qué no hacer fue parte del trabajo}, y no su resto. Este documento deja escritas varias de esas decisiones con su razón: la historia descartada porque no correspondía al oficio, la pospuesta por costo, la opacidad del tatuaje eliminada del visor porque un tatuaje no es translúcido, el canal de mensajería gratuito que quedó apagado por omisión aunque era técnicamente la mejor opción, porque el riesgo lo habría pagado el tatuador y no el sistema. Documentarlas con su motivo, en lugar de dejarlas como casillas sin marcar, es lo que permite que alguien las revise más adelante con información y no desde cero.
+
+El tercero tiene que ver con \textbf{medir en vez de suponer}. Ocurrió tres veces y en las tres el resultado fue distinto de lo esperado: la curvatura calculada por el método razonable daba el doble del radio real de un antebrazo; el arrastre del tatuaje «se sentía raro» mucho antes de que hubiera un número que lo explicara, y solo al medir los fotogramas apareció dónde se iba el tiempo; y la cobertura de pruebas, que parecía alta mientras la capa de consultas estaba sustituida por dobles, resultó ser de 67 \% cuando se midió sobre todo el código. En los tres casos la medición cambió el trabajo que venía después.
+
+El cuarto es sobre el \textbf{usuario experto}. Varias de las decisiones que mejor envejecieron no salieron del diseño sino de preguntarle: que el puntaje del cliente se califique por sesión y no como un número fijo, que el inventario llegue con un catálogo cargado en vez de vacío, que el calendario del mes vaya arriba en la pantalla de resumen porque es lo primero que se mira en la mañana. Ninguna era evidente desde el código.
+
+Queda también una deuda honesta. La más clara es técnica —la geometría del visor se verifica mirando y midiendo, no con aserciones—, pero la que más pesa es metodológica: el proyecto definió desde el principio cómo iba a validarse con el usuario, y esa validación no alcanzó a realizarse. No invalida lo construido, pero sí deja a medio camino la pregunta que el proyecto se hizo al empezar, que no era si la plataforma se podía construir, sino si le serviría a quien la iba a usar.
+
+\section{Trabajo futuro}
+
+\tituloparpegado{Medir el efecto en el estudio}
+Es lo primero, porque de ello dependen cuatro de los siete objetivos específicos. Supone aplicar el cuestionario SUS al tatuador experto y a otros tatuadores del mismo entorno, y repetir la encuesta de tiempos del Capítulo 3 tras un periodo de operación suficiente para que las cifras signifiquen algo. El instrumento ya está definido; lo que falta es la toma de datos.
+
+\vspace{\parskip}
+\tituloparpegado{Completar lo que quedó pendiente del backlog}
+La HU37 dejaría al administrador gestionar el catálogo de modelos anatómicos, que hoy se actualiza desplegando archivos. Es la única historia del backlog original sin implementar, y su costo —almacenamiento de modelos, validación de formatos, versionado del catálogo compartido— es lo que la dejó fuera.
+
+\vspace{\parskip}
+\tituloparpegado{Cerrar las deudas de verificación}
+Dos. La geometría del visor 3D necesita pruebas automatizadas propias: comprobar que la calca no se repite en la cara opuesta de un miembro o que el envolvente respeta la curvatura es verificable sin un ojo humano, con geometría de prueba y aserciones sobre el resultado. Y la cobertura de ramas, en 85,7 \%, es el indicador que queda más atrás; cerrarlo exige recorrer las bifurcaciones del canal de WhatsApp vinculado que hoy solo ocurren contra un socket real.
+
+\vspace{\parskip}
+\tituloparpegado{Accesibilidad}
+La revisión del Capítulo 5 dejó tres incumplimientos de corrección acotada: el contraste del texto secundario, que falla por ocho centésimas y se arregla en un solo valor del sistema de diseño; la región de contenido principal, que se resuelve en la plantilla común; y el tamaño de los objetivos táctiles del calendario. A ellos se suma medir sistemáticamente el contraste del tema claro, que esta evaluación no pudo cubrir.
+
+\vspace{\parskip}
+\tituloparpegado{Datos compartidos dentro de un estudio}
+Hoy un estudio agrupa cuentas, pero cada tatuador ve solo sus propios clientes, su agenda y su inventario; el dueño ve los montos, no el detalle. Fue una decisión deliberada, porque compartir los datos obliga a rehacer las reglas de propiedad que atraviesan todo el sistema. Si los estudios con varios tatuadores lo piden —una recepción que agenda para todos, por ejemplo—, ese es el cambio de fondo que viene, y conviene abordarlo como un rediseño y no como un parche.
+
+\vspace{\parskip}
+\tituloparpegado{Lo que el alcance dejó fuera}
+El proyecto declaró desde el inicio que no incluiría dibujo dentro de la plataforma, edición de bocetos con inteligencia artificial generativa ni realidad aumentada sobre la piel. Las tres siguen siendo extensiones naturales, y la tercera en particular es la continuación lógica del visor: lo que hoy se coloca sobre un modelo anatómico podría colocarse sobre el cuerpo real a través de la cámara. También quedó fuera que el propio artista suba modelos 3D, que es la otra cara de la HU37.
+
+\vspace{\parskip}
+\tituloparpegado{Infraestructura}
+La plataforma opera hoy sin costo mensual, con la contrapartida de que el servidor se suspende tras unos minutos sin uso y la primera petición demora en responder. Si el uso crece, el plan de pago del mismo proveedor resuelve exactamente ese punto sin tocar el código; y si lo que crece es el almacenamiento de imágenes, la capa de controladores intercambiables permite cambiar de servicio sin que el resto del sistema se entere. Son los dos lugares por donde el sistema escala primero, y los dos están preparados.
+
+%======================================================================
 %  GLOSARIO
 %======================================================================
 \chapter*{Glosario}
