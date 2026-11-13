@@ -2830,7 +2830,7 @@ Un resultado de 35 sobre 35 pide una advertencia para leerse bien: estos casos s
 
 \vspace{\parskip}
 \tituloparpegado{Pruebas unitarias y de integración}
-La batería completa reúne \textbf{715 pruebas en 39 archivos} —604 unitarias y 111 de integración— y se ejecuta entera en algo menos de un minuto. La Tabla \ref{tab:unitariasmodulo} las agrupa por módulo y la Figura \ref{fig:corridaunitaria} muestra la ejecución.
+La batería completa reúne \textbf{783 pruebas en 44 archivos} —672 unitarias y 111 de integración— y se ejecuta entera en algo menos de un minuto. La Tabla \ref{tab:unitariasmodulo} las agrupa por módulo y la Figura \ref{fig:corridaunitaria} muestra la ejecución.
 
 \begin{table}[H]
   \centering
@@ -2841,17 +2841,17 @@ La batería completa reúne \textbf{715 pruebas en 39 archivos} —604 unitarias
     \hline
     \textbf{Módulo} & \textbf{Unitarias} & \textbf{Integración} & \textbf{Total} \\
     \hline
-    Mensajes al cliente y avisos & 222 & 26 & 248 \\ \hline
-    Agenda, sesiones y pagos & 91 & 29 & 120 \\ \hline
-    Cotizaciones y reparto de tinta & 90 & 13 & 103 \\ \hline
+    Mensajes al cliente y avisos & 240 & 26 & 266 \\ \hline
+    Agenda, sesiones y pagos & 108 & 29 & 137 \\ \hline
+    Cotizaciones y reparto de tinta & 96 & 13 & 109 \\ \hline
     Autenticación y control de acceso & 66 & 13 & 79 \\ \hline
-    Inventario & 35 & 11 & 46 \\ \hline
-    Administración y estudios & 33 & 8 & 41 \\ \hline
+    Inventario & 40 & 11 & 51 \\ \hline
+    Administración y estudios & 40 & 8 & 48 \\ \hline
+    Bocetos & 31 & 6 & 37 \\ \hline
     Previsualización 3D & 30 & 5 & 35 \\ \hline
-    Bocetos & 16 & 6 & 22 \\ \hline
     Almacenamiento de archivos & 16 & --- & 16 \\ \hline
     Valores por defecto del esquema & 5 & --- & 5 \\ \hline
-    \textbf{Total} & \textbf{604} & \textbf{111} & \textbf{715} \\ \hline
+    \textbf{Total} & \textbf{672} & \textbf{111} & \textbf{783} \\ \hline
   \end{tabular}
 \end{table}
 
@@ -2862,13 +2862,13 @@ La otra es la de \textbf{almacenamiento de archivos}, que no existía en el cap�
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.82\textwidth]{fig-5-2-resultado-pruebas-unitarias}
-  \caption[Ejecución de la batería completa]{Ejecución de las dos baterías del backend: 39 archivos y 715 pruebas, todas aprobadas.}
+  \caption[Ejecución de la batería completa]{Ejecución de las dos baterías del backend: 44 archivos y 783 pruebas, todas aprobadas.}
   \label{fig:corridaunitaria}
 \end{figure}
 
 \vspace{\parskip}
 \tituloparpegado{Cobertura de código}
-La cobertura se midió sobre todo el código del servicio y se resume en la Tabla \ref{tab:cobertura}. El total es de 90,6 \% de las sentencias y 92,7 \% de las líneas, por debajo del 95 \% que el proyecto se fijó como objetivo. Quedan fuera de la medición los scripts de consola (\texttt{db:init}, \texttt{admin:create} y los demás de mantenimiento), que se ejecutan a mano y no forman parte de la aplicación en marcha; la exclusión está declarada en la configuración de las pruebas.
+La cobertura se midió sobre todo el código del servicio y se resume en la Tabla \ref{tab:cobertura}. El total es de \textbf{95,5 \% de las sentencias y 97,2 \% de las líneas}, con lo que se alcanza el 95 \% que el proyecto se fijó como objetivo. La cobertura de ramas, más exigente porque cuenta cada bifurcación por separado, queda en 85,7 \%. Quedan fuera de la medición los scripts de consola (\texttt{db:init}, \texttt{admin:create} y los demás de mantenimiento), que se ejecutan a mano y no forman parte de la aplicación en marcha; la exclusión está declarada en la configuración de las pruebas.
 
 \begin{table}[H]
   \centering
@@ -2883,19 +2883,21 @@ La cobertura se midió sobre todo el código del servicio y se resume en la Tabl
     Datos de catálogo & 100 \% & 100 \% & 100 \% \\ \hline
     Almacenamiento de archivos & 97,0 \% & 77,1 \% & 100 \% \\ \hline
     Modelos (consultas SQL) & 96,7 \% & 90,7 \% & 97,2 \% \\ \hline
+    Servicios & 96,0 \% & 84,4 \% & 92,7 \% \\ \hline
     Utilidades & 96,0 \% & 87,1 \% & 100 \% \\ \hline
+    Controladores & 95,9 \% & 85,1 \% & 98,3 \% \\ \hline
     Configuración & 95,2 \% & 100 \% & 66,7 \% \\ \hline
     Middleware & 95,2 \% & 95,0 \% & 100 \% \\ \hline
-    Servicios & 89,7 \% & 79,1 \% & 90,0 \% \\ \hline
     Servicios de WhatsApp vinculado & 89,6 \% & 79,2 \% & 62,3 \% \\ \hline
-    Controladores & 85,4 \% & 77,4 \% & 93,2 \% \\ \hline
-    \textbf{Total} & \textbf{90,6 \%} & \textbf{81,5 \%} & \textbf{89,5 \%} \\ \hline
+    \textbf{Total} & \textbf{95,5 \%} & \textbf{85,7 \%} & \textbf{91,3 \%} \\ \hline
   \end{tabular}
 \end{table}
 
-El reparto por capa muestra dónde está lo que falta. Las rutas y los datos de catálogo están completos; el almacenamiento, los modelos, las utilidades, la configuración y el middleware pasan del 95 \%; los servicios rondan el 90 \%. Los \textbf{controladores}, con 85,4 \%, son los que concentran el resto: lo que queda sin ejecutar en ellos son casi siempre las ramas de error, los \texttt{catch} que responden 500 cuando la base o el almacenamiento fallan, que para recorrerlas exigen simular una falla distinta en cada ruta. A ellas se suman el programador de recordatorios, que es un temporizador y no se deja arrancar dentro de una prueba, y las partes del WhatsApp vinculado que solo ocurren contra un socket real.
+El reparto por capa deja todas las capas propias de la aplicación sobre el 95 \%. La que queda abajo es la del \textbf{WhatsApp vinculado}, con 89,6 \%: lo que no se ejecuta ahí son los caminos que solo ocurren contra un socket de WhatsApp real —reconexiones, códigos de desconexión del proveedor—, y simularlos con un doble no probaría gran cosa. A ellos se suman el lector de imágenes, cuyas ramas dependen de formatos que \texttt{sharp} interpreta por dentro, y el arranque del servidor.
 
-Vale contrastarlo con el punto de partida. Antes de escribir las pruebas de integración la cobertura era de 67,2 \% de las sentencias, con la capa de modelos en 22 \%: las consultas SQL se sustituían por dobles y por lo tanto nunca llegaban a ejecutarse. Hoy esa capa está en 96,7 \%, y el total subió a 90,6 \%.
+Vale contrastarlo con el punto de partida. La primera medición de esta evaluación dio 67,2 \% de las sentencias, con la capa de modelos en 22 \%: las consultas SQL se sustituían por dobles y nunca llegaban a ejecutarse. Escribir la batería de integración la llevó a 96,7 \% y el total a 90,6 \%; cubrir después los caminos de error de los controladores, el programador de recordatorios y el envío de correo por SMTP completó el 95,5 \% actual.
+
+La cobertura de \textbf{ramas} es la que sigue más baja, en 85,7 \%, y conviene no disimularlo: mide cada bifurcación por separado, de modo que una condición con tres causas posibles exige tres pruebas aunque la línea ya se haya ejecutado. El objetivo del proyecto se fijó sobre la cobertura de código sin distinguir la métrica, y es la de sentencias y líneas la que se informa habitualmente.
 
 \vspace{\parskip}
 \tituloparpegado{Verificación estática}
@@ -2929,9 +2931,9 @@ Puestos los resultados junto a los objetivos específicos del Capítulo 1, el ba
 
 El objetivo de \textbf{implementar la gestión de bocetos en la nube} está cumplido y verificado: cinco casos funcionales recorren la subida con medición de tinta, el filtrado de la galería, la edición y el rechazo del acceso ajeno, y el módulo tiene además sus pruebas unitarias.
 
-El objetivo de \textbf{evaluar la calidad mediante pruebas unitarias, de caja negra y de caja blanca con cobertura de al menos 95 \%} se cumple en sus dos primeras partes y queda cerca en la tercera. Hay 715 pruebas unitarias y de integración, y 35 casos de caja negra ejecutados sobre el sistema en funcionamiento, todos conformes. La cobertura llega al 90,6 \% de las sentencias y al 92,7 \% de las líneas, de modo que faltan algo menos de cinco puntos para la meta.
+El objetivo de \textbf{evaluar la calidad mediante pruebas unitarias, de caja negra y de caja blanca con cobertura de al menos 95 \%} está cumplido. Hay 783 pruebas unitarias y de integración, y 35 casos de caja negra ejecutados sobre el sistema en funcionamiento, todos conformes; la cobertura llega al 95,5 \% de las sentencias y al 97,2 \% de las líneas.
 
-Conviene decir con precisión qué son esos puntos, porque no es código sin probar sino caminos de falla sin simular: la mayor parte de lo que queda son las ramas \texttt{catch} de los controladores, que responden con un error 500 cuando la base de datos o el almacenamiento dejan de responder. Cubrirlas exige un caso por ruta que haga fallar a propósito la capa de abajo; se hizo en las rutas donde ese camino tiene consecuencias visibles —el descuento de stock que falla sin perder la sesión completada, por ejemplo— y no en el resto. El objetivo, en rigor, no está cumplido, y esa es la conclusión que corresponde anotar.
+Corresponde precisar dos cosas. La primera es que la cobertura de ramas queda en 85,7 \%, por debajo de esa cifra: el objetivo no nombraba una métrica y se informa la de sentencias y líneas, que es la habitual, pero el dato completo está en la Tabla \ref{tab:cobertura}. La segunda es que llegar aquí no fue escribir más aserciones sobre lo mismo. La medición inicial, 67,2 \%, dejaba fuera toda la capa de consultas SQL, que las pruebas sustituían por dobles; cerrarla exigió montar una segunda batería contra una base de datos real, y esa batería es la que hoy comprueba que dos peticiones simultáneas no agendan la misma hora o que una cotización no se descuenta dos veces. Lo que la cobertura no mide, y conviene recordar, es si las pruebas comprueban lo correcto: eso lo sostienen los 35 casos funcionales y las decisiones de diseño que cada iteración documenta.
 
 Los objetivos de \textbf{reducción de tiempos y de ausentismo} —50 \% en inasistencia, 40 \% en cotización, 30 \% en previsualización— no pueden darse por cumplidos ni por incumplidos con la evidencia disponible, porque son medidas sobre el trabajo de una persona y exigen la encuesta de contraste. Lo que sí está verificado es que los mecanismos que deberían producir esas reducciones funcionan: el recordatorio sale solo 24 horas antes de la cita y no se repite aunque el programador corra dos veces, el cambio de hora genera el aviso al cliente, la cotización calcula el costo de insumos a partir del boceto medido y descuenta el inventario al cerrar la sesión, y la escena 3D guarda la posición y el tamaño del diseño sobre el modelo. Que esos mecanismos funcionen es condición necesaria de las reducciones esperadas, pero no es la medición de las reducciones.
 
@@ -2977,7 +2979,7 @@ La plataforma se opera hoy sin costo mensual, como detalla el análisis de facti
 
 \vspace{\parskip}
 \tituloparpegado{Sostenibilidad técnica}
-Lo que permite que el sistema siga vivo después de esta memoria es, sobre todo, que tiene 715 pruebas que se ejecutan en menos de un minuto: quien venga después puede cambiar algo y saber en el acto si rompió otra cosa. A eso se suman decisiones tomadas para no quedar atados a un proveedor —el almacenamiento de archivos pasa por una capa con controladores intercambiables, el envío de mensajes al cliente tiene tres vías posibles— y una sola base de código para todos los dispositivos, que es lo que hace sostenible el mantenimiento para una persona sola. La deuda conocida que queda es la geometría del visor 3D, que se verifica mirando y midiendo en el navegador y no con aserciones.
+Lo que permite que el sistema siga vivo después de esta memoria es, sobre todo, que tiene 783 pruebas que se ejecutan en menos de un minuto: quien venga después puede cambiar algo y saber en el acto si rompió otra cosa. A eso se suman decisiones tomadas para no quedar atados a un proveedor —el almacenamiento de archivos pasa por una capa con controladores intercambiables, el envío de mensajes al cliente tiene tres vías posibles— y una sola base de código para todos los dispositivos, que es lo que hace sostenible el mantenimiento para una persona sola. La deuda conocida que queda es la geometría del visor 3D, que se verifica mirando y midiendo en el navegador y no con aserciones.
 
 \vspace{\parskip}
 \tituloparpegado{Sostenibilidad ambiental}
@@ -2991,7 +2993,7 @@ La plataforma guarda los datos de cada artista separados de los del resto, inclu
 
 \section{Resumen del capítulo}
 
-En este capítulo se evaluó la plataforma en tres planos. Las pruebas funcionales de caja negra, 35 casos ejecutados sobre el sistema en funcionamiento, resultaron todas conformes, incluidos los once casos que esperan un rechazo y los cuatro que comprueban que un artista no alcanza los datos de otro. Las pruebas unitarias y de integración suman 715 en 39 archivos, todas aprobadas, con una cobertura de 90,6 \% de las sentencias y 92,7 \% de las líneas: por debajo del 95 \% comprometido, con lo que falta identificado —las ramas de error de los controladores— y la capa de consultas SQL, que antes no se ejecutaba, hoy cubierta al 96,7 \% por una batería que corre contra una base de datos real. La verificación estática del frontend está limpia.
+En este capítulo se evaluó la plataforma en tres planos. Las pruebas funcionales de caja negra, 35 casos ejecutados sobre el sistema en funcionamiento, resultaron todas conformes, incluidos los once casos que esperan un rechazo y los cuatro que comprueban que un artista no alcanza los datos de otro. Las pruebas unitarias y de integración suman 783 en 44 archivos, todas aprobadas, con una cobertura de 95,5 \% de las sentencias y 97,2 \% de las líneas, que cumple el 95 \% comprometido; la de ramas queda en 85,7 \%. La capa de consultas SQL, que las pruebas antes sustituían por dobles y nunca llegaban a ejecutar, hoy está cubierta al 96,7 \% por una batería que corre contra una base de datos real. La verificación estática del frontend está limpia.
 
 La evaluación de usabilidad con el cuestionario SUS y la encuesta de contraste de tiempos quedaron pendientes: su instrumento y su procedimiento están definidos en este capítulo, pero no se han aplicado, y por lo tanto los objetivos de reducción de tiempos y de validación con el usuario no pueden darse por cumplidos. El análisis de accesibilidad encontró resueltos los criterios estructurales y tres incumplimientos de ajuste —contraste, región principal y tamaño de los objetivos—, todos de corrección acotada. El análisis de sostenibilidad mostró un sistema que opera sin costo mensual, que descarga lo pesado solo cuando se usa y que deja dos deudas técnicas declaradas.
 

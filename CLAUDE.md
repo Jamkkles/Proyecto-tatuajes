@@ -57,8 +57,8 @@ La configuración vive en `backend/jest.config.js` (no en `package.json`) y defi
   entre sí.
 
 Cobertura: `npx jest --runInBand --coverage` (deja fuera `src/db`, que son
-scripts de consola). Al escribir estas líneas: 90,6 % de sentencias y 92,7 % de
-líneas, con 715 pruebas en 39 archivos.
+scripts de consola). Al escribir estas líneas: 95,5 % de sentencias y 97,2 % de
+líneas (85,7 % de ramas), con 783 pruebas en 44 archivos.
 
 Se corren **dentro del contenedor**: en el host `jest` se cuelga cuando el
 proyecto está en una carpeta sincronizada con iCloud. Lo mismo pasa con `tsc` y
