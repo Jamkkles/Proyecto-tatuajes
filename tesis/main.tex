@@ -2682,6 +2682,311 @@ Siendo la iteración de cierre, conviene mirar el backlog completo. De las 38 hi
 
 El aprendizaje de cierre es que la estimación inicial acertó en el total pero no en el reparto. Las historias que resultaron caras —la previsualización 3D, el reparto de tinta por color, los recordatorios por WhatsApp— lo fueron por motivos que no se ven al escribir la historia: geometría, costos de un servicio externo, formas de trabajo del oficio. Las que resultaron baratas lo fueron porque se apoyaron en decisiones tomadas en iteraciones anteriores, sobre todo en las reglas de propiedad de los datos que se fijaron temprano y no hubo que tocar nunca más.
 %======================================================================
+%  05-PRUEBAS Y ANÁLISIS DE RESULTADOS
+%======================================================================
+\chapter{Pruebas y análisis de resultados}
+
+Este capítulo reúne la evaluación de la plataforma construida. Se aplica lo definido en el Capítulo 3: pruebas de caja negra sobre el sistema en funcionamiento, pruebas de caja blanca sobre el código y la prueba de usabilidad SUS con el usuario final. Los resultados se contrastan después con los objetivos específicos del Capítulo 1 y con los resultados esperados del Capítulo 3.
+
+Conviene decir desde el principio qué parte de esta evaluación está hecha y cuál no. Las pruebas de software se ejecutaron, y lo que aquí se reporta es su salida real. La prueba de usabilidad y la encuesta de contraste, en cambio, dependen de las respuestas del tatuador experto y de un periodo de operación del estudio con la plataforma en uso; a la fecha de esta entrega no se han tomado. Por eso este capítulo describe su instrumento y su procedimiento, y deja declarado lo que falta en lugar de presentar cifras que no se midieron.
+
+\section{Pruebas}
+
+La evaluación del software se organizó en tres planos que se complementan. Las \textbf{pruebas funcionales} comprueban el sistema desde fuera, por el mismo camino que usa la aplicación, sin mirar cómo está escrito por dentro. Las \textbf{pruebas unitarias} verifican la lógica interna de cada módulo y son las que permiten medir cobertura. La \textbf{verificación estática} revisa el código sin ejecutarlo. A ellos se suma la \textbf{prueba de usabilidad}, que es la única que no puede automatizarse porque su resultado es el juicio de una persona.
+
+\subsection{Pruebas funcionales}
+
+Las pruebas funcionales se diseñaron como pruebas de caja negra, según lo descrito en el Capítulo 3: se define una entrada, se declara la salida esperada y se compara con lo que el sistema devuelve, sin conocimiento de su implementación. Cada caso entra por la interfaz de programación del backend, que es exactamente la puerta que usa la aplicación web, de modo que lo que se prueba es el recorrido completo: validación de la petición, control de acceso, reglas de negocio, escritura en la base de datos y respuesta.
+
+Los casos se derivaron de las historias de usuario. De cada módulo se tomó el flujo principal y, junto a él, los rechazos que el sistema debe producir: once de los treinta y cinco casos esperan que la petición sea rechazada, y el caso se considera conforme solo si el rechazo ocurre con el código y el mensaje correctos. Esto es deliberado, porque buena parte de las reglas del sistema son negativas —una hora ocupada no se vuelve a agendar, una cotización no se descuenta dos veces, un artista no ve los datos de otro— y una prueba que solo recorriera el camino feliz no las tocaría.
+
+Para las reglas de propiedad de los datos la corrida crea \textbf{dos cuentas distintas}: la segunda intenta leer, editar y referenciar lo que creó la primera. Son los casos CP-10, CP-12 y CP-33, a los que se suma CP-35, donde una cuenta desactivada por el administrador pierde el acceso en su siguiente petición.
+
+El entorno de ejecución es el mismo que describe el Capítulo 4: el backend sobre Node.js, la base de datos PostgreSQL y el almacenamiento de archivos, los tres levantados en contenedores. Las imágenes que se suben en los casos de boceto y de foto de sesión son archivos reales, de modo que también se ejercita la medición de tinta y el guardado en disco. El registro de cada caso —entrada, salida esperada, salida obtenida y veredicto— queda en un archivo de resultados que es el que alimenta las tablas de la sección siguiente.
+
+\vspace{\parskip}
+\tituloparpegado{Pruebas unitarias y de integración}
+Las pruebas de caja blanca son las que el Capítulo 4 va presentando iteración por iteración. Están escritas con Jest y Supertest: las primeras ejercitan funciones puras —el motor de cotización, el emparejamiento de color, la normalización de teléfonos, el cifrado de la sesión de WhatsApp— y las segundas levantan la aplicación Express en memoria y le hacen peticiones, con la base de datos sustituida por dobles de prueba. Esa sustitución es importante para leer la cobertura, y se retoma al analizarla.
+
+\vspace{\parskip}
+\tituloparpegado{Verificación estática}
+Antes de cada entrega se revisa el código sin ejecutarlo, con dos herramientas que el proyecto ya usa: el compilador de TypeScript, que comprueba los tipos de todo el frontend, y ESLint, que aplica las reglas de estilo y detecta construcciones sospechosas. No sustituyen a las pruebas, pero atrapan temprano una familia de errores que de otro modo llegaría a la ejecución.
+
+\subsection{Pruebas de usabilidad (SUS)}
+
+La prueba de usabilidad aplica el cuestionario SUS descrito en el Capítulo 3: diez afirmaciones que se responden en una escala de 1 a 5, cinco redactadas en positivo y cinco en negativo, cuyo puntaje final se obtiene con el cálculo allí detallado y se sitúa entre 0 y 100. El proyecto se fijó como meta un puntaje de al menos 85 puntos.
+
+El procedimiento previsto es el siguiente. Antes de responder, el participante recorre la plataforma por su cuenta ejecutando una secuencia de tareas que atraviesa los cinco módulos: subir un boceto a la galería, colocarlo sobre un modelo anatómico y guardar la escena, agendar una cita para un cliente nuevo, cotizar el costo de insumos de ese trabajo y revisar el inventario después del descuento. Las tareas se entregan por escrito y sin acompañamiento, porque una de las afirmaciones del cuestionario pregunta justamente si haría falta ayuda técnica para usar la plataforma. Recién terminada esa sesión se responde el cuestionario.
+
+El participante principal es el tatuador experto que planteó los requisitos, cuyo juicio es el que más pesa porque conoce el trabajo que la plataforma pretende ordenar. Un único respondiente, sin embargo, no permite hablar de un puntaje representativo, de manera que el instrumento está pensado para aplicarse también a otros tatuadores del mismo entorno.
+
+\textbf{Esta prueba todavía no se ha aplicado.} Lo que falta no es el instrumento ni el procedimiento, que están definidos, sino la sesión con los participantes.
+
+\section{Resultados}
+
+\subsection{Resultados de pruebas funcionales}
+
+Se ejecutaron los 35 casos y los 35 resultaron conformes. Las Tablas \ref{tab:casosauth} a \ref{tab:casosadmin} presentan el detalle agrupado por módulo, con la salida real de la corrida en la última columna; la Figura \ref{fig:corridafuncional} muestra la ejecución completa.
+
+\begin{table}[H]
+  \centering
+  \caption{Casos de prueba funcional: autenticación y bocetos}
+  \label{tab:casosauth}
+  \renewcommand{\arraystretch}{1.2}
+  \footnotesize
+  \begin{tabular}{|c|p{5.9cm}|p{5.3cm}|}
+    \hline
+    \textbf{ID} & \textbf{Caso de prueba y resultado esperado} & \textbf{Resultado obtenido} \\
+    \hline
+    CP-01 & Registrar una cuenta nueva (HU01). 201 con token y datos del usuario & 201, token emitido para cp-mwegg7pc-a@pruebas.local \\ \hline
+    CP-02 & Registrar con un correo ya usado (HU01). 409 y ninguna cuenta nueva & 409 Ya existe una cuenta con ese correo. \\ \hline
+    CP-03 & Iniciar sesión con credenciales válidas (HU02). 200 con token y rol del usuario & 200, rol tatuador \\ \hline
+    CP-04 & Iniciar sesión con contraseña incorrecta (HU02). 401 sin token & 401 sin token \\ \hline
+    CP-05 & Entrar a un recurso privado sin sesión (HU02). 401 y ningún dato & 401 sin datos \\ \hline
+    CP-06 & Subir un boceto con su imagen (HU04). 201, el boceto queda con enlace y cobertura de tinta medida & 201, cobertura 0.7 \% \\ \hline
+    CP-07 & Subir un boceto sin título (HU04). 400 y el boceto no se guarda & 400 El título es obligatorio. \\ \hline
+    CP-08 & Filtrar la galería por etiqueta (HU06). Solo los bocetos que la tienen & 200, 1 boceto(s) \\ \hline
+    CP-09 & Editar los datos de un boceto (HU05). 200 con los datos actualizados & 200, título «Boceto editado» \\ \hline
+    CP-10 & Editar el boceto de otro artista (HU06). 404, sin revelar que existe & 404, sin cambios \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Casos de prueba funcional: previsualización, inventario y cotizaciones}
+  \label{tab:casosinv}
+  \renewcommand{\arraystretch}{1.2}
+  \footnotesize
+  \begin{tabular}{|c|p{5.9cm}|p{5.3cm}|}
+    \hline
+    \textbf{ID} & \textbf{Caso de prueba y resultado esperado} & \textbf{Resultado obtenido} \\
+    \hline
+    CP-11 & Guardar una escena 3D con el boceto colocado (HU09). 201 y la escena conserva la calca & 201, 1 calca(s) \\ \hline
+    CP-12 & Guardar una escena con el boceto de otro artista (HU09). 400, la referencia ajena se rechaza & 400 Alguno de los bocetos no existe o no es tuyo. \\ \hline
+    CP-13 & Entrar por primera vez al inventario (HU11). Se cargan los 42 insumos del kit inicial & 200, 42 insumos \\ \hline
+    CP-14 & Registrar un insumo nuevo (HU11). 201 con el insumo creado & 201, insumo creado \\ \hline
+    CP-15 & Descontar más stock del que hay (HU12). El stock queda en 0, nunca negativo & 200, stock 0 \\ \hline
+    CP-16 & Listar los insumos en nivel crítico (HU13). Aparece el insumo cuyo stock llegó a 0 & 200, 1 en nivel crítico \\ \hline
+    CP-17 & Estimar el costo de un tatuaje (HU14). Costo mayor que cero, con tiempo y sesiones calculados & 200, \$7340, 30 min, 1 sesión(es) \\ \hline
+    CP-18 & Guardar la cotización (HU15). 201 con el detalle por insumo & 201, 22 líneas de insumo \\ \hline
+    CP-19 & Descontar del inventario lo cotizado (HU16). El stock de los insumos baja según el detalle & 200, «Cartuchos magnum 09 (M1)» de 20 a 19 \\ \hline
+    CP-20 & Descontar dos veces la misma cotización (HU16). 409, el inventario no se descuenta de nuevo & 409 Esta cotización ya descontó el stock. \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Casos de prueba funcional: agenda y pagos}
+  \label{tab:casosagenda}
+  \renewcommand{\arraystretch}{1.2}
+  \footnotesize
+  \begin{tabular}{|c|p{5.9cm}|p{5.3cm}|}
+    \hline
+    \textbf{ID} & \textbf{Caso de prueba y resultado esperado} & \textbf{Resultado obtenido} \\
+    \hline
+    CP-21 & Crear una ficha de cliente (HU20). 201 con el cliente creado & 201, cliente creado \\ \hline
+    CP-22 & Crear un proyecto del cliente (HU19). 201 con el proyecto enlazado al cliente & 201, proyecto creado \\ \hline
+    CP-23 & Agendar una cita (HU17). 201 con la cita agendada & 201, cita agendada \\ \hline
+    CP-24 & Agendar una cita que se solapa con otra (HU17). 409 nombrando con quién y a qué hora choca & 409 Ese horario se cruza con la cita de Cliente de prueba del viernes 20 de noviembre, de 10:00 a 12:00. Elige otra hora. \\ \hline
+    CP-25 & Agendar una cita contigua a otra (HU17). 201, las citas seguidas no se consideran choque & 201, cita agendada \\ \hline
+    CP-26 & Cancelar una cita libera su horario (HU21). 201, la hora vuelve a estar disponible & 201, hora reutilizada \\ \hline
+    CP-27 & Calificar una sesión con un valor fuera de rango (HU30). 400 y la calificación no se guarda & 400 El puntaje debe ser un número entero entre 1 y 5. \\ \hline
+    CP-28 & Calificar una sesión completada (HU30). El cliente queda con promedio 4,0 sobre una sesión calificada & promedio 4 sobre 1 sesión(es) \\ \hline
+    CP-29 & Marcar una sesión como pagada (HU24). Queda sellada la fecha de pago y el monto entra en lo cobrado del mes & fecha de pago sellada, cobrado \$90000 \\ \hline
+    CP-30 & Subir una foto del avance (HU18). 201 y la foto queda asociada a la sesión & 201, foto guardada \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Casos de prueba funcional: avisos y administración}
+  \label{tab:casosadmin}
+  \renewcommand{\arraystretch}{1.2}
+  \footnotesize
+  \begin{tabular}{|c|p{5.9cm}|p{5.3cm}|}
+    \hline
+    \textbf{ID} & \textbf{Caso de prueba y resultado esperado} & \textbf{Resultado obtenido} \\
+    \hline
+    CP-31 & Cambiar la hora de una cita futura (HU23). La respuesta trae el aviso de reagendamiento para el cliente & 200, aviso «reagendamiento» \\ \hline
+    CP-32 & Editar el texto de los mensajes al cliente (HU28). Los textos quedan guardados y se leen igual & 200, nota guardada \\ \hline
+    CP-33 & Entrar a la administración sin ser administrador (HU31). 403, la ruta es solo del administrador & 403 \\ \hline
+    CP-34 & Registrar un estudio con su primer tatuador (HU31). 201 con el estudio, la cuenta y una contraseña temporal & 201, estudio y cuenta creados con contraseña temporal \\ \hline
+    CP-35 & Desactivar una cuenta (HU34). Su siguiente petición es rechazada con 401 y el motivo & 401 con código «user\_inactive» \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.86\textwidth]{fig-5-1-resultado-pruebas-funcionales}
+  \caption[Corrida de las pruebas funcionales]{Ejecución de los 35 casos de prueba funcional contra el sistema en funcionamiento.}
+  \label{fig:corridafuncional}
+\end{figure}
+
+Un resultado de 35 sobre 35 pide una advertencia para leerse bien: estos casos se escribieron sobre un sistema ya terminado y estabilizado, de modo que lo que miden es que las reglas comprometidas siguen cumpliéndose, no la cantidad de defectos que el proyecto tuvo. Los defectos reales aparecieron durante el desarrollo y están documentados en las retrospectivas del Capítulo 4, con el cambio que cada uno obligó a hacer.
+
+\vspace{\parskip}
+\tituloparpegado{Pruebas unitarias}
+La batería completa reúne \textbf{517 pruebas en 29 archivos} y se ejecuta en algo más de veinte segundos. La Tabla \ref{tab:unitariasmodulo} las agrupa por módulo y la Figura \ref{fig:corridaunitaria} muestra la ejecución.
+
+\begin{table}[H]
+  \centering
+  \caption{Pruebas unitarias por módulo}
+  \label{tab:unitariasmodulo}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|p{7.2cm}|c|c|}
+    \hline
+    \textbf{Módulo} & \textbf{Archivos} & \textbf{Pruebas} \\
+    \hline
+    Mensajes al cliente y avisos & 14 & 222 \\ \hline
+    Cotizaciones y reparto de tinta & 3 & 90 \\ \hline
+    Agenda, sesiones y pagos & 2 & 64 \\ \hline
+    Autenticación y control de acceso & 3 & 52 \\ \hline
+    Inventario & 3 & 35 \\ \hline
+    Administración y estudios & 2 & 33 \\ \hline
+    Bocetos & 1 & 16 \\ \hline
+    Valores por defecto del esquema & 1 & 5 \\ \hline
+    Previsualización 3D & 0 & 0 \\ \hline
+    \textbf{Total} & \textbf{29} & \textbf{517} \\ \hline
+  \end{tabular}
+\end{table}
+
+La fila en cero no es un olvido. La previsualización 3D no tiene pruebas automatizadas propias, y la Iteración 8 explica por qué: lo que habría que verificar es geométrico y visual —que la calca se adapte a la curvatura, que no se repita en la cara opuesta del miembro, que el arrastre se sienta fluido—, y eso se comprobó midiendo el rendimiento en el navegador (Tabla \ref{tab:rendimiento8}) y mirando el resultado, no con aserciones. Es la deuda técnica más clara que deja el proyecto, y vuelve a aparecer en el análisis de esta evaluación.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.82\textwidth]{fig-5-2-resultado-pruebas-unitarias}
+  \caption[Ejecución de la batería completa]{Ejecución de los 29 archivos de prueba del backend: 517 pruebas, todas aprobadas.}
+  \label{fig:corridaunitaria}
+\end{figure}
+
+\vspace{\parskip}
+\tituloparpegado{Cobertura de código}
+La cobertura se midió sobre todo el código del backend y se resume en la Tabla \ref{tab:cobertura}. El total es de 67,21 \% de las sentencias, bastante por debajo del 95 \% que el proyecto se fijó como objetivo.
+
+\begin{table}[H]
+  \centering
+  \caption{Cobertura de código por capa}
+  \label{tab:cobertura}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|p{6.2cm}|c|c|c|}
+    \hline
+    \textbf{Capa} & \textbf{Sentencias} & \textbf{Ramas} & \textbf{Funciones} \\
+    \hline
+    Rutas & 100 \% & 100 \% & 100 \% \\ \hline
+    Datos de catálogo & 100 \% & 100 \% & 100 \% \\ \hline
+    Utilidades & 96,0 \% & 87,1 \% & 100 \% \\ \hline
+    Configuración & 95,2 \% & 100 \% & 66,7 \% \\ \hline
+    Middleware & 95,2 \% & 95,0 \% & 100 \% \\ \hline
+    Servicios & 89,7 \% & 79,1 \% & 90,0 \% \\ \hline
+    Servicios de WhatsApp vinculado & 89,6 \% & 79,2 \% & 62,3 \% \\ \hline
+    Controladores & 70,2 \% & 59,9 \% & 78,8 \% \\ \hline
+    Almacenamiento de archivos & 28,4 \% & 14,3 \% & 26,7 \% \\ \hline
+    Modelos (consultas SQL) & 22,0 \% & 13,0 \% & 6,3 \% \\ \hline
+    Scripts de base de datos & 0 \% & 0 \% & 0 \% \\ \hline
+    \textbf{Total} & \textbf{67,2 \%} & \textbf{58,1 \%} & \textbf{56,8 \%} \\ \hline
+  \end{tabular}
+\end{table}
+
+El reparto por capa explica el número mejor que el total. Las capas que las pruebas sí ejercitan están altas: las rutas al 100 \%, el middleware y las utilidades sobre el 95 \%, los servicios cerca del 90 \%. Las tres que hunden el promedio son las que las pruebas no ejecutan por diseño: los \textbf{modelos}, que son consultas SQL sustituidas por dobles para que la batería corra sin base de datos; el \textbf{almacenamiento de archivos}, cuyo controlador de nube no se puede ejercitar sin credenciales; y los \textbf{scripts de base de datos}, que son utilidades de línea de comandos que se ejecutan a mano. Midiendo solo el código que las pruebas alcanzan, es decir, dejando fuera modelos y scripts, la cobertura sube a \textbf{80,5 \% de las sentencias y 83,1 \% de las líneas}. Sigue sin llegar al 95 \% comprometido.
+
+\vspace{\parskip}
+\tituloparpegado{Verificación estática}
+El compilador de TypeScript recorre el frontend completo sin reportar un solo error de tipos, y ESLint no levanta advertencias sobre el código del proyecto. Las dos revisiones están limpias.
+
+\subsection{Resultados de usabilidad (SUS)}
+
+La prueba SUS no se ha aplicado todavía, de modo que no hay un puntaje que informar. Cuando se aplique, lo que corresponde reportar aquí es el puntaje de cada participante, el promedio del grupo y su clasificación según la escala de la Tabla \ref{tab:escalasus}, junto con el contraste contra la meta de 85 puntos que fijó el proyecto.
+
+\begin{table}[H]
+  \centering
+  \caption{Escala de interpretación del puntaje SUS}
+  \label{tab:escalasus}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|c|p{8.4cm}|}
+    \hline
+    \textbf{Puntaje} & \textbf{Interpretación} \\
+    \hline
+    0 a 49 & Inaceptable \\ \hline
+    50 a 68 & Mediocre \\ \hline
+    69 a 100 & Aceptable \\ \hline
+    85 & Meta declarada para este proyecto \\ \hline
+  \end{tabular}
+\end{table}
+
+Lo mismo ocurre con la encuesta de contraste del Capítulo 3, la que compara el estado inicial y el final de los tiempos del tatuador. Sus preguntas están definidas y el estado inicial corresponde a lo que el tatuador experto describió al plantear el problema, pero el estado final exige que el estudio opere con la plataforma durante un periodo suficiente para que las cifras signifiquen algo. Ese periodo no ha ocurrido.
+
+\section{Análisis de los resultados}
+
+Puestos los resultados junto a los objetivos específicos del Capítulo 1, el balance es el que sigue.
+
+El objetivo de \textbf{implementar la gestión de bocetos en la nube} está cumplido y verificado: cinco casos funcionales recorren la subida con medición de tinta, el filtrado de la galería, la edición y el rechazo del acceso ajeno, y el módulo tiene además sus pruebas unitarias.
+
+El objetivo de \textbf{evaluar la calidad mediante pruebas unitarias, de caja negra y de caja blanca con cobertura de al menos 95 \%} se cumple en sus dos primeras partes y no en la tercera. Hay 517 pruebas unitarias y de integración, y 35 casos de caja negra ejecutados sobre el sistema en funcionamiento, todos conformes. La cobertura, en cambio, llega al 67,2 \% sobre todo el backend y al 80,5 \% sobre las capas que las pruebas ejercitan. Vale la pena ser preciso sobre qué faltaría para cerrar esa brecha, porque no es escribir más aserciones sobre lo mismo: habría que levantar una base de datos de prueba y ejecutar las consultas SQL de verdad contra ella, que es la capa que hoy está sustituida por dobles. Es un trabajo acotado y conocido —contenedores de prueba y una base que se crea y se destruye en cada corrida—, pero no se hizo, y por lo tanto el objetivo no está cumplido. A esa deuda se suma la ausencia de pruebas automatizadas en la previsualización 3D.
+
+Los objetivos de \textbf{reducción de tiempos y de ausentismo} —50 \% en inasistencia, 40 \% en cotización, 30 \% en previsualización— no pueden darse por cumplidos ni por incumplidos con la evidencia disponible, porque son medidas sobre el trabajo de una persona y exigen la encuesta de contraste. Lo que sí está verificado es que los mecanismos que deberían producir esas reducciones funcionan: el recordatorio sale solo 24 horas antes de la cita y no se repite aunque el programador corra dos veces, el cambio de hora genera el aviso al cliente, la cotización calcula el costo de insumos a partir del boceto medido y descuenta el inventario al cerrar la sesión, y la escena 3D guarda la posición y el tamaño del diseño sobre el modelo. Que esos mecanismos funcionen es condición necesaria de las reducciones esperadas, pero no es la medición de las reducciones.
+
+El objetivo de \textbf{validación con el usuario} —aceptación sobre el 90 \% y SUS sobre 85 puntos— está pendiente por completo.
+
+Más allá del cumplimiento formal, hay un resultado que conviene destacar porque atraviesa todo el sistema. Cuatro de los casos funcionales comprueban que un artista no alcanza los datos de otro, por distintas vías: pidiendo un recurso ajeno, referenciándolo dentro de otro recurso, entrando a una ruta de administración sin el rol, y operando con una cuenta recién desactivada. Los cuatro se rechazan. Esa es la regla sobre la que descansa que la plataforma pueda alojar a varios estudios a la vez, y es también la decisión que el Capítulo 4 identifica como la más barata de todo el proyecto, precisamente porque se tomó temprano y no hubo que volver sobre ella.
+
+\section{Análisis de accesibilidad}
+
+La accesibilidad se evaluó tomando como referencia las pautas WCAG 2.1 en su nivel AA, a las que se suma el criterio de tamaño de objetivo que incorporó la versión 2.2. La revisión se hizo con un guion propio que recorre el árbol del documento de las vistas ya cargadas en el navegador y comprueba criterios verificables de forma automática —texto alternativo, nombre accesible de los controles, etiquetas de formulario, idioma declarado, relación de contraste y tamaño de los objetivos táctiles—, complementada con una revisión visual de las mismas pantallas. Se revisaron el resumen, la agenda y el inventario, que entre las tres reúnen los patrones de interfaz que el resto de las pantallas repite.
+
+\begin{table}[H]
+  \centering
+  \caption{Resultados de la revisión de accesibilidad}
+  \label{tab:accesibilidad}
+  \renewcommand{\arraystretch}{1.2}
+  \footnotesize
+  \begin{tabular}{|p{4.3cm}|p{7.4cm}|c|}
+    \hline
+    \textbf{Criterio} & \textbf{Resultado de la revisión} & \textbf{Estado} \\
+    \hline
+    Texto alternativo (1.1.1) & Todas las imágenes de las vistas revisadas declaran su alternativa textual & Cumple \\ \hline
+    Nombre accesible de los controles (4.1.2) & Ninguno de los 193 controles del inventario queda sin nombre; el código declara 67 etiquetas \texttt{aria-label} y 34 \texttt{aria-labelledby} & Cumple \\ \hline
+    Etiquetas de formulario (3.3.2) & Los 11 campos del inventario y los 6 de la agenda tienen etiqueta asociada & Cumple \\ \hline
+    Idioma de la página (3.1.1) & El documento declara español & Cumple \\ \hline
+    Contraste mínimo (1.4.3) & El color del texto secundario sobre las tarjetas da 4,42:1, bajo el 4,5:1 exigido; afecta a 144 textos de 12 px en una sola vista & No cumple \\ \hline
+    Estructura de encabezados (1.3.1) & El resumen salta del encabezado de primer nivel al de tercero & Parcial \\ \hline
+    Región principal y salto de bloques (2.4.1) & Las vistas declaran cabecera y navegación, pero no una región de contenido principal & No cumple \\ \hline
+    Tamaño del objetivo (2.5.8, WCAG 2.2) & Entre 42 y 46 controles por vista miden menos de 24 px en una de sus dimensiones, sobre todo las celdas del calendario y los enlaces en línea & No cumple \\ \hline
+  \end{tabular}
+\end{table}
+
+Lo que la revisión deja claro es que la base está bien puesta y lo que falla es de ajuste. Los puntos difíciles de corregir después —que cada control tenga nombre, que cada campo tenga etiqueta, que las imágenes tengan alternativa— están resueltos desde el código, y eso se debe a que la interfaz se escribió con etiquetas de accesibilidad desde el principio y no como un parche final.
+
+Los tres incumplimientos son, en cambio, baratos de cerrar. El contraste falla por ocho centésimas: basta aclarar un paso el color del texto secundario para pasar el umbral en todas las pantallas a la vez, porque es un único valor del sistema de diseño. La región principal se resuelve envolviendo el contenido de la plantilla común. El tamaño de los objetivos exige algo más de trabajo, porque implica agrandar las celdas del calendario del mes, que es donde se concentra el problema.
+
+Queda una limitación declarada: la medición de contraste del \textbf{tema claro} no pudo hacerse de forma sistemática con el guion, porque cada pantalla redefine sus propios colores para ese tema y el guion no siempre resuelve cuál es el fondo real de un texto. Se revisó visualmente sin encontrar texto ilegible, pero esa comprobación no tiene el mismo valor que una medición y queda como trabajo pendiente.
+
+\section{Análisis de sostenibilidad}
+
+\tituloparpegado{Sostenibilidad económica}
+La plataforma se opera hoy sin costo mensual, como detalla el análisis de factibilidad del Capítulo 4: cada pieza vive en el plan gratuito de un servicio distinto y no hay licencias que pagar. Para el estudio pequeño al que apunta el proyecto, esto es lo que la vuelve adoptable: no hay una suscripción que justificar antes de probar si sirve. El límite de ese modelo también está dicho: los planes gratuitos imponen cuotas y pueden cambiar sus condiciones, y por eso la arquitectura mantiene cada pieza reemplazable por separado.
+
+\vspace{\parskip}
+\tituloparpegado{Sostenibilidad técnica}
+Lo que permite que el sistema siga vivo después de esta memoria es, sobre todo, que tiene 517 pruebas que se ejecutan en veinte segundos: quien venga después puede cambiar algo y saber en el acto si rompió otra cosa. A eso se suman decisiones tomadas para no quedar atados a un proveedor —el almacenamiento de archivos pasa por una capa con controladores intercambiables, el envío de mensajes al cliente tiene tres vías posibles— y una sola base de código para todos los dispositivos, que es lo que hace sostenible el mantenimiento para una persona sola. Las deudas conocidas son dos: la capa de consultas SQL sin pruebas contra una base real y la previsualización 3D sin pruebas automatizadas.
+
+\vspace{\parskip}
+\tituloparpegado{Sostenibilidad ambiental}
+El consumo de un sistema web se juega en los bytes que viajan y en el cómputo que queda encendido. En lo primero, la aplicación se construye en piezas que se descargan solo cuando hacen falta: la primera carga son 244 kB de código, 79 kB una vez comprimido, más unos 100 kB de estilos, y cada pantalla agrega entre 7 y 20 kB al entrar en ella. Lo pesado del proyecto —el visor tridimensional, de 687 kB, y los modelos anatómicos, de entre 0,47 y 0,76 MB cada uno— no se descarga nunca si el tatuador no abre la previsualización, y aun entonces baja un solo modelo de los catorce. La aplicación guarda su armazón en el dispositivo, de modo que las visitas siguientes no vuelven a pedirlo.
+
+En lo segundo, el servidor gratuito se suspende tras unos minutos sin uso y no consume cómputo mientras nadie lo necesita; la contrapartida es la demora de la primera petición, que el Capítulo 4 ya discute. Hay además un ahorro material que el propio problema planteaba: el papel hectográfico del stencil es desechable y se pierde entero cuando la posición no convence, de manera que cada prueba de ubicación que se hace en pantalla en lugar de en papel es papel que no se bota. Este trabajo no midió cuánto se ahorra, y no corresponde afirmarlo sin medirlo.
+
+\vspace{\parskip}
+\tituloparpegado{Sostenibilidad social}
+La plataforma guarda los datos de cada artista separados de los del resto, incluso dentro de un mismo estudio, y el detalle de lo que cada tatuador cobra solo lo ve el dueño. No obliga a contratar un servicio de mensajería de pago para usar los recordatorios, ni a comprar equipamiento: basta un teléfono con navegador. Son decisiones que apuntan a que el costo de usar el sistema no recaiga en quien menos puede asumirlo, que es el tatuador independiente.
+
+\section{Resumen del capítulo}
+
+En este capítulo se evaluó la plataforma en tres planos. Las pruebas funcionales de caja negra, 35 casos ejecutados sobre el sistema en funcionamiento, resultaron todas conformes, incluidos los once casos que esperan un rechazo y los cuatro que comprueban que un artista no alcanza los datos de otro. Las pruebas unitarias y de integración suman 517 en 29 archivos, todas aprobadas, con una cobertura de 67,2 \% sobre todo el backend y de 80,5 \% sobre las capas que las pruebas ejercitan: por debajo del 95 \% comprometido, con la causa identificada y el camino para cerrarla descrito. La verificación estática del frontend está limpia.
+
+La evaluación de usabilidad con el cuestionario SUS y la encuesta de contraste de tiempos quedaron pendientes: su instrumento y su procedimiento están definidos en este capítulo, pero no se han aplicado, y por lo tanto los objetivos de reducción de tiempos y de validación con el usuario no pueden darse por cumplidos. El análisis de accesibilidad encontró resueltos los criterios estructurales y tres incumplimientos de ajuste —contraste, región principal y tamaño de los objetivos—, todos de corrección acotada. El análisis de sostenibilidad mostró un sistema que opera sin costo mensual, que descarga lo pesado solo cuando se usa y que deja dos deudas técnicas declaradas.
+
+En el siguiente capítulo se revisa el cumplimiento de los objetivos del proyecto, se reflexiona sobre el trabajo realizado y se propone el trabajo futuro.
+%======================================================================
 %  GLOSARIO
 %======================================================================
 \chapter*{Glosario}

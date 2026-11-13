@@ -139,3 +139,9 @@ fig-4-67-resultado-pruebas-metricas.png  (width=0.9\textwidth)  salida real
 Nota: la memoria reproduce un solo diagrama de secuencia por iteración. Los
 de los demás flujos se quitaron en noviembre de 2026 para no extender el
 documento; están en el historial de git si hicieran falta.
+
+Capítulo 5
+fig-5-1-resultado-pruebas-funcionales.png  (width=0.86)  — corrida de los 35 casos de
+    caja negra contra el sistema en ejecución (scratchpad/pruebas-funcionales.js).
+fig-5-2-resultado-pruebas-unitarias.png  (width=0.82)  — salida real de
+    `npx jest --runInBand`: 29 archivos y 517 pruebas aprobadas.
