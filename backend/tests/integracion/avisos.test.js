@@ -12,7 +12,7 @@ const messageLogModel = require('../../src/models/messageLogModel');
 const reminderModel = require('../../src/models/reminderModel');
 const pushModel = require('../../src/models/pushSubscriptionModel');
 const whatsappAuthModel = require('../../src/models/whatsappAuthModel');
-const { crearArtista, crearCliente, crearProyecto, crearSesion, enDias } = require('./datos');
+const { crearArtista, crearCliente, crearProyecto, crearSesion } = require('./datos');
 
 /** Una cita que ya cumple la condición de «creada hace más de una hora». */
 async function citaAntigua(artista, horasFaltantes) {

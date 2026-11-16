@@ -52,7 +52,7 @@ async function peticion(metodo, ruta, { token, json, form } = {}) {
   const res = await fetch(`${BASE}${ruta}`, { method: metodo, headers, body });
   const texto = await res.text(); // se consume el cuerpo: el tiempo incluye la transferencia
   const ms = performance.now() - inicio;
-  let cuerpo = null;
+  let cuerpo;
   try {
     cuerpo = texto ? JSON.parse(texto) : null;
   } catch {

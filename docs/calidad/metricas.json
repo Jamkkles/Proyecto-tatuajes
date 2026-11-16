@@ -1,0 +1,214 @@
+{
+  "fecha": "2026-11-16T20:45:48.551Z",
+  "pruebas": {
+    "archivos": 44,
+    "total": 783,
+    "aprobadas": 783,
+    "fallidas": 0,
+    "unitarias": 672,
+    "integracion": 111
+  },
+  "cobertura": {
+    "lines": {
+      "total": 2670,
+      "covered": 2596,
+      "skipped": 0,
+      "pct": 97.22
+    },
+    "statements": {
+      "total": 3000,
+      "covered": 2866,
+      "skipped": 0,
+      "pct": 95.53
+    },
+    "functions": {
+      "total": 504,
+      "covered": 460,
+      "skipped": 0,
+      "pct": 91.26
+    },
+    "branches": {
+      "total": 1726,
+      "covered": 1479,
+      "skipped": 0,
+      "pct": 85.68
+    },
+    "branchesTrue": {
+      "total": 0,
+      "covered": 0,
+      "skipped": 0,
+      "pct": 100
+    }
+  },
+  "coberturaPorCapa": [
+    {
+      "nombre": "Datos de catálogo",
+      "pct": 100,
+      "total": 12,
+      "cubierto": 12
+    },
+    {
+      "nombre": "Rutas",
+      "pct": 100,
+      "total": 160,
+      "cubierto": 160
+    },
+    {
+      "nombre": "Almacenamiento",
+      "pct": 97,
+      "total": 67,
+      "cubierto": 65
+    },
+    {
+      "nombre": "Modelos (SQL)",
+      "pct": 96.7,
+      "total": 568,
+      "cubierto": 549
+    },
+    {
+      "nombre": "Servicios",
+      "pct": 96,
+      "total": 556,
+      "cubierto": 534
+    },
+    {
+      "nombre": "Utilidades",
+      "pct": 96,
+      "total": 151,
+      "cubierto": 145
+    },
+    {
+      "nombre": "Controladores",
+      "pct": 95.9,
+      "total": 1079,
+      "cubierto": 1035
+    },
+    {
+      "nombre": "Configuración",
+      "pct": 95.2,
+      "total": 21,
+      "cubierto": 20
+    },
+    {
+      "nombre": "Middleware",
+      "pct": 95.2,
+      "total": 62,
+      "cubierto": 59
+    },
+    {
+      "nombre": "WhatsApp vinculado",
+      "pct": 89.6,
+      "total": 270,
+      "cubierto": 242
+    }
+  ],
+  "deuda": {
+    "marcas": 0
+  },
+  "estatico": {
+    "eslintBackend": {
+      "archivos": 141,
+      "errores": 0,
+      "advertencias": 0
+    },
+    "eslintFrontend": {
+      "archivos": 64,
+      "errores": 0,
+      "advertencias": 0
+    },
+    "tipos": {
+      "ok": true,
+      "salida": ""
+    }
+  },
+  "dependencias": {
+    "backend": {
+      "produccion": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 1,
+        "critical": 0,
+        "total": 1
+      },
+      "todas": {
+        "info": 0,
+        "low": 0,
+        "moderate": 19,
+        "high": 1,
+        "critical": 0,
+        "total": 20
+      }
+    },
+    "frontend": {
+      "produccion": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      },
+      "todas": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      }
+    }
+  },
+  "codigo": {
+    "Backend · rutas y controladores": {
+      "archivos": 30,
+      "codigo": 1933,
+      "comentario": 304,
+      "blanco": 361
+    },
+    "Backend · modelos y base de datos": {
+      "archivos": 22,
+      "codigo": 2119,
+      "comentario": 574,
+      "blanco": 299
+    },
+    "Backend · servicios": {
+      "archivos": 20,
+      "codigo": 1505,
+      "comentario": 686,
+      "blanco": 280
+    },
+    "Backend · middleware, utilidades y configuración": {
+      "archivos": 13,
+      "codigo": 429,
+      "comentario": 186,
+      "blanco": 99
+    },
+    "Frontend · páginas y componentes": {
+      "archivos": 31,
+      "codigo": 7479,
+      "comentario": 446,
+      "blanco": 686
+    },
+    "Frontend · lógica compartida": {
+      "archivos": 26,
+      "codigo": 2805,
+      "comentario": 1030,
+      "blanco": 555
+    },
+    "Pruebas automatizadas": {
+      "archivos": 50,
+      "codigo": 7844,
+      "comentario": 314,
+      "blanco": 1607
+    }
+  },
+  "herramientas": {
+    "node": "v24.20.0",
+    "jest": "30.4.2",
+    "supertest": "7.2.2",
+    "eslint": "10.15.0",
+    "typescript": "6.0.2",
+    "vite": "8.0.12"
+  }
+}

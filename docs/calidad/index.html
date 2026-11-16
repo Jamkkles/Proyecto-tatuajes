@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Informe de calidad de código — Plataforma para estudios de tatuaje</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:40px 24px 72px; background:#f4f6f8; color:#2c3340;
+         font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height:1.55; }
+  main, footer { max-width:1000px; margin:0 auto; }
+  h1 { font-size:30px; margin:0 0 6px; letter-spacing:-.01em; }
+  .sub { color:#58616f; margin:0 0 26px; font-size:15px; }
+  section { background:#fff; border:1px solid #e3e7ec; border-radius:10px; padding:26px 28px; margin-bottom:22px; }
+  h2 { font-size:19px; margin:0 0 8px; }
+  .desc { color:#6b7585; margin:0 0 18px; font-size:14.5px; max-width:80ch; }
+  .tarjetas { display:grid; grid-template-columns:repeat(auto-fit,minmax(165px,1fr)); gap:14px; margin:0 0 18px; }
+  .tarjeta { background:#f8fafc; border:1px solid #e3e7ec; border-radius:8px; padding:14px 16px; }
+  .tarjeta .n { font-size:25px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .tarjeta .t { font-size:13px; color:#58616f; }
+  .ok { color:#1f7a44; } .ojo { color:#b8860b; }
+  table { border-collapse:collapse; width:100%; font-size:14px; }
+  th, td { border-bottom:1px solid #eceff3; padding:7px 10px; text-align:left; }
+  th { font-size:12.5px; text-transform:uppercase; letter-spacing:.04em; color:#58616f; font-weight:600; }
+  td.num { text-align:right; font-variant-numeric:tabular-nums; }
+  figure { margin:0 0 18px; overflow-x:auto; }
+  svg { max-width:100%; height:auto; display:block; }
+  .pista { font-size:14px; color:#58616f; margin:18px 0 0; background:#f8fafc;
+           border:1px solid #e8ebef; border-radius:8px; padding:12px 16px; }
+  footer { color:#58616f; font-size:13.5px; }
+  code { background:#eef1f5; padding:1px 6px; border-radius:4px; font-size:13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Informe de calidad de código</h1>
+  <p class="sub">Plataforma de gestión para estudios de tatuaje · 16 de noviembre de 2026 a las 5:45 p. m.</p>
+
+  <section>
+    <h2>Resumen</h2>
+    <div class="tarjetas">
+      <div class="tarjeta"><div class="n ok">783</div><div class="t">pruebas automatizadas, todas aprobadas</div></div>
+      <div class="tarjeta"><div class="n ">95,53 %</div><div class="t">de las sentencias cubiertas por las pruebas</div></div>
+      <div class="tarjeta"><div class="n ok">0</div><div class="t">problemas en el análisis estático</div></div>
+      <div class="tarjeta"><div class="n ok">Sin errores</div><div class="t">en la comprobación de tipos</div></div>
+      <div class="tarjeta"><div class="n ojo">1</div><div class="t">vulnerabilidades en dependencias de producción</div></div>
+      <div class="tarjeta"><div class="n ok">0</div><div class="t">marcas de trabajo pendiente en el código</div></div>
+    </div>
+    <p class="desc">Cada cifra de este informe sale de ejecutar una herramienta, no de una apreciación.
+      La última sección dice cuál produce cada una y cómo repetirlas.</p>
+  </section>
+
+  <section>
+    <h2>1. Pruebas automatizadas</h2>
+    <p class="desc">Son 783 pruebas repartidas en 44 archivos, y las
+      783 pasan. Se dividen en dos baterías que corren juntas:
+      <b>672 unitarias</b>, que prueban cada pieza aislada reemplazando sus
+      vecinas por dobles, y <b>111 de integración</b>, que corren contra un PostgreSQL
+      real y son las únicas capaces de demostrar lo que depende del motor de base de datos: que diez
+      peticiones simultáneas pidiendo la misma hora dejan una sola cita, que el stock no queda negativo o
+      que una cotización no se descuenta dos veces.</p>
+    <div class="tarjetas">
+      <div class="tarjeta"><div class="n ">672</div><div class="t">pruebas unitarias</div></div>
+      <div class="tarjeta"><div class="n ">111</div><div class="t">pruebas de integración</div></div>
+      <div class="tarjeta"><div class="n ok">0</div><div class="t">fallidas</div></div>
+      <div class="tarjeta"><div class="n ">1.3 : 1</div><div class="t">líneas de prueba por cada línea de backend</div></div>
+    </div>
+    <p class="pista">Herramientas: <b>Jest</b> 30.4.2 como ejecutor y
+      <b>Supertest</b> 7.2.2 para hacerle peticiones HTTP a la aplicación sin
+      levantar un servidor.</p>
+  </section>
+
+  <section>
+    <h2>2. Cobertura de código</h2>
+    <p class="desc">Mientras las pruebas corren, la herramienta anota por dónde pasó la ejecución. El
+      resultado es qué porcentaje del código llegó a ejecutarse. Dice qué se probó, no si se comprobó
+      correctamente: eso lo sostienen las aserciones de cada prueba.</p>
+    <div class="tarjetas">
+      <div class="tarjeta"><div class="n ">97,22 %</div><div class="t">líneas (2.596 de 2.670)</div></div>
+      <div class="tarjeta"><div class="n ">95,53 %</div><div class="t">sentencias (2.866 de 3.000)</div></div>
+      <div class="tarjeta"><div class="n ">91,26 %</div><div class="t">funciones (460 de 504)</div></div>
+      <div class="tarjeta"><div class="n ojo">85,68 %</div><div class="t">ramas (1.479 de 1.726)</div></div>
+    </div>
+    <figure><svg xmlns="http://www.w3.org/2000/svg" width="900" height="440" viewBox="0 0 900 440"><rect width="900" height="440" fill="#ffffff"/><text x="24" y="32" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="17" font-weight="600" fill="#2c3340">Cobertura de sentencias por capa</text><text x="24" y="52" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#6b7585">La línea marca el 95 % comprometido por el proyecto</text><line x1="781" y1="68" x2="781" y2="414" stroke="#b8860b" stroke-width="1.5" stroke-dasharray="4 3"/><text x="218" y="92" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" fill="#2c3340">Datos de catálogo</text><rect x="230" y="79" width="580" height="18" fill="#f1f4f7" rx="3"/><rect x="230" y="79" width="580" height="18" fill="#1f7a44" rx="3"/><text x="820" y="92" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-variant-numeric="tabular-nums" fill="#2c3340">100 %</text><text x="218" y="126" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" fill="#2c3340">Rutas</text><rect x="230" y="113" width="580" height="18" fill="#f1f4f7" rx="3"/><rect x="230" y="113" width="580" height="18" fill="#1f7a44" rx="3"/><text x="820" y="126" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-variant-numeric="tabular-nums" fill="#2c3340">100 %</text><text x="218" y="160" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" fill="#2c3340">Almacenamiento</text><rect x="230" y="147" width="580" height="18" fill="#f1f4f7" rx="3"/><rect x="230" y="147" width="562.6" height="18" fill="#1f7a44" rx="3"/><text x="820" y="160" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-variant-numeric="tabular-nums" fill="#2c3340">97 %</text><text x="218" y="194" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" fill="#2c3340">Modelos (SQL)</text><rect x="230" y="181" width="580" height="18" fill="#f1f4f7" rx="3"/><rect x="230" y="181" width="560.86" height="18" fill="#1f7a44" rx="3"/><text x="820" y="194" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-variant-numeric="tabular-nums" fill="#2c3340">96,7 %</text><text x="218" y="228" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" fill="#2c3340">Servicios</text><rect x="230" y="215" width="580" height="18" fill="#f1f4f7" rx="3"/><rect x="230" y="215" width="556.8" height="18" fill="#1f7a44" rx="3"/><text x="820" y="228" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-variant-numeric="tabular-nums" fill="#2c3340">96 %</text><text x="218" y="262" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" fill="#2c3340">Utilidades</text><rect x="230" y="249" width="580" height="18" fill="#f1f4f7" rx="3"/><rect x="230" y="249" width="556.8" height="18" fill="#1f7a44" rx="3"/><text x="820" y="262" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-variant-numeric="tabular-nums" fill="#2c3340">96 %</text><text x="218" y="296" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" fill="#2c3340">Controladores</text><rect x="230" y="283" width="580" height="18" fill="#f1f4f7" rx="3"/><rect x="230" y="283" width="556.22" height="18" fill="#1f7a44" rx="3"/><text x="820" y="296" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-variant-numeric="tabular-nums" fill="#2c3340">95,9 %</text><text x="218" y="330" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" fill="#2c3340">Configuración</text><rect x="230" y="317" width="580" height="18" fill="#f1f4f7" rx="3"/><rect x="230" y="317" width="552.1600000000001" height="18" fill="#1f7a44" rx="3"/><text x="820" y="330" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-variant-numeric="tabular-nums" fill="#2c3340">95,2 %</text><text x="218" y="364" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" fill="#2c3340">Middleware</text><rect x="230" y="351" width="580" height="18" fill="#f1f4f7" rx="3"/><rect x="230" y="351" width="552.1600000000001" height="18" fill="#1f7a44" rx="3"/><text x="820" y="364" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-variant-numeric="tabular-nums" fill="#2c3340">95,2 %</text><text x="218" y="398" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13.5" fill="#2c3340">WhatsApp vinculado</text><rect x="230" y="385" width="580" height="18" fill="#f1f4f7" rx="3"/><rect x="230" y="385" width="519.68" height="18" fill="#b8860b" rx="3"/><text x="820" y="398" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-variant-numeric="tabular-nums" fill="#2c3340">89,6 %</text></svg></figure>
+    <p class="desc">Todas las capas propias de la aplicación pasan del 95 %. La que queda abajo es la del
+      WhatsApp vinculado, porque lo que no se ejecuta ahí son los caminos que solo ocurren contra un socket
+      real de WhatsApp. La cobertura de <b>ramas</b> es la más baja porque cuenta cada bifurcación por
+      separado: una condición con tres causas posibles exige tres pruebas aunque sea una sola línea.</p>
+    <p class="pista">Herramienta: <b>Istanbul</b>, incorporado en Jest. Queda fuera del cálculo
+      <code>src/db</code>, que son scripts de consola que se ejecutan a mano; la exclusión está declarada en
+      <code>backend/jest.config.js</code>.</p>
+  </section>
+
+  <section>
+    <h2>3. Análisis estático</h2>
+    <p class="desc">Revisa el código sin ejecutarlo. Encuentra una familia de errores distinta a la de las
+      pruebas: variables que no existen, código inalcanzable, promesas mal usadas, tipos que no calzan.</p>
+    <table>
+      <thead><tr><th>Revisión</th><th>Qué comprueba</th><th class="num">Archivos</th><th class="num">Errores</th><th class="num">Avisos</th></tr></thead>
+      <tbody>
+        <tr><td>ESLint · backend</td><td>Reglas recomendadas sobre el código de Node</td><td class="num">141</td><td class="num">0</td><td class="num">0</td></tr>
+        <tr><td>ESLint · frontend</td><td>Reglas recomendadas más las de React y sus hooks</td><td class="num">64</td><td class="num">0</td><td class="num">0</td></tr>
+        <tr><td>TypeScript · frontend</td><td>Que los tipos calcen en todo el proyecto</td><td class="num">—</td><td class="num">0</td><td class="num">—</td></tr>
+      </tbody>
+    </table>
+    <p class="pista">Herramientas: <b>ESLint</b> 10.15.0 y el compilador de
+      <b>TypeScript</b> 6.0.2. La configuración del backend
+      (<code>backend/eslint.config.js</code>) parte de las reglas recomendadas y deja fuera las de formato:
+      el formato no aporta a la calidad y solo genera ruido.</p>
+  </section>
+
+  <section>
+    <h2>4. Seguridad de las dependencias</h2>
+    <p class="desc">Un proyecto moderno es, en buena parte, código de terceros. Esta revisión compara las
+      versiones instaladas contra la base pública de vulnerabilidades conocidas.</p>
+    <table>
+      <thead><tr><th>Proyecto</th><th class="num">Antes</th><th class="num">Después</th><th>Qué queda</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Backend · dependencias de producción</td>
+          <td class="num">8</td>
+          <td class="num">1</td>
+          <td>Una de severidad alta en la biblioteca de correo, que exige un cambio de versión mayor. En la
+              nube el correo no la usa: sale por la interfaz HTTPS del proveedor</td>
+        </tr>
+        <tr>
+          <td>Frontend · todas</td>
+          <td class="num">19</td>
+          <td class="num">0</td>
+          <td>Ninguna</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="desc">Las correcciones se aplicaron y después se volvió a ejecutar la batería completa: las
+      783 pruebas siguen pasando, el compilador de tipos sigue limpio y la aplicación
+      sigue compilando. Esa comprobación es justamente para lo que sirve tener pruebas.</p>
+    <p class="pista">Herramienta: <b>npm audit</b>, que consulta el registro público de avisos de seguridad.</p>
+  </section>
+
+  <section>
+    <h2>5. Tamaño y documentación del código</h2>
+    <p class="desc">El proyecto son 24.114 líneas de código repartidas en
+      192 archivos, más 3.540 líneas de comentario. Esa
+      proporción —uno de cada ocho renglones explica algo— no es casual: los comentarios de este proyecto
+      no repiten lo que el código ya dice, explican <b>por qué</b> está hecho así y qué se intentó antes.</p>
+    <figure><svg xmlns="http://www.w3.org/2000/svg" width="900" height="386" viewBox="0 0 900 386"><rect width="900" height="386" fill="#ffffff"/><text x="24" y="32" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="17" font-weight="600" fill="#2c3340">Tamaño del proyecto, parte por parte</text><rect x="24" y="44" width="12" height="12" fill="#2f6fb5"/><text x="42" y="54" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#6b7585">Líneas de código</text><rect x="170" y="44" width="12" height="12" fill="#cdd9e5"/><text x="188" y="54" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#6b7585">Líneas de comentario</text><text x="318" y="96" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">Backend · rutas y controladores</text><rect x="330" y="83" width="108.99485167933318" height="18" fill="#2f6fb5" rx="2"/><rect x="438.9948516793332" y="83" width="17.141456239274333" height="18" fill="#cdd9e5" rx="2"/><text x="466.1363079186075" y="96" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-variant-numeric="tabular-nums" fill="#6b7585">1.933 + 304</text><text x="318" y="136" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">Backend · modelos y base de datos</text><rect x="330" y="123" width="119.48271635204708" height="18" fill="#2f6fb5" rx="2"/><rect x="449.4827163520471" y="123" width="32.36577592547193" height="18" fill="#cdd9e5" rx="2"/><text x="491.84849227751903" y="136" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-variant-numeric="tabular-nums" fill="#6b7585">2.119 + 574</text><text x="318" y="176" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">Backend · servicios</text><rect x="330" y="163" width="84.86148565824956" height="18" fill="#2f6fb5" rx="2"/><rect x="414.86148565824953" y="163" width="38.681049276783526" height="18" fill="#cdd9e5" rx="2"/><text x="463.5425349350331" y="176" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-variant-numeric="tabular-nums" fill="#6b7585">1.505 + 686</text><text x="318" y="216" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">Backend · middleware, utilidades y configuración</text><rect x="330" y="203" width="24.189752390291737" height="18" fill="#2f6fb5" rx="2"/><rect x="354.18975239029174" y="203" width="10.4878646727139" height="18" fill="#cdd9e5" rx="2"/><text x="374.67761706300564" y="216" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-variant-numeric="tabular-nums" fill="#6b7585">429 + 186</text><text x="318" y="256" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">Frontend · páginas y componentes</text><rect x="330" y="243" width="421.71365530767343" height="18" fill="#2f6fb5" rx="2"/><rect x="751.7136553076734" y="243" width="25.148320666830106" height="18" fill="#cdd9e5" rx="2"/><text x="786.8619759745036" y="256" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-variant-numeric="tabular-nums" fill="#6b7585">7.479 + 446</text><text x="318" y="296" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">Frontend · lógica compartida</text><rect x="330" y="283" width="158.1637656288306" height="18" fill="#2f6fb5" rx="2"/><rect x="488.16376562883056" y="283" width="58.07796028438342" height="18" fill="#cdd9e5" rx="2"/><text x="556.2417259132139" y="296" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-variant-numeric="tabular-nums" fill="#6b7585">2.805 + 1.030</text><text x="318" y="336" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">Pruebas automatizadas</text><rect x="330" y="323" width="442.29468006864425" height="18" fill="#2f6fb5" rx="2"/><rect x="772.2946800686443" y="323" width="17.705319931355724" height="18" fill="#cdd9e5" rx="2"/><text x="800" y="336" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-variant-numeric="tabular-nums" fill="#6b7585">7.844 + 314</text></svg></figure>
+    <table>
+      <thead><tr><th>Parte</th><th class="num">Archivos</th><th class="num">Código</th><th class="num">Comentarios</th></tr></thead>
+      <tbody>
+        <tr><td>Backend · rutas y controladores</td><td class="num">30</td><td class="num">1.933</td><td class="num">304</td></tr>
+        <tr><td>Backend · modelos y base de datos</td><td class="num">22</td><td class="num">2.119</td><td class="num">574</td></tr>
+        <tr><td>Backend · servicios</td><td class="num">20</td><td class="num">1.505</td><td class="num">686</td></tr>
+        <tr><td>Backend · middleware, utilidades y configuración</td><td class="num">13</td><td class="num">429</td><td class="num">186</td></tr>
+        <tr><td>Frontend · páginas y componentes</td><td class="num">31</td><td class="num">7.479</td><td class="num">446</td></tr>
+        <tr><td>Frontend · lógica compartida</td><td class="num">26</td><td class="num">2.805</td><td class="num">1.030</td></tr>
+        <tr><td>Pruebas automatizadas</td><td class="num">50</td><td class="num">7.844</td><td class="num">314</td></tr>
+        <tr><td><b>Total</b></td><td class="num"><b>192</b></td><td class="num"><b>24.114</b></td><td class="num"><b>3.540</b></td></tr>
+      </tbody>
+    </table>
+    <p class="desc" style="margin-top:18px">Dos cifras que vale la pena mirar juntas: hay
+      <b>1.3 líneas de prueba por cada línea de backend</b>, y <b>0 marcas</b> de
+      trabajo pendiente (<code>TODO</code>, <code>FIXME</code>) en todo el código fuente. Lo que quedó sin
+      hacer está documentado en la memoria con su razón, no abandonado como un comentario en un archivo.</p>
+  </section>
+
+  <section>
+    <h2>6. Herramientas utilizadas</h2>
+    <table>
+      <thead><tr><th>Herramienta</th><th>Versión</th><th>Para qué</th></tr></thead>
+      <tbody>
+        <tr><td>Jest</td><td>30.4.2</td><td>Ejecuta las pruebas y organiza las dos baterías</td></tr>
+        <tr><td>Supertest</td><td>7.2.2</td><td>Hace peticiones HTTP a la aplicación dentro de la prueba</td></tr>
+        <tr><td>Istanbul</td><td>incluido en Jest</td><td>Mide la cobertura y genera el informe navegable</td></tr>
+        <tr><td>PostgreSQL</td><td>16</td><td>Base real contra la que corren las pruebas de integración</td></tr>
+        <tr><td>ESLint</td><td>10.15.0</td><td>Análisis estático del backend y del frontend</td></tr>
+        <tr><td>TypeScript</td><td>6.0.2</td><td>Comprobación de tipos de todo el frontend</td></tr>
+        <tr><td>npm audit</td><td>incluido en npm</td><td>Vulnerabilidades conocidas en las dependencias</td></tr>
+        <tr><td>Node.js</td><td>v24.20.0</td><td>Entorno donde corre todo lo anterior</td></tr>
+        <tr><td>Docker</td><td>—</td><td>Aísla la ejecución: todas las medidas se toman dentro del contenedor</td></tr>
+      </tbody>
+    </table>
+    <p class="pista">Para repetir todas las medidas: <code>node backend/calidad/medir.js</code> y luego
+      <code>node backend/calidad/informe.js</code>. La primera llama a cada herramienta dentro de su
+      contenedor y deja los datos crudos en <code>docs/calidad/metricas.json</code>; la segunda arma esta
+      página y sus imágenes.</p>
+  </section>
+</main>
+<footer>
+  Todas las cifras provienen de la ejecución de las herramientas en la fecha indicada arriba, sobre el
+  código tal como está en el repositorio. Los informes complementarios son
+  <code>docs/cobertura/</code> (detalle de cobertura) y <code>docs/pruebas-estres/</code> (carga y estrés).
+</footer>
+</body>
+</html>

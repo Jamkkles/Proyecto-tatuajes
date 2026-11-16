@@ -60,6 +60,17 @@ Cobertura: `npx jest --runInBand --coverage` (deja fuera `src/db`, que son
 scripts de consola). Al escribir estas líneas: 95,5 % de sentencias y 97,2 % de
 líneas (85,7 % de ramas), con 783 pruebas en 44 archivos.
 
+### Informe de calidad de código
+```bash
+node backend/calidad/medir.js     # llama a cada herramienta y deja docs/calidad/metricas.json
+node backend/calidad/informe.js   # arma docs/calidad/index.html y sus gráficos
+```
+`medir.js` corre en el host y usa `docker exec` para llamar a Jest, ESLint,
+TypeScript y `npm audit` dentro del contenedor que corresponda. El backend tiene
+ESLint desde `backend/eslint.config.js`: reglas recomendadas, sin reglas de
+formato. **Antes de entregar conviene que `npx eslint .` salga limpio en los dos
+proyectos**, igual que las pruebas.
+
 ### Pruebas de carga y estrés
 ```bash
 node backend/stress/correr.js     # mide (no usa dependencias; corre en el host)
