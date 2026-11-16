@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guion de demostración — Plataforma para estudios de tatuaje</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 40px 24px 80px; background: #f4f6f8; color: #2c3340;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6;
+  }
+  main, footer { max-width: 1120px; margin: 0 auto; }
+  h1 { font-size: 31px; margin: 0 0 6px; letter-spacing: -.01em; }
+  /* Sobre el fondo gris de la página hace falta un gris más oscuro que el de
+     las tarjetas blancas para pasar el contraste mínimo. */
+  .sub { color: #58616f; margin: 0 0 26px; font-size: 15.5px; }
+  .aviso {
+    background: #fff8e6; border: 1px solid #f0dca8; border-radius: 9px;
+    padding: 16px 20px; margin: 0 0 26px; font-size: 14.5px;
+  }
+  .indice { background:#fff; border:1px solid #e3e7ec; border-radius:10px; padding:20px 24px; margin:0 0 26px; }
+  .indice ol { margin: 8px 0 0; padding-left: 22px; columns: 2; column-gap: 32px; }
+  .indice a { color: #2f6fb5; text-decoration: none; }
+  .indice a:hover { text-decoration: underline; }
+  section {
+    background: #fff; border: 1px solid #e3e7ec; border-radius: 10px;
+    padding: 26px 28px; margin: 0 0 22px; scroll-margin-top: 20px;
+  }
+  h2 { font-size: 20px; margin: 0 0 4px; }
+  .ruta { font-family: ui-monospace, monospace; font-size: 13px; color: #6b7585; margin: 0 0 14px; }
+  .decir { margin: 0 0 18px; max-width: 80ch; }
+  .decir b { color: #1d2430; }
+  figure { margin: 0; }
+  img { width: 100%; height: auto; display: block; border: 1px solid #e3e7ec; border-radius: 8px; }
+  .pista { font-size: 14px; color: #6b7585; margin: 14px 0 0; border-left: 3px solid #cdd9e5; padding-left: 14px; }
+  footer { color: #58616f; font-size: 13.5px; }
+  code { background: #eef1f5; padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Guion de demostración</h1>
+  <p class="sub">Plataforma de gestión para estudios de tatuaje · recorrido en once pantallas</p>
+
+  <div class="aviso">
+    <b>Datos de demostración.</b> Todas las capturas se tomaron contra el entorno local en Docker, con la
+    cuenta <code>demo.memoria@estudio.cl</code> y clientes inventados. No aparece ningún dato de personas
+    reales. La aplicación desplegada se muestra aparte, solo para dejar claro que está publicada.
+  </div>
+
+  <div class="indice">
+    <b>Recorrido</b>
+    <ol>
+      <li><a href="#p1">Inicio de sesión</a></li>
+      <li><a href="#p2">Resumen del día</a></li>
+      <li><a href="#p3">Galería de bocetos</a></li>
+      <li><a href="#p4">Previsualización 3D</a></li>
+      <li><a href="#p5">Agenda de citas</a></li>
+      <li><a href="#p6">Clientes y su puntaje</a></li>
+      <li><a href="#p7">Ficha de un cliente</a></li>
+      <li><a href="#p8">Ficha de un proyecto</a></li>
+      <li><a href="#p9">Inventario</a></li>
+      <li><a href="#p10">Cotización de insumos</a></li>
+      <li><a href="#p11">Mensajes al cliente</a></li>
+    </ol>
+  </div>
+
+  <section id="p1">
+    <h2>1. Inicio de sesión</h2>
+    <p class="ruta">/</p>
+    <p class="decir">Punto de partida. <b>Cada tatuador es dueño de sus datos</b>: todo lo que viene después
+      está filtrado por la cuenta que entra, y un artista nunca ve lo de otro. En la nube el registro está
+      abierto, así que cualquier estudio puede crear su espacio.</p>
+    <figure><img src="imagenes/01-inicio-sesion.png" alt="Pantalla de inicio de sesión"></figure>
+  </section>
+
+  <section id="p2">
+    <h2>2. Resumen del día</h2>
+    <p class="ruta">/dashboard</p>
+    <p class="decir">Lo primero que ve el tatuador en la mañana: <b>el calendario del mes y las próximas
+      citas arriba</b>, porque es lo que de verdad se mira. A la derecha, los insumos que llegaron a nivel
+      crítico. Abajo, lo cobrado del mes —que suma por la fecha en que se marcó el pago, no por la fecha de
+      la cita— y lo que queda por cobrar.</p>
+    <figure><img src="imagenes/02-resumen.png" alt="Pantalla de resumen con calendario, próximas citas y stock bajo"></figure>
+    <p class="pista">Si te preguntan por qué el calendario va arriba: fue una decisión del tatuador experto,
+      no del diseño.</p>
+  </section>
+
+  <section id="p3">
+    <h2>3. Galería de bocetos</h2>
+    <p class="ruta">/bocetos</p>
+    <p class="decir">Los diseños viven en la nube, con etiquetas y filtros para encontrarlos frente al
+      cliente. Al subir cada imagen <b>el sistema mide cuánta tinta lleva y qué colores dominan</b>: eso es
+      lo que después permite cotizar sin preguntar nada.</p>
+    <figure><img src="imagenes/03-galeria.png" alt="Galería de bocetos con filtros y etiquetas"></figure>
+  </section>
+
+  <section id="p4">
+    <h2>4. Previsualización 3D</h2>
+    <p class="ruta">/previsualizacion?proyecto=…</p>
+    <p class="decir">El módulo que distingue a la plataforma. El boceto se proyecta sobre un modelo
+      anatómico y <b>se envuelve en la curvatura del brazo</b> en vez de quedar pegado como una calcomanía
+      plana. Se mueve, se gira y se escala con el dedo o el ratón, y el tamaño que queda es una medida real
+      en centímetros que pasa directo a la cotización.</p>
+    <figure><img src="imagenes/04-previsualizacion-3d.png" alt="Visor 3D con un boceto proyectado sobre el antebrazo"></figure>
+    <p class="pista">Aquí conviene mover el tatuaje en vivo: el arrastre sostiene 60 fotogramas por segundo
+      sobre una malla de 63.000 triángulos, y eso se nota.</p>
+  </section>
+
+  <section id="p5">
+    <h2>5. Agenda de citas</h2>
+    <p class="ruta">/citas</p>
+    <p class="decir">Calendario del mes con las citas de cada día. Agendar crea de paso el cliente y el
+      proyecto si no existen, en el mismo formulario. <b>Una hora ocupada no se vuelve a agendar</b>: el
+      sistema lo rechaza diciendo con quién choca y a qué hora.</p>
+    <figure><img src="imagenes/05-citas.png" alt="Calendario mensual de citas"></figure>
+  </section>
+
+  <section id="p6">
+    <h2>6. Clientes y su puntaje</h2>
+    <p class="ruta">/clientes</p>
+    <p class="decir">La cartera ordenada <b>del cliente más cumplidor al menos cumplidor</b>. El puntaje no
+      se escribe a mano: es el promedio de las estrellas que el tatuador le pone a cada sesión según cómo
+      llegó, así que se mantiene solo.</p>
+    <figure><img src="imagenes/06-clientes.png" alt="Listado de clientes ordenado por puntaje"></figure>
+  </section>
+
+  <section id="p7">
+    <h2>7. Ficha de un cliente</h2>
+    <p class="ruta">/clientes/:id</p>
+    <p class="decir">Contacto, proyectos y el historial: sesiones hechas, inasistencias y cancelaciones.
+      Es lo que el tatuador mira antes de decidir si pide un abono.</p>
+    <figure><img src="imagenes/07-ficha-cliente.png" alt="Ficha de cliente con sus proyectos e historial"></figure>
+  </section>
+
+  <section id="p8">
+    <h2>8. Ficha de un proyecto</h2>
+    <p class="ruta">/proyectos/:id</p>
+    <p class="decir">Un proyecto reúne sus sesiones, lo pagado y lo pendiente, las fotos del avance y los
+      enlaces al boceto y a la escena 3D. <b>Al dar una sesión por terminada se descuenta sola del
+      inventario</b> lo que esa cotización consumió.</p>
+    <figure><img src="imagenes/08-proyecto.png" alt="Ficha de proyecto con sesiones, pagos y fotos"></figure>
+  </section>
+
+  <section id="p9">
+    <h2>9. Inventario</h2>
+    <p class="ruta">/inventario</p>
+    <p class="decir">Cada artista arranca con un catálogo de 42 insumos típicos ya cargado, con precios de
+      referencia; no parte de una pantalla vacía. Lo que define a un insumo es <b>cómo se gasta</b> —por
+      área, por sesión, por hora— y eso es lo que lo hace entrar en la cotización.</p>
+    <figure><img src="imagenes/09-inventario.png" alt="Inventario con insumos, stock y nivel crítico"></figure>
+  </section>
+
+  <section id="p10">
+    <h2>10. Cotización de insumos</h2>
+    <p class="ruta">/cotizaciones?proyecto=…</p>
+    <p class="decir">El cierre del recorrido, donde se junta todo: <b>el tamaño viene de la escena 3D</b>
+      (24 × 42 cm), la cobertura de tinta la midió el boceto al subirse (82 %), y el motor reparte el área
+      entre las tintas según los colores del dibujo en vez de cobrar todas. Calcula también las horas de
+      aguja y en cuántas sesiones caben. Lo que entrega es el <b>costo de insumos</b>, nunca el precio del
+      arte: eso lo pone el artista.</p>
+    <figure><img src="imagenes/10-cotizacion.png" alt="Calculadora de costo de insumos con el detalle por material"></figure>
+    <p class="pista">Vale la pena detenerse en el detalle: cada línea dice cuánto se gasta y a qué precio
+      por unidad, y se puede corregir a mano antes de guardar.</p>
+  </section>
+
+  <section id="p11">
+    <h2>11. Mensajes al cliente</h2>
+    <p class="ruta">/configuracion</p>
+    <p class="decir">El recordatorio sale solo 24 horas antes de cada cita y el cliente recibe aviso cuando
+      su hora cambia o se cancela. El tatuador <b>edita con sus palabras</b> la nota del recordatorio y las
+      indicaciones de cuidados, y ve la vista previa de cómo le llegará el mensaje.</p>
+    <figure><img src="imagenes/11-configuracion.png" alt="Configuración de los mensajes al cliente con vista previa"></figure>
+  </section>
+</main>
+<footer>
+  Capturas tomadas del entorno local en Docker. Para rehacerlas, levantar <code>docker compose up</code> y
+  abrir cada ruta con la cuenta de demostración. Las mediciones de carga están en
+  <code>docs/pruebas-estres/index.html</code> y la cobertura de pruebas se regenera con
+  <code>npx jest --coverage</code>.
+</footer>
+</body>
+</html>

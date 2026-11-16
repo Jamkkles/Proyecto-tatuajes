@@ -25,6 +25,9 @@ const COLOR = {
   eje: '#8b95a1',
   texto: '#2c3340',
   suave: '#6b7585',
+  // Sobre el fondo gris de la página, el gris de las tarjetas no alcanza el
+  // contraste mínimo: para ese texto se usa uno más oscuro.
+  suaveFuera: '#58616f',
 };
 const FUENTE = "'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
@@ -273,7 +276,7 @@ const html = `<!doctype html>
   }
   main { max-width: 1000px; margin: 0 auto; }
   h1 { font-size: 30px; margin: 0 0 6px; letter-spacing: -.01em; }
-  .sub { color: ${COLOR.suave}; margin: 0 0 28px; font-size: 15px; }
+  .sub { color: ${COLOR.suaveFuera}; margin: 0 0 28px; font-size: 15px; }
   section { background: #fff; border: 1px solid #e3e7ec; border-radius: 10px; padding: 26px 28px; margin-bottom: 22px; }
   h2 { font-size: 19px; margin: 0 0 8px; }
   .desc { color: ${COLOR.suave}; margin: 0 0 18px; font-size: 14.5px; max-width: 78ch; }
@@ -291,7 +294,7 @@ const html = `<!doctype html>
   .ok { color: #1f7a44; }
   .entorno { font-size: 14px; color: ${COLOR.suave}; }
   .entorno b { color: ${COLOR.texto}; font-weight: 600; }
-  footer { max-width: 1000px; margin: 0 auto; color: ${COLOR.suave}; font-size: 13.5px; }
+  footer { max-width: 1000px; margin: 0 auto; color: ${COLOR.suaveFuera}; font-size: 13.5px; }
   code { background: #eef1f5; padding: 1px 6px; border-radius: 4px; font-size: 13px; }
 </style>
 </head>
