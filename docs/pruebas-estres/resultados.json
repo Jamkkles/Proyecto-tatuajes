@@ -1,0 +1,379 @@
+{
+  "fecha": "2026-11-16T04:04:03.225Z",
+  "base": "http://localhost:3000",
+  "entorno": {
+    "generador": "Node.js v24.20.0 sobre Windows_NT 10.0.26200",
+    "cpu": "AMD Ryzen 7 5700X 8-Core Processor",
+    "nucleos": 16,
+    "memoriaGB": 32,
+    "servidor": "Backend y PostgreSQL en contenedores Docker, en la misma máquina"
+  },
+  "escenarios": [
+    {
+      "id": "agenda",
+      "nombre": "1. Lectura de la agenda del mes",
+      "descripcion": "GET /api/sessions con rango de un mes. Es la consulta que carga el calendario: une sesiones, proyectos y clientes, y busca el último recordatorio de cada cita.",
+      "medidas": [
+        {
+          "concurrencia": 1,
+          "peticiones": 300,
+          "duracionMs": 4225,
+          "rps": 71,
+          "latencia": {
+            "media": 14,
+            "p50": 15.3,
+            "p90": 16.3,
+            "p95": 16.6,
+            "p99": 17,
+            "max": 18.8
+          },
+          "estados": {
+            "200": 300
+          }
+        },
+        {
+          "concurrencia": 5,
+          "peticiones": 300,
+          "duracionMs": 563,
+          "rps": 533,
+          "latencia": {
+            "media": 9.2,
+            "p50": 8.4,
+            "p90": 12.1,
+            "p95": 14.3,
+            "p99": 25.9,
+            "max": 40.9
+          },
+          "estados": {
+            "200": 300
+          }
+        },
+        {
+          "concurrencia": 10,
+          "peticiones": 300,
+          "duracionMs": 506,
+          "rps": 592.8,
+          "latencia": {
+            "media": 16.6,
+            "p50": 16.3,
+            "p90": 20.9,
+            "p95": 22.6,
+            "p99": 29,
+            "max": 37
+          },
+          "estados": {
+            "200": 300
+          }
+        },
+        {
+          "concurrencia": 25,
+          "peticiones": 300,
+          "duracionMs": 492,
+          "rps": 609.7,
+          "latencia": {
+            "media": 39.8,
+            "p50": 39.9,
+            "p90": 44.3,
+            "p95": 45.1,
+            "p99": 131.5,
+            "max": 156.5
+          },
+          "estados": {
+            "200": 300
+          }
+        },
+        {
+          "concurrencia": 50,
+          "peticiones": 300,
+          "duracionMs": 484,
+          "rps": 619.9,
+          "latencia": {
+            "media": 77.1,
+            "p50": 71.6,
+            "p90": 85.7,
+            "p95": 163.8,
+            "p99": 284.1,
+            "max": 314.7
+          },
+          "estados": {
+            "200": 300
+          }
+        }
+      ]
+    },
+    {
+      "id": "cotizacion",
+      "nombre": "2. Cálculo de una cotización",
+      "descripcion": "POST /api/quotes/estimate. El motor recorre los 42 insumos del inventario, empareja los colores del boceto en OKLab y reparte el área entintada entre las tintas. Es el punto con más cálculo del sistema.",
+      "medidas": [
+        {
+          "concurrencia": 1,
+          "peticiones": 300,
+          "duracionMs": 4424,
+          "rps": 67.8,
+          "latencia": {
+            "media": 14.7,
+            "p50": 15.5,
+            "p90": 16.3,
+            "p95": 16.7,
+            "p99": 18.3,
+            "max": 20.6
+          },
+          "estados": {
+            "200": 300
+          }
+        },
+        {
+          "concurrencia": 5,
+          "peticiones": 300,
+          "duracionMs": 581,
+          "rps": 516.2,
+          "latencia": {
+            "media": 9.6,
+            "p50": 9.1,
+            "p90": 12.7,
+            "p95": 13.7,
+            "p99": 15.5,
+            "max": 18.3
+          },
+          "estados": {
+            "200": 300
+          }
+        },
+        {
+          "concurrencia": 10,
+          "peticiones": 300,
+          "duracionMs": 556,
+          "rps": 539.8,
+          "latencia": {
+            "media": 18.3,
+            "p50": 17.5,
+            "p90": 24.1,
+            "p95": 26,
+            "p99": 30.9,
+            "max": 35.1
+          },
+          "estados": {
+            "200": 300
+          }
+        },
+        {
+          "concurrencia": 25,
+          "peticiones": 300,
+          "duracionMs": 541,
+          "rps": 554.3,
+          "latencia": {
+            "media": 44.4,
+            "p50": 43.9,
+            "p90": 49.5,
+            "p95": 54.3,
+            "p99": 71.5,
+            "max": 82.3
+          },
+          "estados": {
+            "200": 300
+          }
+        },
+        {
+          "concurrencia": 50,
+          "peticiones": 300,
+          "duracionMs": 542,
+          "rps": 553.3,
+          "latencia": {
+            "media": 87.3,
+            "p50": 87.7,
+            "p90": 97.9,
+            "p95": 112.2,
+            "p99": 133.7,
+            "max": 137.3
+          },
+          "estados": {
+            "200": 300
+          }
+        }
+      ]
+    },
+    {
+      "id": "agendado",
+      "nombre": "3. Agendado de citas",
+      "descripcion": "POST /api/sessions en horas distintas. Cada escritura toma el bloqueo por artista, revisa que la hora esté libre y escribe, todo en una transacción.",
+      "medidas": [
+        {
+          "concurrencia": 1,
+          "peticiones": 300,
+          "duracionMs": 4427,
+          "rps": 67.8,
+          "latencia": {
+            "media": 14.7,
+            "p50": 15.4,
+            "p90": 16.5,
+            "p95": 17,
+            "p99": 18.8,
+            "max": 20.7
+          },
+          "estados": {
+            "201": 300
+          }
+        },
+        {
+          "concurrencia": 5,
+          "peticiones": 300,
+          "duracionMs": 1017,
+          "rps": 294.9,
+          "latencia": {
+            "media": 16.8,
+            "p50": 16.1,
+            "p90": 18.4,
+            "p95": 22.6,
+            "p99": 39.2,
+            "max": 41.3
+          },
+          "estados": {
+            "201": 300
+          }
+        },
+        {
+          "concurrencia": 10,
+          "peticiones": 300,
+          "duracionMs": 1016,
+          "rps": 295.4,
+          "latencia": {
+            "media": 33.4,
+            "p50": 33.4,
+            "p90": 36.2,
+            "p95": 37.1,
+            "p99": 38.6,
+            "max": 40
+          },
+          "estados": {
+            "201": 300
+          }
+        },
+        {
+          "concurrencia": 25,
+          "peticiones": 300,
+          "duracionMs": 1050,
+          "rps": 285.8,
+          "latencia": {
+            "media": 84.7,
+            "p50": 85.3,
+            "p90": 94.2,
+            "p95": 100.5,
+            "p99": 105.9,
+            "max": 110.9
+          },
+          "estados": {
+            "201": 300
+          }
+        },
+        {
+          "concurrencia": 50,
+          "peticiones": 300,
+          "duracionMs": 1033,
+          "rps": 290.3,
+          "latencia": {
+            "media": 160.1,
+            "p50": 171.1,
+            "p90": 174.8,
+            "p95": 175.8,
+            "p99": 197,
+            "max": 207.6
+          },
+          "estados": {
+            "201": 300
+          }
+        }
+      ]
+    },
+    {
+      "id": "subida",
+      "nombre": "4. Subida de un boceto",
+      "descripcion": "POST /api/sketches con una imagen PNG de 45 kB. Incluye la optimización con sharp, la medición de la cobertura de tinta y de la paleta de colores, y el guardado del archivo.",
+      "medidas": [
+        {
+          "concurrencia": 1,
+          "peticiones": 40,
+          "duracionMs": 3234,
+          "rps": 12.4,
+          "latencia": {
+            "media": 80.8,
+            "p50": 76.1,
+            "p90": 104.1,
+            "p95": 108.1,
+            "p99": 118.8,
+            "max": 118.8
+          },
+          "estados": {
+            "201": 40
+          }
+        },
+        {
+          "concurrencia": 2,
+          "peticiones": 40,
+          "duracionMs": 1762,
+          "rps": 22.7,
+          "latencia": {
+            "media": 87.3,
+            "p50": 78.3,
+            "p90": 117.4,
+            "p95": 121.6,
+            "p99": 125.7,
+            "max": 125.7
+          },
+          "estados": {
+            "201": 40
+          }
+        },
+        {
+          "concurrencia": 4,
+          "peticiones": 40,
+          "duracionMs": 903,
+          "rps": 44.3,
+          "latencia": {
+            "media": 89.1,
+            "p50": 82.1,
+            "p90": 119.7,
+            "p95": 125,
+            "p99": 139.1,
+            "max": 139.1
+          },
+          "estados": {
+            "201": 40
+          }
+        },
+        {
+          "concurrencia": 8,
+          "peticiones": 40,
+          "duracionMs": 754,
+          "rps": 53,
+          "latencia": {
+            "media": 141.8,
+            "p50": 138.6,
+            "p90": 170.5,
+            "p95": 178.3,
+            "p99": 181.6,
+            "max": 181.6
+          },
+          "estados": {
+            "201": 40
+          }
+        }
+      ]
+    }
+  ],
+  "colision": {
+    "intentos": 50,
+    "creadas": 1,
+    "rechazadas": 49,
+    "otros": 0,
+    "duracionMs": 109,
+    "latencia": {
+      "media": 72.7,
+      "p50": 77.5,
+      "p90": 100.7,
+      "p95": 103.9,
+      "p99": 105.8,
+      "max": 105.8
+    }
+  }
+}

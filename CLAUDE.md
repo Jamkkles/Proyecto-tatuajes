@@ -60,6 +60,20 @@ Cobertura: `npx jest --runInBand --coverage` (deja fuera `src/db`, que son
 scripts de consola). Al escribir estas líneas: 95,5 % de sentencias y 97,2 % de
 líneas (85,7 % de ramas), con 783 pruebas en 44 archivos.
 
+### Pruebas de carga y estrés
+```bash
+node backend/stress/correr.js     # mide (no usa dependencias; corre en el host)
+node backend/stress/informe.js    # arma docs/pruebas-estres/index.html y las imágenes
+```
+Van contra el backend en Docker, nunca contra producción: en el plan gratuito
+de Render se mediría el plan y no el sistema, y martillarlo puede costar la
+cuenta. Cinco escenarios con rampa de concurrencia (lectura de la agenda,
+cotización, agendado, subida de bocetos y una colisión de 50 peticiones a la
+misma hora, que comprueba el bloqueo por artista bajo carga). La corrida crea
+su cuenta `carga-…@pruebas.local`, borra al terminar lo que creó y deja el
+detalle en `docs/pruebas-estres/resultados.json`; la cuenta vacía se borra a
+mano con el `DELETE` que el propio script imprime al final.
+
 Se corren **dentro del contenedor**: en el host `jest` se cuelga cuando el
 proyecto está en una carpeta sincronizada con iCloud. Lo mismo pasa con `tsc` y
 `eslint` del frontend (leen `node_modules` desde iCloud y se quedan bloqueados sin

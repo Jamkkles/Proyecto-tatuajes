@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pruebas de carga — Plataforma para estudios de tatuaje</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 40px 24px 72px;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: #2c3340; background: #f4f6f8; line-height: 1.55;
+  }
+  main { max-width: 1000px; margin: 0 auto; }
+  h1 { font-size: 30px; margin: 0 0 6px; letter-spacing: -.01em; }
+  .sub { color: #6b7585; margin: 0 0 28px; font-size: 15px; }
+  section { background: #fff; border: 1px solid #e3e7ec; border-radius: 10px; padding: 26px 28px; margin-bottom: 22px; }
+  h2 { font-size: 19px; margin: 0 0 8px; }
+  .desc { color: #6b7585; margin: 0 0 18px; font-size: 14.5px; max-width: 78ch; }
+  figure { margin: 0 0 18px; overflow-x: auto; }
+  svg { max-width: 100%; height: auto; display: block; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { border-bottom: 1px solid #eceff3; padding: 7px 10px; text-align: left; }
+  th { font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em; color: #6b7585; font-weight: 600; }
+  td.num, th:not(:last-child) { text-align: right; }
+  td.num { font-variant-numeric: tabular-nums; }
+  .tarjetas { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin: 0 0 4px; }
+  .tarjeta { background: #f8fafc; border: 1px solid #e3e7ec; border-radius: 8px; padding: 14px 16px; }
+  .tarjeta .n { font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tarjeta .t { font-size: 13px; color: #6b7585; }
+  .ok { color: #1f7a44; }
+  .entorno { font-size: 14px; color: #6b7585; }
+  .entorno b { color: #2c3340; font-weight: 600; }
+  footer { max-width: 1000px; margin: 0 auto; color: #6b7585; font-size: 13.5px; }
+  code { background: #eef1f5; padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Pruebas de carga y estrés</h1>
+  <p class="sub">Plataforma de gestión para estudios de tatuaje · 16 de noviembre de 2026 a las 1:04 a. m.</p>
+
+  <section>
+    <h2>Resumen</h2>
+    <div class="tarjetas">
+      <div class="tarjeta"><div class="n">619.9</div><div class="t">pet./s — Lectura de la agenda del mes</div></div>
+      <div class="tarjeta"><div class="n">554.3</div><div class="t">pet./s — Cálculo de una cotización</div></div>
+      <div class="tarjeta"><div class="n">295.4</div><div class="t">pet./s — Agendado de citas</div></div>
+      <div class="tarjeta"><div class="n">53</div><div class="t">pet./s — Subida de un boceto</div></div>
+      <div class="tarjeta"><div class="n ok">1 de 50</div><div class="t">citas creadas al pedir 50 veces la misma hora</div></div>
+    </div>
+    <figure><svg xmlns="http://www.w3.org/2000/svg" width="920" height="300" viewBox="0 0 920 300"><rect width="920" height="300" fill="#ffffff"/><text x="68" y="30" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="17" font-weight="600" fill="#2c3340">Capacidad máxima medida por escenario</text><line x1="68" y1="224" x2="892" y2="224" stroke="#e8ebef"/><text x="58" y="228" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">0</text><line x1="68" y1="182" x2="892" y2="182" stroke="#e8ebef"/><text x="58" y="186" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">188</text><line x1="68" y1="140" x2="892" y2="140" stroke="#e8ebef"/><text x="58" y="144" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">375</text><line x1="68" y1="98" x2="892" y2="98" stroke="#e8ebef"/><text x="58" y="102" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">563</text><line x1="68" y1="56" x2="892" y2="56" stroke="#e8ebef"/><text x="58" y="60" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">750</text><rect x="119.5" y="85.14240000000001" width="103" height="138.8576" fill="#2f6fb5" rx="2"/><text x="171" y="77.14240000000001" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#2c3340">619.9</text><text x="171" y="246" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#2c3340">Lectura de</text><text x="171" y="263" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#2c3340">la agenda del mes</text><rect x="325.5" y="99.8368" width="103" height="124.1632" fill="#2f6fb5" rx="2"/><text x="377" y="91.8368" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#2c3340">554.3</text><text x="377" y="246" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#2c3340">Cálculo de</text><text x="377" y="263" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#2c3340">una cotización</text><rect x="531.5" y="157.8304" width="103" height="66.1696" fill="#2f6fb5" rx="2"/><text x="583" y="149.8304" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#2c3340">295.4</text><text x="583" y="246" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#2c3340">Agendado de</text><text x="583" y="263" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#2c3340">citas</text><rect x="737.5" y="212.128" width="103" height="11.872000000000014" fill="#2f6fb5" rx="2"/><text x="789" y="204.128" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#2c3340">53</text><text x="789" y="246" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#2c3340">Subida de</text><text x="789" y="263" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#2c3340">un boceto</text><line x1="68" y1="224" x2="892" y2="224" stroke="#8b95a1"/><text transform="translate(18 140) rotate(-90)" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#6b7585">Peticiones por segundo</text></svg></figure>
+    <p class="entorno">
+      <b>Servidor:</b> Backend y PostgreSQL en contenedores Docker, en la misma máquina.
+      <b>Generador de carga:</b> Node.js v24.20.0 sobre Windows_NT 10.0.26200.
+      <b>Máquina:</b> AMD Ryzen 7 5700X 8-Core Processor (16 hilos), 32 GB de RAM.
+      El generador corre en la misma máquina que el servidor, de modo que los tiempos miden la aplicación y no la red.
+    </p>
+  </section>
+
+  <section class="escenario">
+    <h2>1. Lectura de la agenda del mes</h2>
+    <p class="desc">GET /api/sessions con rango de un mes. Es la consulta que carga el calendario: une sesiones, proyectos y clientes, y busca el último recordatorio de cada cita.</p>
+    <figure><svg xmlns="http://www.w3.org/2000/svg" width="920" height="380" viewBox="0 0 920 380" role="img" aria-label="1. Lectura de la agenda del mes"><rect width="920" height="380" fill="#ffffff"/><text x="68" y="30" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="17" font-weight="600" fill="#2c3340">1. Lectura de la agenda del mes</text><line x1="68" y1="316" x2="852" y2="316" stroke="#e8ebef" stroke-width="1"/><text x="58" y="320" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">0</text><line x1="68" y1="251.5" x2="852" y2="251.5" stroke="#e8ebef" stroke-width="1"/><text x="58" y="255.5" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">75</text><line x1="68" y1="187" x2="852" y2="187" stroke="#e8ebef" stroke-width="1"/><text x="58" y="191" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">150</text><line x1="68" y1="122.5" x2="852" y2="122.5" stroke="#e8ebef" stroke-width="1"/><text x="58" y="126.5" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">225</text><line x1="68" y1="58" x2="852" y2="58" stroke="#e8ebef" stroke-width="1"/><text x="58" y="62" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">300</text><text x="862" y="320" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">0</text><text x="862" y="255.5" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">188</text><text x="862" y="191" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">375</text><text x="862" y="126.5" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">563</text><text x="862" y="62" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">750</text><rect x="119.4" y="291.576" width="54" height="24.423999999999978" fill="#cdd9e5" stroke="#9fb3c8" stroke-width="1" rx="2"/><text x="146.4" y="284.576" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">71</text><rect x="276.20000000000005" y="132.648" width="54" height="183.352" fill="#cdd9e5" stroke="#9fb3c8" stroke-width="1" rx="2"/><text x="303.20000000000005" y="125.648" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">533</text><rect x="433" y="112.07679999999999" width="54" height="203.9232" fill="#cdd9e5" stroke="#9fb3c8" stroke-width="1" rx="2"/><text x="460" y="105.07679999999999" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">592.8</text><rect x="589.8000000000001" y="106.26319999999998" width="54" height="209.73680000000002" fill="#cdd9e5" stroke="#9fb3c8" stroke-width="1" rx="2"/><text x="616.8000000000001" y="99.26319999999998" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">609.7</text><rect x="746.6" y="102.7544" width="54" height="213.2456" fill="#cdd9e5" stroke="#9fb3c8" stroke-width="1" rx="2"/><text x="773.6" y="95.7544" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">619.9</text><polyline points="146.4,302.842 303.20000000000005,308.776 460,301.98199999999997 616.8000000000001,281.686 773.6,254.424" fill="none" stroke="#2f6fb5" stroke-width="2.5" stroke-linejoin="round"/><circle cx="146.4" cy="302.842" r="4" fill="#fff" stroke="#2f6fb5" stroke-width="2.5"/><circle cx="303.20000000000005" cy="308.776" r="4" fill="#fff" stroke="#2f6fb5" stroke-width="2.5"/><circle cx="460" cy="301.98199999999997" r="4" fill="#fff" stroke="#2f6fb5" stroke-width="2.5"/><circle cx="616.8000000000001" cy="281.686" r="4" fill="#fff" stroke="#2f6fb5" stroke-width="2.5"/><circle cx="773.6" cy="254.424" r="4" fill="#fff" stroke="#2f6fb5" stroke-width="2.5"/><polyline points="146.4,301.724 303.20000000000005,303.702 460,296.564 616.8000000000001,277.214 773.6,175.13199999999998" fill="none" stroke="#e08a2b" stroke-width="2.5" stroke-linejoin="round"/><circle cx="146.4" cy="301.724" r="4" fill="#fff" stroke="#e08a2b" stroke-width="2.5"/><circle cx="303.20000000000005" cy="303.702" r="4" fill="#fff" stroke="#e08a2b" stroke-width="2.5"/><circle cx="460" cy="296.564" r="4" fill="#fff" stroke="#e08a2b" stroke-width="2.5"/><circle cx="616.8000000000001" cy="277.214" r="4" fill="#fff" stroke="#e08a2b" stroke-width="2.5"/><circle cx="773.6" cy="175.13199999999998" r="4" fill="#fff" stroke="#e08a2b" stroke-width="2.5"/><polyline points="146.4,301.38 303.20000000000005,293.726 460,291.06 616.8000000000001,202.91 773.6,71.67399999999998" fill="none" stroke="#b4383a" stroke-width="2.5" stroke-linejoin="round"/><circle cx="146.4" cy="301.38" r="4" fill="#fff" stroke="#b4383a" stroke-width="2.5"/><circle cx="303.20000000000005" cy="293.726" r="4" fill="#fff" stroke="#b4383a" stroke-width="2.5"/><circle cx="460" cy="291.06" r="4" fill="#fff" stroke="#b4383a" stroke-width="2.5"/><circle cx="616.8000000000001" cy="202.91" r="4" fill="#fff" stroke="#b4383a" stroke-width="2.5"/><circle cx="773.6" cy="71.67399999999998" r="4" fill="#fff" stroke="#b4383a" stroke-width="2.5"/><line x1="68" y1="316" x2="852" y2="316" stroke="#8b95a1" stroke-width="1"/><text x="146.4" y="338" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">1</text><text x="303.20000000000005" y="338" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">5</text><text x="460" y="338" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">10</text><text x="616.8000000000001" y="338" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">25</text><text x="773.6" y="338" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">50</text><text x="460" y="364" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#6b7585">Peticiones en paralelo</text><text transform="translate(18 187) rotate(-90)" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#6b7585">Latencia (ms)</text><text transform="translate(904 187) rotate(-90)" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#6b7585">Peticiones por segundo</text><rect x="338" y="20" width="13" height="13" fill="#cdd9e5" stroke="#9fb3c8"/><text x="358" y="31" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#6b7585">Peticiones/s</text><line x1="450.4" y1="27" x2="464.4" y2="27" stroke="#2f6fb5" stroke-width="3"/><text x="470.4" y="31" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#6b7585">Latencia p50</text><line x1="562.8" y1="27" x2="576.8" y2="27" stroke="#e08a2b" stroke-width="3"/><text x="582.8" y="31" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#6b7585">p95</text><line x1="610.4" y1="27" x2="624.4" y2="27" stroke="#b4383a" stroke-width="3"/><text x="630.4" y="31" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#6b7585">p99</text></svg></figure>
+    <table>
+    <thead>
+      <tr>
+        <th>En paralelo</th><th>Peticiones</th><th>Pet./s</th>
+        <th>p50 (ms)</th><th>p95 (ms)</th><th>p99 (ms)</th><th>Máx. (ms)</th><th>Respuestas</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="num">1</td>
+        <td class="num">300</td>
+        <td class="num">71</td>
+        <td class="num">15.3</td>
+        <td class="num">16.6</td>
+        <td class="num">17</td>
+        <td class="num">18.8</td>
+        <td>200 × 300</td>
+      </tr>
+      <tr>
+        <td class="num">5</td>
+        <td class="num">300</td>
+        <td class="num">533</td>
+        <td class="num">8.4</td>
+        <td class="num">14.3</td>
+        <td class="num">25.9</td>
+        <td class="num">40.9</td>
+        <td>200 × 300</td>
+      </tr>
+      <tr>
+        <td class="num">10</td>
+        <td class="num">300</td>
+        <td class="num">592.8</td>
+        <td class="num">16.3</td>
+        <td class="num">22.6</td>
+        <td class="num">29</td>
+        <td class="num">37</td>
+        <td>200 × 300</td>
+      </tr>
+      <tr>
+        <td class="num">25</td>
+        <td class="num">300</td>
+        <td class="num">609.7</td>
+        <td class="num">39.9</td>
+        <td class="num">45.1</td>
+        <td class="num">131.5</td>
+        <td class="num">156.5</td>
+        <td>200 × 300</td>
+      </tr>
+      <tr>
+        <td class="num">50</td>
+        <td class="num">300</td>
+        <td class="num">619.9</td>
+        <td class="num">71.6</td>
+        <td class="num">163.8</td>
+        <td class="num">284.1</td>
+        <td class="num">314.7</td>
+        <td>200 × 300</td>
+      </tr>
+    </tbody>
+  </table>
+  </section>
+  <section class="escenario">
+    <h2>2. Cálculo de una cotización</h2>
+    <p class="desc">POST /api/quotes/estimate. El motor recorre los 42 insumos del inventario, empareja los colores del boceto en OKLab y reparte el área entintada entre las tintas. Es el punto con más cálculo del sistema.</p>
+    <figure><svg xmlns="http://www.w3.org/2000/svg" width="920" height="380" viewBox="0 0 920 380" role="img" aria-label="2. Cálculo de una cotización"><rect width="920" height="380" fill="#ffffff"/><text x="68" y="30" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="17" font-weight="600" fill="#2c3340">2. Cálculo de una cotización</text><line x1="68" y1="316" x2="852" y2="316" stroke="#e8ebef" stroke-width="1"/><text x="58" y="320" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">0</text><line x1="68" y1="251.5" x2="852" y2="251.5" stroke="#e8ebef" stroke-width="1"/><text x="58" y="255.5" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">38</text><line x1="68" y1="187" x2="852" y2="187" stroke="#e8ebef" stroke-width="1"/><text x="58" y="191" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">75</text><line x1="68" y1="122.5" x2="852" y2="122.5" stroke="#e8ebef" stroke-width="1"/><text x="58" y="126.5" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">113</text><line x1="68" y1="58" x2="852" y2="58" stroke="#e8ebef" stroke-width="1"/><text x="58" y="62" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">150</text><text x="862" y="320" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">0</text><text x="862" y="255.5" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">188</text><text x="862" y="191" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">375</text><text x="862" y="126.5" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">563</text><text x="862" y="62" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">750</text><rect x="119.4" y="292.6768" width="54" height="23.323199999999986" fill="#cdd9e5" stroke="#9fb3c8" stroke-width="1" rx="2"/><text x="146.4" y="285.6768" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">67.8</text><rect x="276.20000000000005" y="138.4272" width="54" height="177.5728" fill="#cdd9e5" stroke="#9fb3c8" stroke-width="1" rx="2"/><text x="303.20000000000005" y="131.4272" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">516.2</text><rect x="433" y="130.30880000000002" width="54" height="185.69119999999998" fill="#cdd9e5" stroke="#9fb3c8" stroke-width="1" rx="2"/><text x="460" y="123.30880000000002" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">539.8</text><rect x="589.8000000000001" y="125.32079999999999" width="54" height="190.6792" fill="#cdd9e5" stroke="#9fb3c8" stroke-width="1" rx="2"/><text x="616.8000000000001" y="118.32079999999999" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">554.3</text><rect x="746.6" y="125.66480000000001" width="54" height="190.3352" fill="#cdd9e5" stroke="#9fb3c8" stroke-width="1" rx="2"/><text x="773.6" y="118.66480000000001" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">553.3</text><polyline points="146.4,289.34 303.20000000000005,300.348 460,285.9 616.8000000000001,240.49200000000002 773.6,165.156" fill="none" stroke="#2f6fb5" stroke-width="2.5" stroke-linejoin="round"/><circle cx="146.4" cy="289.34" r="4" fill="#fff" stroke="#2f6fb5" stroke-width="2.5"/><circle cx="303.20000000000005" cy="300.348" r="4" fill="#fff" stroke="#2f6fb5" stroke-width="2.5"/><circle cx="460" cy="285.9" r="4" fill="#fff" stroke="#2f6fb5" stroke-width="2.5"/><circle cx="616.8000000000001" cy="240.49200000000002" r="4" fill="#fff" stroke="#2f6fb5" stroke-width="2.5"/><circle cx="773.6" cy="165.156" r="4" fill="#fff" stroke="#2f6fb5" stroke-width="2.5"/><polyline points="146.4,287.276 303.20000000000005,292.436 460,271.28 616.8000000000001,222.60399999999998 773.6,123.01599999999999" fill="none" stroke="#e08a2b" stroke-width="2.5" stroke-linejoin="round"/><circle cx="146.4" cy="287.276" r="4" fill="#fff" stroke="#e08a2b" stroke-width="2.5"/><circle cx="303.20000000000005" cy="292.436" r="4" fill="#fff" stroke="#e08a2b" stroke-width="2.5"/><circle cx="460" cy="271.28" r="4" fill="#fff" stroke="#e08a2b" stroke-width="2.5"/><circle cx="616.8000000000001" cy="222.60399999999998" r="4" fill="#fff" stroke="#e08a2b" stroke-width="2.5"/><circle cx="773.6" cy="123.01599999999999" r="4" fill="#fff" stroke="#e08a2b" stroke-width="2.5"/><polyline points="146.4,284.524 303.20000000000005,289.34 460,262.852 616.8000000000001,193.01999999999998 773.6,86.036" fill="none" stroke="#b4383a" stroke-width="2.5" stroke-linejoin="round"/><circle cx="146.4" cy="284.524" r="4" fill="#fff" stroke="#b4383a" stroke-width="2.5"/><circle cx="303.20000000000005" cy="289.34" r="4" fill="#fff" stroke="#b4383a" stroke-width="2.5"/><circle cx="460" cy="262.852" r="4" fill="#fff" stroke="#b4383a" stroke-width="2.5"/><circle cx="616.8000000000001" cy="193.01999999999998" r="4" fill="#fff" stroke="#b4383a" stroke-width="2.5"/><circle cx="773.6" cy="86.036" r="4" fill="#fff" stroke="#b4383a" stroke-width="2.5"/><line x1="68" y1="316" x2="852" y2="316" stroke="#8b95a1" stroke-width="1"/><text x="146.4" y="338" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">1</text><text x="303.20000000000005" y="338" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">5</text><text x="460" y="338" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">10</text><text x="616.8000000000001" y="338" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">25</text><text x="773.6" y="338" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">50</text><text x="460" y="364" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#6b7585">Peticiones en paralelo</text><text transform="translate(18 187) rotate(-90)" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#6b7585">Latencia (ms)</text><text transform="translate(904 187) rotate(-90)" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#6b7585">Peticiones por segundo</text><rect x="338" y="20" width="13" height="13" fill="#cdd9e5" stroke="#9fb3c8"/><text x="358" y="31" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#6b7585">Peticiones/s</text><line x1="450.4" y1="27" x2="464.4" y2="27" stroke="#2f6fb5" stroke-width="3"/><text x="470.4" y="31" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#6b7585">Latencia p50</text><line x1="562.8" y1="27" x2="576.8" y2="27" stroke="#e08a2b" stroke-width="3"/><text x="582.8" y="31" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#6b7585">p95</text><line x1="610.4" y1="27" x2="624.4" y2="27" stroke="#b4383a" stroke-width="3"/><text x="630.4" y="31" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#6b7585">p99</text></svg></figure>
+    <table>
+    <thead>
+      <tr>
+        <th>En paralelo</th><th>Peticiones</th><th>Pet./s</th>
+        <th>p50 (ms)</th><th>p95 (ms)</th><th>p99 (ms)</th><th>Máx. (ms)</th><th>Respuestas</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="num">1</td>
+        <td class="num">300</td>
+        <td class="num">67.8</td>
+        <td class="num">15.5</td>
+        <td class="num">16.7</td>
+        <td class="num">18.3</td>
+        <td class="num">20.6</td>
+        <td>200 × 300</td>
+      </tr>
+      <tr>
+        <td class="num">5</td>
+        <td class="num">300</td>
+        <td class="num">516.2</td>
+        <td class="num">9.1</td>
+        <td class="num">13.7</td>
+        <td class="num">15.5</td>
+        <td class="num">18.3</td>
+        <td>200 × 300</td>
+      </tr>
+      <tr>
+        <td class="num">10</td>
+        <td class="num">300</td>
+        <td class="num">539.8</td>
+        <td class="num">17.5</td>
+        <td class="num">26</td>
+        <td class="num">30.9</td>
+        <td class="num">35.1</td>
+        <td>200 × 300</td>
+      </tr>
+      <tr>
+        <td class="num">25</td>
+        <td class="num">300</td>
+        <td class="num">554.3</td>
+        <td class="num">43.9</td>
+        <td class="num">54.3</td>
+        <td class="num">71.5</td>
+        <td class="num">82.3</td>
+        <td>200 × 300</td>
+      </tr>
+      <tr>
+        <td class="num">50</td>
+        <td class="num">300</td>
+        <td class="num">553.3</td>
+        <td class="num">87.7</td>
+        <td class="num">112.2</td>
+        <td class="num">133.7</td>
+        <td class="num">137.3</td>
+        <td>200 × 300</td>
+      </tr>
+    </tbody>
+  </table>
+  </section>
+  <section class="escenario">
+    <h2>3. Agendado de citas</h2>
+    <p class="desc">POST /api/sessions en horas distintas. Cada escritura toma el bloqueo por artista, revisa que la hora esté libre y escribe, todo en una transacción.</p>
+    <figure><svg xmlns="http://www.w3.org/2000/svg" width="920" height="380" viewBox="0 0 920 380" role="img" aria-label="3. Agendado de citas"><rect width="920" height="380" fill="#ffffff"/><text x="68" y="30" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="17" font-weight="600" fill="#2c3340">3. Agendado de citas</text><line x1="68" y1="316" x2="852" y2="316" stroke="#e8ebef" stroke-width="1"/><text x="58" y="320" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">0</text><line x1="68" y1="251.5" x2="852" y2="251.5" stroke="#e8ebef" stroke-width="1"/><text x="58" y="255.5" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">50</text><line x1="68" y1="187" x2="852" y2="187" stroke="#e8ebef" stroke-width="1"/><text x="58" y="191" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">100</text><line x1="68" y1="122.5" x2="852" y2="122.5" stroke="#e8ebef" stroke-width="1"/><text x="58" y="126.5" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">150</text><line x1="68" y1="58" x2="852" y2="58" stroke="#e8ebef" stroke-width="1"/><text x="58" y="62" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">200</text><text x="862" y="320" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">0</text><text x="862" y="255.5" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">75</text><text x="862" y="191" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">150</text><text x="862" y="126.5" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">225</text><text x="862" y="62" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">300</text><rect x="119.4" y="257.692" width="54" height="58.30799999999999" fill="#cdd9e5" stroke="#9fb3c8" stroke-width="1" rx="2"/><text x="146.4" y="250.692" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">67.8</text><rect x="276.20000000000005" y="62.386000000000024" width="54" height="253.61399999999998" fill="#cdd9e5" stroke="#9fb3c8" stroke-width="1" rx="2"/><text x="303.20000000000005" y="55.386000000000024" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">294.9</text><rect x="433" y="61.95600000000002" width="54" height="254.04399999999998" fill="#cdd9e5" stroke="#9fb3c8" stroke-width="1" rx="2"/><text x="460" y="54.95600000000002" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">295.4</text><rect x="589.8000000000001" y="70.21199999999999" width="54" height="245.788" fill="#cdd9e5" stroke="#9fb3c8" stroke-width="1" rx="2"/><text x="616.8000000000001" y="63.21199999999999" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">285.8</text><rect x="746.6" y="66.34199999999998" width="54" height="249.65800000000002" fill="#cdd9e5" stroke="#9fb3c8" stroke-width="1" rx="2"/><text x="773.6" y="59.341999999999985" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">290.3</text><polyline points="146.4,296.134 303.20000000000005,295.231 460,272.914 616.8000000000001,205.96300000000002 773.6,95.281" fill="none" stroke="#2f6fb5" stroke-width="2.5" stroke-linejoin="round"/><circle cx="146.4" cy="296.134" r="4" fill="#fff" stroke="#2f6fb5" stroke-width="2.5"/><circle cx="303.20000000000005" cy="295.231" r="4" fill="#fff" stroke="#2f6fb5" stroke-width="2.5"/><circle cx="460" cy="272.914" r="4" fill="#fff" stroke="#2f6fb5" stroke-width="2.5"/><circle cx="616.8000000000001" cy="205.96300000000002" r="4" fill="#fff" stroke="#2f6fb5" stroke-width="2.5"/><circle cx="773.6" cy="95.281" r="4" fill="#fff" stroke="#2f6fb5" stroke-width="2.5"/><polyline points="146.4,294.07 303.20000000000005,286.846 460,268.141 616.8000000000001,186.35500000000002 773.6,89.21799999999999" fill="none" stroke="#e08a2b" stroke-width="2.5" stroke-linejoin="round"/><circle cx="146.4" cy="294.07" r="4" fill="#fff" stroke="#e08a2b" stroke-width="2.5"/><circle cx="303.20000000000005" cy="286.846" r="4" fill="#fff" stroke="#e08a2b" stroke-width="2.5"/><circle cx="460" cy="268.141" r="4" fill="#fff" stroke="#e08a2b" stroke-width="2.5"/><circle cx="616.8000000000001" cy="186.35500000000002" r="4" fill="#fff" stroke="#e08a2b" stroke-width="2.5"/><circle cx="773.6" cy="89.21799999999999" r="4" fill="#fff" stroke="#e08a2b" stroke-width="2.5"/><polyline points="146.4,291.748 303.20000000000005,265.432 460,266.206 616.8000000000001,179.38899999999998 773.6,61.870000000000005" fill="none" stroke="#b4383a" stroke-width="2.5" stroke-linejoin="round"/><circle cx="146.4" cy="291.748" r="4" fill="#fff" stroke="#b4383a" stroke-width="2.5"/><circle cx="303.20000000000005" cy="265.432" r="4" fill="#fff" stroke="#b4383a" stroke-width="2.5"/><circle cx="460" cy="266.206" r="4" fill="#fff" stroke="#b4383a" stroke-width="2.5"/><circle cx="616.8000000000001" cy="179.38899999999998" r="4" fill="#fff" stroke="#b4383a" stroke-width="2.5"/><circle cx="773.6" cy="61.870000000000005" r="4" fill="#fff" stroke="#b4383a" stroke-width="2.5"/><line x1="68" y1="316" x2="852" y2="316" stroke="#8b95a1" stroke-width="1"/><text x="146.4" y="338" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">1</text><text x="303.20000000000005" y="338" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">5</text><text x="460" y="338" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">10</text><text x="616.8000000000001" y="338" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">25</text><text x="773.6" y="338" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">50</text><text x="460" y="364" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#6b7585">Peticiones en paralelo</text><text transform="translate(18 187) rotate(-90)" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#6b7585">Latencia (ms)</text><text transform="translate(904 187) rotate(-90)" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#6b7585">Peticiones por segundo</text><rect x="338" y="20" width="13" height="13" fill="#cdd9e5" stroke="#9fb3c8"/><text x="358" y="31" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#6b7585">Peticiones/s</text><line x1="450.4" y1="27" x2="464.4" y2="27" stroke="#2f6fb5" stroke-width="3"/><text x="470.4" y="31" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#6b7585">Latencia p50</text><line x1="562.8" y1="27" x2="576.8" y2="27" stroke="#e08a2b" stroke-width="3"/><text x="582.8" y="31" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#6b7585">p95</text><line x1="610.4" y1="27" x2="624.4" y2="27" stroke="#b4383a" stroke-width="3"/><text x="630.4" y="31" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#6b7585">p99</text></svg></figure>
+    <table>
+    <thead>
+      <tr>
+        <th>En paralelo</th><th>Peticiones</th><th>Pet./s</th>
+        <th>p50 (ms)</th><th>p95 (ms)</th><th>p99 (ms)</th><th>Máx. (ms)</th><th>Respuestas</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="num">1</td>
+        <td class="num">300</td>
+        <td class="num">67.8</td>
+        <td class="num">15.4</td>
+        <td class="num">17</td>
+        <td class="num">18.8</td>
+        <td class="num">20.7</td>
+        <td>201 × 300</td>
+      </tr>
+      <tr>
+        <td class="num">5</td>
+        <td class="num">300</td>
+        <td class="num">294.9</td>
+        <td class="num">16.1</td>
+        <td class="num">22.6</td>
+        <td class="num">39.2</td>
+        <td class="num">41.3</td>
+        <td>201 × 300</td>
+      </tr>
+      <tr>
+        <td class="num">10</td>
+        <td class="num">300</td>
+        <td class="num">295.4</td>
+        <td class="num">33.4</td>
+        <td class="num">37.1</td>
+        <td class="num">38.6</td>
+        <td class="num">40</td>
+        <td>201 × 300</td>
+      </tr>
+      <tr>
+        <td class="num">25</td>
+        <td class="num">300</td>
+        <td class="num">285.8</td>
+        <td class="num">85.3</td>
+        <td class="num">100.5</td>
+        <td class="num">105.9</td>
+        <td class="num">110.9</td>
+        <td>201 × 300</td>
+      </tr>
+      <tr>
+        <td class="num">50</td>
+        <td class="num">300</td>
+        <td class="num">290.3</td>
+        <td class="num">171.1</td>
+        <td class="num">175.8</td>
+        <td class="num">197</td>
+        <td class="num">207.6</td>
+        <td>201 × 300</td>
+      </tr>
+    </tbody>
+  </table>
+  </section>
+  <section class="escenario">
+    <h2>4. Subida de un boceto</h2>
+    <p class="desc">POST /api/sketches con una imagen PNG de 45 kB. Incluye la optimización con sharp, la medición de la cobertura de tinta y de la paleta de colores, y el guardado del archivo.</p>
+    <figure><svg xmlns="http://www.w3.org/2000/svg" width="920" height="380" viewBox="0 0 920 380" role="img" aria-label="4. Subida de un boceto"><rect width="920" height="380" fill="#ffffff"/><text x="68" y="30" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="17" font-weight="600" fill="#2c3340">4. Subida de un boceto</text><line x1="68" y1="316" x2="852" y2="316" stroke="#e8ebef" stroke-width="1"/><text x="58" y="320" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">0</text><line x1="68" y1="251.5" x2="852" y2="251.5" stroke="#e8ebef" stroke-width="1"/><text x="58" y="255.5" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">50</text><line x1="68" y1="187" x2="852" y2="187" stroke="#e8ebef" stroke-width="1"/><text x="58" y="191" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">100</text><line x1="68" y1="122.5" x2="852" y2="122.5" stroke="#e8ebef" stroke-width="1"/><text x="58" y="126.5" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">150</text><line x1="68" y1="58" x2="852" y2="58" stroke="#e8ebef" stroke-width="1"/><text x="58" y="62" text-anchor="end" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">200</text><text x="862" y="320" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">0</text><text x="862" y="255.5" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">19</text><text x="862" y="191" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">38</text><text x="862" y="126.5" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">56</text><text x="862" y="62" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">75</text><rect x="139" y="273.344" width="54" height="42.656000000000006" fill="#cdd9e5" stroke="#9fb3c8" stroke-width="1" rx="2"/><text x="166" y="266.344" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">12.4</text><rect x="335" y="237.912" width="54" height="78.088" fill="#cdd9e5" stroke="#9fb3c8" stroke-width="1" rx="2"/><text x="362" y="230.912" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">22.7</text><rect x="531" y="163.608" width="54" height="152.392" fill="#cdd9e5" stroke="#9fb3c8" stroke-width="1" rx="2"/><text x="558" y="156.608" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">44.3</text><rect x="727" y="133.68" width="54" height="182.32" fill="#cdd9e5" stroke="#9fb3c8" stroke-width="1" rx="2"/><text x="754" y="126.68" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#6b7585">53</text><polyline points="166,217.83100000000002 362,214.993 558,210.091 754,137.20600000000002" fill="none" stroke="#2f6fb5" stroke-width="2.5" stroke-linejoin="round"/><circle cx="166" cy="217.83100000000002" r="4" fill="#fff" stroke="#2f6fb5" stroke-width="2.5"/><circle cx="362" cy="214.993" r="4" fill="#fff" stroke="#2f6fb5" stroke-width="2.5"/><circle cx="558" cy="210.091" r="4" fill="#fff" stroke="#2f6fb5" stroke-width="2.5"/><circle cx="754" cy="137.20600000000002" r="4" fill="#fff" stroke="#2f6fb5" stroke-width="2.5"/><polyline points="166,176.55100000000002 362,159.136 558,154.75 754,85.993" fill="none" stroke="#e08a2b" stroke-width="2.5" stroke-linejoin="round"/><circle cx="166" cy="176.55100000000002" r="4" fill="#fff" stroke="#e08a2b" stroke-width="2.5"/><circle cx="362" cy="159.136" r="4" fill="#fff" stroke="#e08a2b" stroke-width="2.5"/><circle cx="558" cy="154.75" r="4" fill="#fff" stroke="#e08a2b" stroke-width="2.5"/><circle cx="754" cy="85.993" r="4" fill="#fff" stroke="#e08a2b" stroke-width="2.5"/><polyline points="166,162.74800000000002 362,153.84699999999998 558,136.561 754,81.73600000000002" fill="none" stroke="#b4383a" stroke-width="2.5" stroke-linejoin="round"/><circle cx="166" cy="162.74800000000002" r="4" fill="#fff" stroke="#b4383a" stroke-width="2.5"/><circle cx="362" cy="153.84699999999998" r="4" fill="#fff" stroke="#b4383a" stroke-width="2.5"/><circle cx="558" cy="136.561" r="4" fill="#fff" stroke="#b4383a" stroke-width="2.5"/><circle cx="754" cy="81.73600000000002" r="4" fill="#fff" stroke="#b4383a" stroke-width="2.5"/><line x1="68" y1="316" x2="852" y2="316" stroke="#8b95a1" stroke-width="1"/><text x="166" y="338" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">1</text><text x="362" y="338" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">2</text><text x="558" y="338" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">4</text><text x="754" y="338" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#2c3340">8</text><text x="460" y="364" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#6b7585">Peticiones en paralelo</text><text transform="translate(18 187) rotate(-90)" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#6b7585">Latencia (ms)</text><text transform="translate(904 187) rotate(-90)" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#6b7585">Peticiones por segundo</text><rect x="338" y="20" width="13" height="13" fill="#cdd9e5" stroke="#9fb3c8"/><text x="358" y="31" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#6b7585">Peticiones/s</text><line x1="450.4" y1="27" x2="464.4" y2="27" stroke="#2f6fb5" stroke-width="3"/><text x="470.4" y="31" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#6b7585">Latencia p50</text><line x1="562.8" y1="27" x2="576.8" y2="27" stroke="#e08a2b" stroke-width="3"/><text x="582.8" y="31" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#6b7585">p95</text><line x1="610.4" y1="27" x2="624.4" y2="27" stroke="#b4383a" stroke-width="3"/><text x="630.4" y="31" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#6b7585">p99</text></svg></figure>
+    <table>
+    <thead>
+      <tr>
+        <th>En paralelo</th><th>Peticiones</th><th>Pet./s</th>
+        <th>p50 (ms)</th><th>p95 (ms)</th><th>p99 (ms)</th><th>Máx. (ms)</th><th>Respuestas</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="num">1</td>
+        <td class="num">40</td>
+        <td class="num">12.4</td>
+        <td class="num">76.1</td>
+        <td class="num">108.1</td>
+        <td class="num">118.8</td>
+        <td class="num">118.8</td>
+        <td>201 × 40</td>
+      </tr>
+      <tr>
+        <td class="num">2</td>
+        <td class="num">40</td>
+        <td class="num">22.7</td>
+        <td class="num">78.3</td>
+        <td class="num">121.6</td>
+        <td class="num">125.7</td>
+        <td class="num">125.7</td>
+        <td>201 × 40</td>
+      </tr>
+      <tr>
+        <td class="num">4</td>
+        <td class="num">40</td>
+        <td class="num">44.3</td>
+        <td class="num">82.1</td>
+        <td class="num">125</td>
+        <td class="num">139.1</td>
+        <td class="num">139.1</td>
+        <td>201 × 40</td>
+      </tr>
+      <tr>
+        <td class="num">8</td>
+        <td class="num">40</td>
+        <td class="num">53</td>
+        <td class="num">138.6</td>
+        <td class="num">178.3</td>
+        <td class="num">181.6</td>
+        <td class="num">181.6</td>
+        <td>201 × 40</td>
+      </tr>
+    </tbody>
+  </table>
+  </section>
+
+  <section class="escenario">
+    <h2>5. Colisión: 50 peticiones pidiendo la misma hora a la vez</h2>
+    <p class="desc">Es la prueba que de verdad somete a estrés la regla del sistema: todas las peticiones salen al mismo tiempo pidiendo exactamente el mismo horario. El bloqueo por artista tiene que dejar pasar una sola.</p>
+    <div class="tarjetas">
+      <div class="tarjeta"><div class="n ok">1</div><div class="t">cita creada (201)</div></div>
+      <div class="tarjeta"><div class="n">49</div><div class="t">rechazadas por choque (409)</div></div>
+      <div class="tarjeta"><div class="n">0</div><div class="t">errores o respuestas inesperadas</div></div>
+      <div class="tarjeta"><div class="n">109 ms</div><div class="t">en resolver las 50</div></div>
+    </div>
+    <p class="desc" style="margin-top:16px">Latencias de esas 50 peticiones: p50 77.5 ms, p95 103.9 ms, máximo 105.8 ms.</p>
+  </section>
+</main>
+<footer>
+  Generado desde <code>docs/pruebas-estres/resultados.json</code>. Para repetir la medición:
+  <code>node backend/stress/correr.js</code> y luego <code>node backend/stress/informe.js</code>.
+  La corrida crea su propia cuenta de prueba y borra al terminar todo lo que creó.
+</footer>
+</body>
+</html>
