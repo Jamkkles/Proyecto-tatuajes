@@ -24,6 +24,7 @@
   th, td { border-bottom: 1px solid #eceff3; padding: 7px 10px; text-align: left; }
   th { font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em; color: #6b7585; font-weight: 600; }
   td.num, th:not(:last-child) { text-align: right; }
+  table.nube th:first-child { text-align: left; }
   td.num { font-variant-numeric: tabular-nums; }
   .tarjetas { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin: 0 0 4px; }
   .tarjeta { background: #f8fafc; border: 1px solid #e3e7ec; border-radius: 8px; padding: 14px 16px; }
@@ -31,6 +32,8 @@
   .tarjeta .t { font-size: 13px; color: #6b7585; }
   .ok { color: #1f7a44; }
   .entorno { font-size: 14px; color: #6b7585; }
+  .aviso { background: #fff8e6; border: 1px solid #f0dca8; border-radius: 8px; padding: 14px 18px; margin: 0 0 18px; font-size: 14.5px; }
+  .pista { font-size: 14px; color: #6b7585; margin: 18px 0 0; border-left: 3px solid #cdd9e5; padding-left: 14px; }
   .entorno b { color: #2c3340; font-weight: 600; }
   footer { max-width: 1000px; margin: 0 auto; color: #58616f; font-size: 13.5px; }
   code { background: #eef1f5; padding: 1px 6px; border-radius: 4px; font-size: 13px; }
@@ -320,6 +323,77 @@
       <div class="tarjeta"><div class="n">109 ms</div><div class="t">en resolver las 50</div></div>
     </div>
     <p class="desc" style="margin-top:16px">Latencias de esas 50 peticiones: p50 77.5 ms, p95 103.9 ms, máximo 105.8 ms.</p>
+  </section>
+
+  <section>
+    <h2>Qué esperar en el despliegue en la nube</h2>
+    <p class="aviso"><b>Esto es una proyección, no una medición.</b> Las cifras de arriba se midieron contra
+      el entorno local; las de esta sección son lo que cabe esperar del backend publicado en el plan
+      gratuito de Render (512 MB, una fracción de CPU compartida, región Ohio) con la base de datos en Neon.
+      Se incluyen porque es la pregunta natural al ver los números locales, y se marcan como estimación
+      para que nadie las confunda con un dato.</p>
+
+    <p class="desc">Entre la máquina de prueba y ese despliegue hay tres saltos hacia abajo. El primero es la
+      <b>CPU</b>: localmente el backend dispone de un procesador completo y PostgreSQL corre en los núcleos
+      de al lado, mientras que el plan gratuito entrega una fracción de un núcleo compartido y más lento, lo
+      que da del orden de diez a quince veces menos capacidad de cálculo. El segundo es que <b>la base deja
+      de estar al lado</b>: cada consulta pasa de costar microsegundos en memoria a cruzar la red hasta Neon,
+      y el agendado hace varias dentro de una misma transacción con el bloqueo tomado, así que es el
+      escenario que más se degrada. El tercero no afecta la capacidad pero sí lo que siente el usuario: entre
+      Chile y Ohio hay cerca de 150 a 200 ms de ida y vuelta, de modo que una pantalla que hace tres
+      llamadas se siente medio segundo más lenta aunque el servidor conteste al instante.</p>
+
+    <table class="nube">
+      <thead>
+        <tr><th>Escenario</th><th>Local (medido)</th><th>En la nube (estimado)</th><th>Qué lo limita</th></tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td>Lectura de la agenda del mes</td>
+        <td class="num">619.9</td>
+        <td class="num">15 – 40</td>
+        <td>CPU compartida del plan gratuito</td>
+      </tr>
+      <tr>
+        <td>Cálculo de una cotización</td>
+        <td class="num">554.3</td>
+        <td class="num">10 – 30</td>
+        <td>CPU: el cálculo es casi todo cómputo</td>
+      </tr>
+      <tr>
+        <td>Agendado de citas</td>
+        <td class="num">295.4</td>
+        <td class="num">5 – 15</td>
+        <td>Cada escritura cruza la red hasta Neon, con el bloqueo tomado</td>
+      </tr>
+      <tr>
+        <td>Subida de un boceto</td>
+        <td class="num">53</td>
+        <td class="num">0,5 – 2</td>
+        <td>Memoria: 512 MB con la imagen descomprimida</td>
+      </tr>
+      </tbody>
+    </table>
+
+    <p class="desc" style="margin-top:20px"><b>El límite real no es la velocidad, son los 512 MB.</b> Al subir
+      un boceto, la biblioteca de imágenes descomprime el archivo en memoria —un JPEG de 5 MB puede ocupar
+      más de 100 MB mientras se procesa— y la petición ya traía el archivo entero en RAM. Dos o tres subidas
+      simultáneas pueden pasarse del tope, y cuando eso ocurre el proveedor mata el proceso y lo reinicia:
+      el usuario ve un error, no una lentitud. Ese es el punto que conviene vigilar, y no las peticiones por
+      segundo. Después vienen, en este orden, el minuto que tarda el servidor en despertar tras quince
+      minutos sin uso, los 0,5 GB de la base, los créditos mensuales del servicio de imágenes y las 750 horas
+      de cómputo al mes, que alcanzan justo para un servicio encendido todo el mes.</p>
+
+    <p class="desc"><b>Puesto en términos de uso real:</b> un tatuador hace del orden de cien o doscientas
+      peticiones en un día de trabajo. Aun tomando la estimación más pesimista de la tabla, diez peticiones
+      por segundo sostenidas son treinta y seis mil por hora, de modo que la capacidad de cálculo alcanzaría
+      para varias decenas de estudios trabajando a la vez. Lo que se rompería antes es la memoria durante las
+      subidas simultáneas y el cupo de almacenamiento de imágenes.</p>
+
+    <p class="pista">Para reemplazar esta estimación por una medición: despertar el servicio, correr
+      <code>BASE=https://… node backend/stress/correr.js</code> con concurrencia baja durante medio minuto
+      por nivel, y mirar el panel de memoria del proveedor mientras tanto. Con esa carga no hay riesgo de
+      infringir el uso aceptable del plan gratuito.</p>
   </section>
 </main>
 <footer>

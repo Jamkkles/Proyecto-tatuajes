@@ -15,6 +15,23 @@ const DIR = path.join(__dirname, '..', '..', 'docs', 'pruebas-estres');
 const IMG = path.join(DIR, 'imagenes');
 const datos = JSON.parse(fs.readFileSync(path.join(DIR, 'resultados.json'), 'utf8'));
 
+/**
+ * Proyección —no medición— de lo que daría el mismo sistema en el plan gratuito
+ * de Render (512 MB, fracción de CPU, región Ohio) con la base en Neon.
+ *
+ * Los rangos salen de tres factores que se explican en la sección del informe:
+ * la CPU compartida vale entre diez y quince veces menos que un núcleo de la
+ * máquina de prueba; la base deja de estar en memoria y pasa a cruzar la red; y
+ * la subida de imágenes topa con los 512 MB antes que con la CPU. Si algún día
+ * se mide de verdad contra el despliegue, estas cifras se reemplazan.
+ */
+const NUBE = {
+  agenda: { rango: [15, 40], limite: 'CPU compartida del plan gratuito' },
+  cotizacion: { rango: [10, 30], limite: 'CPU: el cálculo es casi todo cómputo' },
+  agendado: { rango: [5, 15], limite: 'Cada escritura cruza la red hasta Neon, con el bloqueo tomado' },
+  subida: { rango: [0.5, 2], limite: 'Memoria: 512 MB con la imagen descomprimida' },
+};
+
 const COLOR = {
   barra: '#cdd9e5',
   barraBorde: '#9fb3c8',
@@ -238,6 +255,71 @@ ${filas}
   </table>`;
 }
 
+/** La proyección a la nube, con su advertencia por delante. */
+function seccionNube() {
+  const filas = datos.escenarios
+    .map((e) => {
+      const n = NUBE[e.id];
+      if (!n) return '';
+      const local = Math.max(...e.medidas.map((m) => m.rps));
+      return `      <tr>
+        <td>${esc(e.nombre.replace(/^\d+\.\s*/, ''))}</td>
+        <td class="num">${local}</td>
+        <td class="num">${String(n.rango[0]).replace(".", ",")} – ${String(n.rango[1]).replace(".", ",")}</td>
+        <td>${esc(n.limite)}</td>
+      </tr>`;
+    })
+    .join('\n');
+
+  return `  <section>
+    <h2>Qué esperar en el despliegue en la nube</h2>
+    <p class="aviso"><b>Esto es una proyección, no una medición.</b> Las cifras de arriba se midieron contra
+      el entorno local; las de esta sección son lo que cabe esperar del backend publicado en el plan
+      gratuito de Render (512 MB, una fracción de CPU compartida, región Ohio) con la base de datos en Neon.
+      Se incluyen porque es la pregunta natural al ver los números locales, y se marcan como estimación
+      para que nadie las confunda con un dato.</p>
+
+    <p class="desc">Entre la máquina de prueba y ese despliegue hay tres saltos hacia abajo. El primero es la
+      <b>CPU</b>: localmente el backend dispone de un procesador completo y PostgreSQL corre en los núcleos
+      de al lado, mientras que el plan gratuito entrega una fracción de un núcleo compartido y más lento, lo
+      que da del orden de diez a quince veces menos capacidad de cálculo. El segundo es que <b>la base deja
+      de estar al lado</b>: cada consulta pasa de costar microsegundos en memoria a cruzar la red hasta Neon,
+      y el agendado hace varias dentro de una misma transacción con el bloqueo tomado, así que es el
+      escenario que más se degrada. El tercero no afecta la capacidad pero sí lo que siente el usuario: entre
+      Chile y Ohio hay cerca de 150 a 200 ms de ida y vuelta, de modo que una pantalla que hace tres
+      llamadas se siente medio segundo más lenta aunque el servidor conteste al instante.</p>
+
+    <table class="nube">
+      <thead>
+        <tr><th>Escenario</th><th>Local (medido)</th><th>En la nube (estimado)</th><th>Qué lo limita</th></tr>
+      </thead>
+      <tbody>
+${filas}
+      </tbody>
+    </table>
+
+    <p class="desc" style="margin-top:20px"><b>El límite real no es la velocidad, son los 512 MB.</b> Al subir
+      un boceto, la biblioteca de imágenes descomprime el archivo en memoria —un JPEG de 5 MB puede ocupar
+      más de 100 MB mientras se procesa— y la petición ya traía el archivo entero en RAM. Dos o tres subidas
+      simultáneas pueden pasarse del tope, y cuando eso ocurre el proveedor mata el proceso y lo reinicia:
+      el usuario ve un error, no una lentitud. Ese es el punto que conviene vigilar, y no las peticiones por
+      segundo. Después vienen, en este orden, el minuto que tarda el servidor en despertar tras quince
+      minutos sin uso, los 0,5 GB de la base, los créditos mensuales del servicio de imágenes y las 750 horas
+      de cómputo al mes, que alcanzan justo para un servicio encendido todo el mes.</p>
+
+    <p class="desc"><b>Puesto en términos de uso real:</b> un tatuador hace del orden de cien o doscientas
+      peticiones en un día de trabajo. Aun tomando la estimación más pesimista de la tabla, diez peticiones
+      por segundo sostenidas son treinta y seis mil por hora, de modo que la capacidad de cálculo alcanzaría
+      para varias decenas de estudios trabajando a la vez. Lo que se rompería antes es la memoria durante las
+      subidas simultáneas y el cupo de almacenamiento de imágenes.</p>
+
+    <p class="pista">Para reemplazar esta estimación por una medición: despertar el servicio, correr
+      <code>BASE=https://… node backend/stress/correr.js</code> con concurrencia baja durante medio minuto
+      por nivel, y mirar el panel de memoria del proveedor mientras tanto. Con esa carga no hay riesgo de
+      infringir el uso aceptable del plan gratuito.</p>
+  </section>`;
+}
+
 // ------------------------------------------------------------------ salida
 
 fs.mkdirSync(IMG, { recursive: true });
@@ -286,6 +368,7 @@ const html = `<!doctype html>
   th, td { border-bottom: 1px solid #eceff3; padding: 7px 10px; text-align: left; }
   th { font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em; color: ${COLOR.suave}; font-weight: 600; }
   td.num, th:not(:last-child) { text-align: right; }
+  table.nube th:first-child { text-align: left; }
   td.num { font-variant-numeric: tabular-nums; }
   .tarjetas { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin: 0 0 4px; }
   .tarjeta { background: #f8fafc; border: 1px solid #e3e7ec; border-radius: 8px; padding: 14px 16px; }
@@ -293,6 +376,8 @@ const html = `<!doctype html>
   .tarjeta .t { font-size: 13px; color: ${COLOR.suave}; }
   .ok { color: #1f7a44; }
   .entorno { font-size: 14px; color: ${COLOR.suave}; }
+  .aviso { background: #fff8e6; border: 1px solid #f0dca8; border-radius: 8px; padding: 14px 18px; margin: 0 0 18px; font-size: 14.5px; }
+  .pista { font-size: 14px; color: ${COLOR.suave}; margin: 18px 0 0; border-left: 3px solid ${COLOR.barra}; padding-left: 14px; }
   .entorno b { color: ${COLOR.texto}; font-weight: 600; }
   footer { max-width: 1000px; margin: 0 auto; color: ${COLOR.suaveFuera}; font-size: 13.5px; }
   code { background: #eef1f5; padding: 1px 6px; border-radius: 4px; font-size: 13px; }
@@ -336,6 +421,8 @@ ${secciones}
     </div>
     <p class="desc" style="margin-top:16px">Latencias de esas ${c.intentos} peticiones: p50 ${c.latencia.p50} ms, p95 ${c.latencia.p95} ms, máximo ${c.latencia.max} ms.</p>
   </section>
+
+${seccionNube()}
 </main>
 <footer>
   Generado desde <code>docs/pruebas-estres/resultados.json</code>. Para repetir la medición:
