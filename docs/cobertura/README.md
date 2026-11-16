@@ -25,6 +25,12 @@ exigente:
 | **Funciones** | Funciones que alguien llegó a llamar | **91,26 %** (460 de 504) |
 | **Ramas** | Cada salida de una decisión, por separado | **85,68 %** (1.479 de 1.726) |
 
+Son **cuatro medidas distintas del mismo recorrido**, no cuatro partes de un
+promedio: cada una cuenta algo diferente y por eso dan números distintos. Cuando
+se dice que el proyecto alcanzó el 95 %, se habla de las sentencias (95,53 %) y
+las líneas (97,22 %), que son las que se informan habitualmente. Las de
+funciones y ramas se publican igual, aunque una de ellas no llegue a la meta.
+
 La de **ramas** es la más dura y conviene entender por qué. Un `if` tiene dos
 salidas: la que se cumple y la que no. Si la prueba solo recorre una, la línea
 queda cubierta pero la rama no. Una condición con tres causas posibles necesita
@@ -42,6 +48,20 @@ Dicho de otra forma: una cobertura alta no demuestra que el sistema funcione,
 demuestra que no hay código que nadie haya probado nunca. Lo otro —que las
 pruebas comprueben lo correcto— lo sostienen los 35 casos funcionales y las
 decisiones que documenta cada iteración de la memoria.
+
+## Dónde se mide: solo el backend
+
+Conviene dejarlo claro porque es una limitación real: **la cobertura es del
+backend** (`backend/src`), que es donde están las reglas del sistema —quién ve
+qué datos, cuándo una hora está ocupada, cuánto cuesta un tatuaje, cuándo sale
+un recordatorio—. Son 3.000 sentencias repartidas en controladores, modelos,
+servicios, rutas, middleware y utilidades.
+
+**El frontend no tiene pruebas automatizadas** y por lo tanto no tiene
+cobertura. Lo que sí se le pasa antes de cada entrega son dos revisiones que no
+ejecutan el código: el compilador de TypeScript, que comprueba los tipos de todo
+el proyecto, y ESLint. Las dos salen limpias, pero no sustituyen a una prueba:
+dicen que el código está bien escrito, no que la pantalla haga lo que debe.
 
 ## Con qué se mide
 
@@ -64,10 +84,24 @@ El informe navegable queda en `backend/coverage/index.html`.
 
 Las 783 pruebas están repartidas en dos baterías que corren juntas:
 
-- **Unitarias** (672): sustituyen la base de datos y el almacenamiento por
-  dobles, así que corren en segundos y sin levantar nada.
-- **De integración** (111): corren contra un **PostgreSQL de verdad**, en una
-  base aparte que la propia corrida crea y vacía entre pruebas.
+- **Unitarias** (672, en 39 archivos): prueban una pieza **aislada del resto**.
+  Lo que esa pieza necesita de sus vecinas se reemplaza por un *doble*: un
+  sustituto que devuelve lo que la prueba le indique. Así se puede comprobar,
+  por ejemplo, que una ruta responde 409 cuando el modelo avisa que la hora
+  choca, sin que exista ninguna base de datos. Corren en segundos y no dependen
+  de nada levantado.
+- **De integración** (111, en 5 archivos): prueban **varias piezas reales
+  trabajando juntas**. Aquí los modelos corren contra un **PostgreSQL de
+  verdad**, en una base aparte que la propia corrida crea, llena y vacía entre
+  pruebas. Son las únicas que pueden demostrar lo que depende del motor de base
+  de datos: que diez peticiones simultáneas pidiendo la misma hora dejan una
+  sola cita, que el stock nunca queda negativo o que una cotización no se
+  descuenta dos veces.
+
+La diferencia, en una frase: las unitarias prueban cada pieza del motor en el
+banco; las de integración arman el motor y lo encienden. Las primeras dicen con
+precisión dónde está la falla; las segundas son las que descubren los problemas
+que solo aparecen cuando todo funciona junto.
 
 La medición pasó por tres etapas, y el recorrido explica mejor el número final
 que el número solo:
