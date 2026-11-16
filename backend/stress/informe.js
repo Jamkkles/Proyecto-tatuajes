@@ -377,7 +377,7 @@ const html = `<!doctype html>
   .ok { color: #1f7a44; }
   .entorno { font-size: 14px; color: ${COLOR.suave}; }
   .aviso { background: #fff8e6; border: 1px solid #f0dca8; border-radius: 8px; padding: 14px 18px; margin: 0 0 18px; font-size: 14.5px; }
-  .pista { font-size: 14px; color: ${COLOR.suave}; margin: 18px 0 0; border-left: 3px solid ${COLOR.barra}; padding-left: 14px; }
+  .pista { font-size: 14px; color: ${COLOR.suaveFuera}; margin: 18px 0 0; background: #f8fafc; border: 1px solid #e8ebef; border-radius: 8px; padding: 12px 16px; }
   .entorno b { color: ${COLOR.texto}; font-weight: 600; }
   footer { max-width: 1000px; margin: 0 auto; color: ${COLOR.suaveFuera}; font-size: 13.5px; }
   code { background: #eef1f5; padding: 1px 6px; border-radius: 4px; font-size: 13px; }
