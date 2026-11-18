@@ -417,7 +417,12 @@ describe('cotizaciones', () => {
     expect((await request(app).delete('/api/quotes/no-es-uuid').set('Authorization', auth)).status).toBe(404);
 
     quoteModel.remove.mockResolvedValue(null);
+    quoteModel.findByIdForUser.mockResolvedValue(null);
     expect((await request(app).delete(`/api/quotes/${ID}`).set('Authorization', auth)).status).toBe(404);
+
+    // Existe pero ya descontó stock: no se borra.
+    quoteModel.findByIdForUser.mockResolvedValue({ id: ID, consumed_at: '2026-09-27T12:00:00Z' });
+    expect((await request(app).delete(`/api/quotes/${ID}`).set('Authorization', auth)).status).toBe(409);
 
     quoteModel.remove.mockRejectedValue(caida());
     expect((await request(app).delete(`/api/quotes/${ID}`).set('Authorization', auth)).status).toBe(500);

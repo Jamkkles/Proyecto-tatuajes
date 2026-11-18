@@ -1,10 +1,10 @@
 /**
  * Inventario y cotizaciones contra la base real.
  *
- * Las dos reglas que importan aquí solo existen en SQL: el stock nunca queda
- * negativo porque se resta en la base y no en memoria, y una cotización no se
- * descuenta dos veces porque el sello va condicionado dentro de la misma
- * transacción.
+ * Las reglas que importan aquí solo existen en SQL: descontar una cotización
+ * es todo o nada (si falta stock no se toca nada y el stock nunca queda
+ * negativo), no se descuenta dos veces porque el sello va condicionado dentro
+ * de la misma transacción, y un proyecto descuenta una sola vez.
  */
 const pool = require('../../src/config/db');
 const materialModel = require('../../src/models/materialModel');
@@ -15,6 +15,26 @@ const { crearArtista, crearCliente, crearProyecto, crearInsumo } = require('./da
 const AJENO = '00000000-0000-0000-0000-000000000000';
 
 describe('materialModel', () => {
+  test('agregar un insumo con el mismo nombre suma al stock en vez de duplicarlo', async () => {
+    const artista = await crearArtista();
+    const original = await crearInsumo(artista.id, { name: 'Cartuchos RL 03', unit: 'unidad', quantity: 38, unitCost: 700 });
+
+    const { material, merged } = await materialModel.createOrMerge({
+      userId: artista.id,
+      name: '  cartuchos rl 03 ',
+      quantity: 1,
+      unitCost: 950,
+    });
+
+    expect(merged).toBe(true);
+    expect(material).toMatchObject({ id: original.id, name: 'Cartuchos RL 03', quantity: 39, unit_cost: 950 });
+    expect(await materialModel.listByUser(artista.id)).toHaveLength(1);
+
+    const nuevo = await materialModel.createOrMerge({ userId: artista.id, name: 'Guantes', quantity: 5 });
+    expect(nuevo.merged).toBe(false);
+    expect(await materialModel.listByUser(artista.id)).toHaveLength(2);
+  });
+
   test('lista primero lo que está en nivel crítico y después por nombre', async () => {
     const artista = await crearArtista();
     await crearInsumo(artista.id, { name: 'Zeta holgada', quantity: 50, minQuantity: 5 });
@@ -223,13 +243,49 @@ describe('quoteModel', () => {
     expect((await materialModel.findByIdForUser(film.id, artista.id)).quantity).toBe(10);
   });
 
-  test('el stock no queda negativo aunque lo cotizado supere lo que hay', async () => {
+  test('si falta stock de un insumo no se descuenta nada y se informa lo que falta', async () => {
     const artista = await crearArtista();
     const tinta = await crearInsumo(artista.id, { name: 'Tinta', quantity: 3 });
-    const cotizacion = await cotizacionCon(artista, [linea(tinta, 10)]);
+    const guantes = await crearInsumo(artista.id, { name: 'Guantes', unit: 'par', quantity: 20 });
+    const cotizacion = await cotizacionCon(artista, [linea(tinta, 10), linea(guantes, 2)]);
 
+    const resultado = await quoteModel.consume(cotizacion.id, artista.id);
+    expect(resultado.shortages).toEqual([
+      expect.objectContaining({ id: tinta.id, needed: 10, available: 3, missing: 7 }),
+    ]);
+    // Todo o nada: ni la tinta ni los guantes cambian, y la cotización sigue sin descontar.
+    expect((await materialModel.findByIdForUser(tinta.id, artista.id)).quantity).toBe(3);
+    expect((await materialModel.findByIdForUser(guantes.id, artista.id)).quantity).toBe(20);
+    expect((await quoteModel.findByIdForUser(cotizacion.id, artista.id)).consumed_at).toBeNull();
+
+    // Repuesto el stock, ahora sí descuenta.
+    await materialModel.adjustStock(tinta.id, artista.id, 7);
     const { affected } = await quoteModel.consume(cotizacion.id, artista.id);
-    expect(affected[0].quantity).toBe(0);
+    expect(affected.find((m) => m.id === tinta.id).quantity).toBe(0);
+  });
+
+  test('un proyecto descuenta una sola vez aunque tenga varias cotizaciones', async () => {
+    const artista = await crearArtista();
+    const cliente = await crearCliente(artista.id);
+    const proyecto = await crearProyecto(artista.id, cliente.id);
+    const tinta = await crearInsumo(artista.id, { name: 'Tinta', quantity: 50 });
+    const a = await cotizacionCon(artista, [linea(tinta, 4)], { projectId: proyecto.id, title: 'A' });
+    const b = await cotizacionCon(artista, [linea(tinta, 4)], { projectId: proyecto.id, title: 'B' });
+
+    await quoteModel.consume(a.id, artista.id);
+    const segundo = await quoteModel.consume(b.id, artista.id);
+    expect(segundo.alreadyConsumed).toMatchObject({ id: a.id, title: 'A' });
+    expect((await materialModel.findByIdForUser(tinta.id, artista.id)).quantity).toBe(46);
+  });
+
+  test('una cotización que ya descontó no se puede eliminar', async () => {
+    const artista = await crearArtista();
+    const tinta = await crearInsumo(artista.id, { name: 'Tinta', quantity: 50 });
+    const cotizacion = await cotizacionCon(artista, [linea(tinta, 4)]);
+
+    await quoteModel.consume(cotizacion.id, artista.id);
+    expect(await quoteModel.remove(cotizacion.id, artista.id)).toBeNull();
+    expect(await quoteModel.findByIdForUser(cotizacion.id, artista.id)).not.toBeNull();
   });
 
   test('una línea sin insumo vivo entra en el total y no descuenta nada', async () => {

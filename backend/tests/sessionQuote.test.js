@@ -1,9 +1,10 @@
 /**
- * Cerrar una sesión descuenta sola la cotización enlazada (HU16).
+ * Completar una sesión ya NO descuenta insumos (decisión del usuario).
  *
- * Es la costura entre la agenda y el inventario, y tiene tres reglas que vale
- * la pena fijar: solo ocurre al pasar a «completada», no vuelve a descontar si
- * ya se descontó, y si el descuento falla la cita queda completada igual.
+ * Una sesión no es todo el tatuaje y un proyecto puede tener cuantas sesiones
+ * quiera, así que el descuento se pide a mano desde la cotización guardada
+ * (POST /api/quotes/:id/consume). Estas pruebas fijan que la agenda no toque
+ * el inventario.
  */
 const request = require('supertest');
 const jwt = require('jsonwebtoken');
@@ -24,7 +25,6 @@ const app = require('../src/app');
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_changeme';
 const USER_ID = '11111111-1111-1111-1111-111111111111';
 const SESSION_ID = '22222222-2222-2222-2222-222222222222';
-const QUOTE_ID = '33333333-3333-3333-3333-333333333333';
 const token = jwt.sign({ sub: USER_ID, email: 'demo@estudio.cl' }, JWT_SECRET);
 const auth = `Bearer ${token}`;
 
@@ -43,86 +43,14 @@ const sesion = (extra = {}) => ({
   ...extra,
 });
 
-const descontados = [
-  { id: 'a', name: 'Tinta negra', unit: 'ml', quantity: 3, min_quantity: 10, discounted: 4, low: true },
-  { id: 'b', name: 'Cartucho', unit: 'unidad', quantity: 40, min_quantity: 10, discounted: 2, low: false },
-];
-
 beforeEach(() => {
   jest.clearAllMocks();
   sessionModel.findByIdForUser.mockResolvedValue(sesion());
   sessionMessages.afterUpdate.mockResolvedValue(null);
-  notifyLowStock.mockResolvedValue();
 });
 
-test('al completar la sesión se descuenta la cotización y se avisa del stock bajo', async () => {
+test('completar la sesión no descuenta ninguna cotización', async () => {
   sessionModel.update.mockResolvedValue(sesion({ status: 'completada' }));
-  quoteModel.findBySession.mockResolvedValue({ id: QUOTE_ID, consumed_at: null });
-  quoteModel.consume.mockResolvedValue({
-    quote: { id: QUOTE_ID, consumed_at: new Date().toISOString() },
-    affected: descontados,
-  });
-
-  const res = await request(app)
-    .patch(`/api/sessions/${SESSION_ID}`)
-    .set('Authorization', auth)
-    .send({ status: 'completada' });
-
-  expect(res.status).toBe(200);
-  expect(quoteModel.consume).toHaveBeenCalledWith(QUOTE_ID, USER_ID);
-  expect(res.body.stock.quoteId).toBe(QUOTE_ID);
-  expect(res.body.stock.discounted).toHaveLength(2);
-  // Solo lo que quedó en nivel crítico se destaca para reponer.
-  expect(res.body.stock.low.map((m) => m.name)).toEqual(['Tinta negra']);
-  expect(notifyLowStock).toHaveBeenCalledWith(USER_ID, descontados);
-});
-
-test('cambiar otra cosa de la sesión no toca el inventario', async () => {
-  sessionModel.update.mockResolvedValue(sesion({ paid: true }));
-
-  const res = await request(app)
-    .patch(`/api/sessions/${SESSION_ID}`)
-    .set('Authorization', auth)
-    .send({ paid: true });
-
-  expect(res.status).toBe(200);
-  expect(res.body.stock).toBeUndefined();
-  expect(quoteModel.findBySession).not.toHaveBeenCalled();
-});
-
-test('una sesión sin cotización enlazada se completa sin descontar nada', async () => {
-  sessionModel.update.mockResolvedValue(sesion({ status: 'completada' }));
-  quoteModel.findBySession.mockResolvedValue(null);
-
-  const res = await request(app)
-    .patch(`/api/sessions/${SESSION_ID}`)
-    .set('Authorization', auth)
-    .send({ status: 'completada' });
-
-  expect(res.status).toBe(200);
-  expect(res.body.stock).toBeUndefined();
-  expect(quoteModel.consume).not.toHaveBeenCalled();
-});
-
-test('completar dos veces no descuenta dos veces', async () => {
-  sessionModel.update.mockResolvedValue(sesion({ status: 'completada' }));
-  quoteModel.findBySession.mockResolvedValue({ id: QUOTE_ID, consumed_at: new Date().toISOString() });
-
-  const res = await request(app)
-    .patch(`/api/sessions/${SESSION_ID}`)
-    .set('Authorization', auth)
-    .send({ status: 'completada' });
-
-  expect(res.status).toBe(200);
-  expect(res.body.stock).toBeUndefined();
-  expect(quoteModel.consume).not.toHaveBeenCalled();
-});
-
-test('si el descuento del stock falla, la sesión igual queda completada', async () => {
-  const error = jest.spyOn(console, 'error').mockImplementation(() => {});
-  sessionModel.update.mockResolvedValue(sesion({ status: 'completada' }));
-  quoteModel.findBySession.mockResolvedValue({ id: QUOTE_ID, consumed_at: null });
-  quoteModel.consume.mockRejectedValue(new Error('inventario caído'));
 
   const res = await request(app)
     .patch(`/api/sessions/${SESSION_ID}`)
@@ -132,28 +60,26 @@ test('si el descuento del stock falla, la sesión igual queda completada', async
   expect(res.status).toBe(200);
   expect(res.body.session.status).toBe('completada');
   expect(res.body.stock).toBeUndefined();
-  expect(error).toHaveBeenCalled();
-  error.mockRestore();
+  expect(quoteModel.findBySession).not.toHaveBeenCalled();
+  expect(quoteModel.consume).not.toHaveBeenCalled();
+  expect(notifyLowStock).not.toHaveBeenCalled();
 });
 
-test('si la cotización ya estaba consumida por otra vía no se informa descuento', async () => {
-  sessionModel.update.mockResolvedValue(sesion({ status: 'completada' }));
-  quoteModel.findBySession.mockResolvedValue({ id: QUOTE_ID, consumed_at: null });
-  quoteModel.consume.mockResolvedValue(null);
+test('cambiar otra cosa de la sesión tampoco toca el inventario', async () => {
+  sessionModel.update.mockResolvedValue(sesion({ paid: true }));
 
   const res = await request(app)
     .patch(`/api/sessions/${SESSION_ID}`)
     .set('Authorization', auth)
-    .send({ status: 'completada' });
+    .send({ paid: true });
 
   expect(res.status).toBe(200);
   expect(res.body.stock).toBeUndefined();
-  expect(notifyLowStock).not.toHaveBeenCalled();
+  expect(quoteModel.consume).not.toHaveBeenCalled();
 });
 
-test('la respuesta también trae el aviso al cliente cuando corresponde', async () => {
+test('la respuesta trae el aviso al cliente cuando corresponde', async () => {
   sessionModel.update.mockResolvedValue(sesion({ status: 'completada' }));
-  quoteModel.findBySession.mockResolvedValue(null);
   sessionMessages.afterUpdate.mockResolvedValue({ kind: 'cuidados', sent: true });
 
   const res = await request(app)
@@ -174,5 +100,4 @@ test('una sesión que no es del artista responde 404 antes de tocar nada', async
 
   expect(res.status).toBe(404);
   expect(sessionModel.update).not.toHaveBeenCalled();
-  expect(quoteModel.findBySession).not.toHaveBeenCalled();
 });
