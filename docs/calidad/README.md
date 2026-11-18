@@ -4,11 +4,16 @@ Qué se midió, con qué herramienta, qué salió y cómo explicarlo. El informe
 visual está en `index.html` (se abre con doble clic) y las imágenes en
 `imagenes/`.
 
-Para mostrar e imprimir hay además **`informe-calidad.pdf`** (11 páginas): las
-mismas cifras ordenadas en diez capítulos, con los gráficos incrustados, un
-glosario y las preguntas más probables de la defensa con su respuesta. Sale de
-`node backend/calidad/pdf.js`, que lee los mismos `metricas.json` y
-`resultados.json` que la página, así que nunca se desfasa de ella.
+Hay además **dos PDF** con las mismas cifras y distinto destinatario:
+
+| Archivo | Para qué | Tono |
+|---|---|---|
+| `informe-calidad.pdf` (11 pág.) | Estudiar y mostrar en pantalla | Directo, en primera persona. Lleva glosario y las preguntas probables de la defensa con su respuesta |
+| `informe-evaluacion.pdf` (16 pág.) | **Entregar al profesor** | Formal e impersonal, con portada de la Universidad. Objetivo, metodología, resultados, discusión, limitaciones y conclusiones, ordenado sobre las características de la norma ISO/IEC 25010 |
+
+Los dos leen los mismos `metricas.json` y `resultados.json` que la página, así
+que ninguno puede desfasarse del otro ni de ella. No se solapan: el primero
+explica, el segundo acredita.
 
 ## La idea de fondo
 
@@ -124,16 +129,19 @@ Medir sirve cuando cambia algo. En esta pasada:
 ```bash
 node backend/calidad/medir.js     # llama a cada herramienta y deja metricas.json
 node backend/calidad/informe.js   # arma index.html y las imágenes
-node backend/calidad/pdf.js       # arma informe-calidad.pdf
+node backend/calidad/pdf.js       # arma informe-calidad.pdf (para estudiar)
+node backend/calidad/evaluacion.js  # arma informe-evaluacion.pdf (para el profesor)
 ```
 
 La primera llama a Jest, ESLint, TypeScript y npm audit **dentro de los
 contenedores** —en el host se cuelgan leyendo `node_modules` desde la carpeta
 sincronizada— y escribe los datos crudos en `metricas.json`. La segunda arma la
-página y los gráficos a partir de ese archivo. La tercera arma el PDF: imprime
-su propio HTML con Chrome en modo headless (sin dependencias nuevas; usa el `ws`
-que ya está en el backend) y necesita además `docs/pruebas-estres/resultados.json`
-para el capítulo de carga.
+página y los gráficos a partir de ese archivo. Las dos últimas arman cada PDF:
+imprimen su propio HTML con Chrome en modo headless (`imprimir.js`, compartido;
+sin dependencias nuevas, usa el `ws` que ya está en el backend) y necesitan
+además `docs/pruebas-estres/resultados.json` para el capítulo de carga. Si el
+PDF está abierto en un visor, Windows impide sobrescribirlo y el script falla
+con `EBUSY`: hay que cerrarlo antes.
 
 ## Para explicarlo en un minuto
 

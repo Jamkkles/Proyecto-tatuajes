@@ -64,18 +64,23 @@ líneas (85,7 % de ramas), con 783 pruebas en 44 archivos.
 ```bash
 node backend/calidad/medir.js     # llama a cada herramienta y deja docs/calidad/metricas.json
 node backend/calidad/informe.js   # arma docs/calidad/index.html y sus gráficos
-node backend/calidad/pdf.js       # arma docs/calidad/informe-calidad.pdf (11 páginas, para mostrar)
+node backend/calidad/pdf.js       # docs/calidad/informe-calidad.pdf (11 pág., para estudiar)
+node backend/calidad/evaluacion.js  # docs/calidad/informe-evaluacion.pdf (16 pág., para el profesor)
 ```
 `medir.js` corre en el host y usa `docker exec` para llamar a Jest, ESLint,
 TypeScript y `npm audit` dentro del contenedor que corresponda. El backend tiene
 ESLint desde `backend/eslint.config.js`: reglas recomendadas, sin reglas de
 formato. **Antes de entregar conviene que `npx eslint .` salga limpio en los dos
 proyectos**, igual que las pruebas.
-`pdf.js` imprime su propio HTML con Chrome headless por CDP (usa el `ws` que ya
-está instalado, no agrega dependencias) y lee también
-`docs/pruebas-estres/resultados.json`; las imágenes van incrustadas en base64,
-así que el PDF no depende de archivos sueltos. **Las tres herramientas leen los
-mismos JSON**: una cifra se cambia volviendo a correr `medir.js`, nunca a mano.
+Los dos PDF se imprimen con `calidad/imprimir.js`, que lanza Chrome headless y
+habla con él por CDP sobre el `ws` que ya está instalado (no agrega
+dependencias); las imágenes van incrustadas en base64, así que el PDF no depende
+de archivos sueltos. `pdf.js` es el informe para estudiar (glosario y preguntas
+de defensa, en primera persona) y `evaluacion.js` el formal para entregar
+(portada de la Universidad, metodología, discusión, limitaciones y conclusiones,
+ordenado sobre ISO/IEC 25010). **Las cuatro herramientas leen los mismos JSON**:
+una cifra se cambia volviendo a correr `medir.js`, nunca a mano. Un PDF abierto
+en un visor no se puede sobrescribir en Windows (`EBUSY`): hay que cerrarlo.
 
 ### Pruebas de carga y estrés
 ```bash
