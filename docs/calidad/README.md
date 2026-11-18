@@ -4,6 +4,12 @@ Qué se midió, con qué herramienta, qué salió y cómo explicarlo. El informe
 visual está en `index.html` (se abre con doble clic) y las imágenes en
 `imagenes/`.
 
+Para mostrar e imprimir hay además **`informe-calidad.pdf`** (11 páginas): las
+mismas cifras ordenadas en diez capítulos, con los gráficos incrustados, un
+glosario y las preguntas más probables de la defensa con su respuesta. Sale de
+`node backend/calidad/pdf.js`, que lee los mismos `metricas.json` y
+`resultados.json` que la página, así que nunca se desfasa de ella.
+
 ## La idea de fondo
 
 «Calidad de código» no es que el programa funcione: eso se demuestra usándolo.
@@ -118,12 +124,16 @@ Medir sirve cuando cambia algo. En esta pasada:
 ```bash
 node backend/calidad/medir.js     # llama a cada herramienta y deja metricas.json
 node backend/calidad/informe.js   # arma index.html y las imágenes
+node backend/calidad/pdf.js       # arma informe-calidad.pdf
 ```
 
 La primera llama a Jest, ESLint, TypeScript y npm audit **dentro de los
 contenedores** —en el host se cuelgan leyendo `node_modules` desde la carpeta
 sincronizada— y escribe los datos crudos en `metricas.json`. La segunda arma la
-página y los gráficos a partir de ese archivo.
+página y los gráficos a partir de ese archivo. La tercera arma el PDF: imprime
+su propio HTML con Chrome en modo headless (sin dependencias nuevas; usa el `ws`
+que ya está en el backend) y necesita además `docs/pruebas-estres/resultados.json`
+para el capítulo de carga.
 
 ## Para explicarlo en un minuto
 

@@ -64,12 +64,18 @@ líneas (85,7 % de ramas), con 783 pruebas en 44 archivos.
 ```bash
 node backend/calidad/medir.js     # llama a cada herramienta y deja docs/calidad/metricas.json
 node backend/calidad/informe.js   # arma docs/calidad/index.html y sus gráficos
+node backend/calidad/pdf.js       # arma docs/calidad/informe-calidad.pdf (11 páginas, para mostrar)
 ```
 `medir.js` corre en el host y usa `docker exec` para llamar a Jest, ESLint,
 TypeScript y `npm audit` dentro del contenedor que corresponda. El backend tiene
 ESLint desde `backend/eslint.config.js`: reglas recomendadas, sin reglas de
 formato. **Antes de entregar conviene que `npx eslint .` salga limpio en los dos
 proyectos**, igual que las pruebas.
+`pdf.js` imprime su propio HTML con Chrome headless por CDP (usa el `ws` que ya
+está instalado, no agrega dependencias) y lee también
+`docs/pruebas-estres/resultados.json`; las imágenes van incrustadas en base64,
+así que el PDF no depende de archivos sueltos. **Las tres herramientas leen los
+mismos JSON**: una cifra se cambia volviendo a correr `medir.js`, nunca a mano.
 
 ### Pruebas de carga y estrés
 ```bash
