@@ -222,8 +222,9 @@ export interface ConsumeResult {
 }
 
 /**
- * Descuenta el stock a mano. Normalmente no hace falta llamarla: cerrar la
- * sesión ya lo dispara solo.
+ * Descuenta del inventario todos los insumos de una cotización guardada. Si a
+ * alguno no le alcanza el stock no descuenta nada: el servidor responde 409 con
+ * lo que falta y deja un aviso en la campanita. Completar una sesión no descuenta.
  */
 export function consumeQuote(id: string): Promise<ConsumeResult> {
   return apiFetch<ConsumeResult>(`/api/quotes/${id}/consume`, { method: 'POST' })

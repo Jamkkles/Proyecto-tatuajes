@@ -353,6 +353,54 @@ describe('Cotizaciones (HU14–HU16)', () => {
         .end(done);
     });
 
+    test('si falta stock no descuenta nada y dice qué falta', (done) => {
+      quoteModel.consume.mockResolvedValue({
+        shortages: [
+          { id: MATERIAL_ID, name: 'Tinta negra', unit: 'ml', needed: 15, available: 4, missing: 11 },
+        ],
+      });
+      quoteModel.findByIdForUser.mockResolvedValue(quote);
+
+      request(app)
+        .post(`/api/quotes/${QUOTE_ID}/consume`)
+        .set('Authorization', auth)
+        .expect(409)
+        .expect((res) => {
+          expect(res.body.code).toBe('stock_insuficiente');
+          expect(res.body.shortages[0]).toMatchObject({ name: 'Tinta negra', missing: 11 });
+          expect(res.body.message).toMatch(/Tinta negra \(necesitas 15 ml, tienes 4\)/);
+        })
+        .end(done);
+    });
+
+    test('si otra cotización del proyecto ya descontó, no descuenta de nuevo', (done) => {
+      quoteModel.consume.mockResolvedValue({
+        alreadyConsumed: { id: 'otra', title: 'Variante 12 cm' },
+      });
+
+      request(app)
+        .post(`/api/quotes/${QUOTE_ID}/consume`)
+        .set('Authorization', auth)
+        .expect(409)
+        .expect((res) => {
+          expect(res.body.code).toBe('proyecto_ya_descontado');
+          expect(res.body.message).toMatch(/Variante 12 cm/);
+        })
+        .end(done);
+    });
+
+    test('una cotización que ya descontó no se puede eliminar', (done) => {
+      quoteModel.remove.mockResolvedValue(null);
+      quoteModel.findByIdForUser.mockResolvedValue({ ...quote, consumed_at: '2026-09-27T12:00:00Z' });
+
+      request(app)
+        .delete(`/api/quotes/${QUOTE_ID}`)
+        .set('Authorization', auth)
+        .expect(409)
+        .expect((res) => expect(res.body.code).toBe('cotizacion_descontada'))
+        .end(done);
+    });
+
     test('descontar dos veces devuelve 409', (done) => {
       quoteModel.consume.mockResolvedValue(null);
       quoteModel.findByIdForUser.mockResolvedValue({ ...quote, consumed_at: '2026-09-27T12:00:00Z' });

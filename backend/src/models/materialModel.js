@@ -6,6 +6,9 @@ const COLUMNS = `
   supplier, notes, consumption_basis, consumption_rate, color_hex, created_at, updated_at
 `;
 
+// Mismo tope de cordura que valida el controlador: sumar stock nunca lo pasa.
+const MAX_QUANTITY = 1000000;
+
 // Un insumo está en nivel crítico cuando su stock llegó al mínimo definido.
 const LOW_STOCK = 'quantity <= min_quantity';
 
@@ -42,8 +45,8 @@ async function findByIdForUser(id, userId) {
   return rows[0] ?? null;
 }
 
-async function create(data) {
-  const { rows } = await pool.query(
+async function create(data, db = pool) {
+  const { rows } = await db.query(
     `INSERT INTO materials
        (user_id, name, category, unit, quantity, min_quantity, unit_cost, supplier,
         notes, consumption_basis, consumption_rate, color_hex)
@@ -65,6 +68,86 @@ async function create(data) {
     ]
   );
   return rows[0];
+}
+
+/**
+ * Alta desde «Agregar al inventario». Si el artista ya tiene un insumo con el
+ * mismo nombre (sin distinguir mayúsculas ni espacios), no se duplica: la
+ * cantidad se **suma** a su stock y el resto de los datos (costo, mínimo, regla
+ * de consumo…) se actualiza con lo que trae el formulario. Si no existe, se crea.
+ *
+ * Va en una transacción con un candado por artista para que dos altas
+ * simultáneas del mismo insumo no terminen creando dos filas.
+ *
+ * @returns {{ material: object, merged: boolean }}
+ */
+async function createOrMerge(data) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query("SELECT pg_advisory_xact_lock(hashtext('materials:' || $1))", [
+      data.userId,
+    ]);
+
+    const { rows: found } = await client.query(
+      `SELECT id FROM materials
+        WHERE user_id = $1 AND lower(btrim(name)) = lower(btrim($2))
+        ORDER BY created_at
+        LIMIT 1`,
+      [data.userId, data.name]
+    );
+
+    let material;
+    let merged = false;
+    if (found[0]) {
+      merged = true;
+      const { rows } = await client.query(
+        `UPDATE materials
+            SET quantity = LEAST($3, quantity + $4),
+                category = COALESCE($5, category),
+                unit = COALESCE($6, unit),
+                min_quantity = COALESCE($7, min_quantity),
+                unit_cost = COALESCE($8, unit_cost),
+                consumption_basis = COALESCE($9, consumption_basis),
+                consumption_rate = COALESCE($10, consumption_rate),
+                color_hex = CASE WHEN $11::boolean THEN $12 ELSE color_hex END,
+                supplier = CASE WHEN $13::boolean THEN $14 ELSE supplier END,
+                notes = CASE WHEN $15::boolean THEN $16 ELSE notes END,
+                updated_at = now()
+          WHERE id = $1 AND user_id = $2
+          RETURNING ${COLUMNS}`,
+        [
+          found[0].id,
+          data.userId,
+          MAX_QUANTITY,
+          data.quantity ?? 0,
+          data.category ?? null,
+          data.unit ?? null,
+          data.minQuantity ?? null,
+          data.unitCost ?? null,
+          data.consumptionBasis ?? null,
+          data.consumptionRate ?? null,
+          data.colorHex !== undefined,
+          data.colorHex ?? null,
+          data.supplier !== undefined,
+          data.supplier ?? null,
+          data.notes !== undefined,
+          data.notes ?? null,
+        ]
+      );
+      material = rows[0];
+    } else {
+      material = await create(data, client);
+    }
+
+    await client.query('COMMIT');
+    return { material, merged };
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 // Solo estos campos son editables; la lista evita inyección al construir el SET.
@@ -247,6 +330,7 @@ module.exports = {
   listConsumable,
   findByIdForUser,
   create,
+  createOrMerge,
   createDefaults,
   ensureStarterKit,
   update,

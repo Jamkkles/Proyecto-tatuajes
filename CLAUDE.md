@@ -195,7 +195,14 @@ enteros (base del cálculo de cotizaciones, HU14). Nivel crítico =
 `quantity <= min_quantity`; el listado devuelve esos insumos primero.
 - `GET /api/materials?category=&q=&low=true` → `{ materials }`
 - `POST /api/materials` (`name` obligatorio, `category`, `unit`, `quantity`,
-  `minQuantity`, `unitCost`, `supplier`, `notes`) → `201 { material }`
+  `minQuantity`, `unitCost`, `supplier`, `notes`) → `201 { material, merged: false }`.
+  **No duplica:** si el artista ya tiene un insumo con ese nombre (sin distinguir
+  mayúsculas ni espacios) la `quantity` se **suma** a su stock y el resto de los
+  campos se actualiza → `200 { material, merged: true }` (`materialModel.createOrMerge`,
+  transacción con candado por artista; con repetidos antiguos manda el más viejo).
+  En el frontend, «Insumos frecuentes» lista primero lo que ya está en el inventario
+  (con los datos del artista, incluidos los agregados a mano) y luego el catálogo que
+  falta; elegir uno propio rellena con sus valores y el campo pasa a «Cantidad a sumar»
 - `PATCH /api/materials/:id`, `DELETE /api/materials/:id` → `204`
 - **Inventario inicial.** Todo artista —nuevo o ya existente— recibe el catálogo
   completo (42 insumos, `data/defaultMaterials.js`) **la primera vez que entra a
@@ -420,11 +427,25 @@ de la calibración está en el comentario de `CM2_POR_HORA`
 - `POST /api/quotes` (`title`, `widthCm`, `heightCm`, …, `items`) → `201 { quote }`
 - `PATCH /api/quotes/:id` — ajusta parámetros o reemplaza `items` (HU15). El
   costo lo recalcula el servidor; una cotización ya consumida da 409
-- `DELETE /api/quotes/:id` → `204`
-- `POST /api/quotes/:id/consume` → descuenta stock; 409 si ya se descontó
-- Al pasar una sesión a `completada`, `sessionController` descuenta sola la
-  cotización enlazada y devuelve `{ session, stock }`. `quotes.consumed_at` se
-  sella dentro de la transacción, así que cerrar dos veces no descuenta dos veces
+- `DELETE /api/quotes/:id` → `204`. **Una cotización que ya descontó no se elimina** (`409 { code:
+  'cotizacion_descontada' }`, condición en el mismo DELETE): es el registro del descuento y sin ella
+  otra cotización del proyecto podría descontar otra vez. La lista no muestra «Eliminar» en esas
+- `POST /api/quotes/:id/consume` → descuenta **todos** los insumos de la cotización de una vez
+  (botón «Descontar insumos» en la lista de cotizaciones guardadas); 409 si ya se descontó.
+  **Todo o nada:** si a algún insumo no le alcanza el stock no se descuenta nada →
+  `409 { code: 'stock_insuficiente', shortages: [{ name, needed, available, missing }] }` y un
+  aviso `stock_faltante` en la campanita por insumo (uno por cotización, insumo y día). Los
+  insumos se bloquean con `FOR UPDATE` antes de comparar; el stock nunca queda negativo. Las
+  líneas sin `material_id` (tinta «por comprar», insumo borrado) ni descuentan ni bloquean.
+  `quotes.consumed_at` se sella en la misma transacción: no se descuenta dos veces.
+  **Un solo descuento por proyecto:** si otra cotización del mismo proyecto ya descontó →
+  `409 { code: 'proyecto_ya_descontado', quoteId }` (candado por proyecto contra dos a la vez);
+  en la lista, las otras cotizaciones del proyecto muestran «El proyecto ya descontó con …» en
+  vez del botón. Se pueden guardar varias cotizaciones por proyecto (variantes), pero al guardar
+  una idéntica a otra (proyecto, boceto, medidas, color, trazo y costo) la pantalla pide confirmar
+- **Completar una sesión ya no descuenta stock** (decisión del usuario): una sesión no es todo
+  el tatuaje y un proyecto puede tener cuantas sesiones quiera. `PATCH /api/sessions/:id` ya no
+  devuelve `stock`
 
 ### Frontend (`frontend/src/`)
 - ESM, React 19 + TypeScript + Vite 8

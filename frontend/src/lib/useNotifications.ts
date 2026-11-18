@@ -15,6 +15,9 @@ const POLL_MS = 60_000
  * es lo normal: se abre desde otra aplicación). Los avisos que llegan con la app
  * cerrada los entrega el push; esto es lo que pone al día la lista al abrirla.
  */
+/** Evento para pedir que la campanita se actualice ya. */
+export const NOTIFICATIONS_REFRESH = 'notifications:refresh'
+
 export function useNotifications() {
   const [items, setItems] = useState<AppNotification[]>([])
   const [unread, setUnread] = useState(0)
@@ -41,11 +44,15 @@ export function useNotifications() {
     }
     document.addEventListener('visibilitychange', onVisible)
     window.addEventListener('focus', refresh)
+    // Una acción de la app que acaba de dejar un aviso (p. ej. faltó stock al
+    // descontar una cotización) pide refrescar la campanita sin esperar.
+    window.addEventListener(NOTIFICATIONS_REFRESH, refresh)
     return () => {
       window.clearTimeout(timer)
       window.clearInterval(interval)
       document.removeEventListener('visibilitychange', onVisible)
       window.removeEventListener('focus', refresh)
+      window.removeEventListener(NOTIFICATIONS_REFRESH, refresh)
     }
   }, [refresh])
 
