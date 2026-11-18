@@ -101,11 +101,16 @@ async function list(req, res) {
 }
 
 // POST /api/materials  (HU11)
+// Si ya hay un insumo con ese nombre, suma la cantidad a su stock en vez de
+// duplicarlo: 200 { material, merged: true }. Si es nuevo: 201 { material, merged: false }.
 async function create(req, res) {
   try {
     const fields = parseMaterial(req.body ?? {}, { partial: false });
-    const material = await materialModel.create({ userId: req.user.sub, ...fields });
-    return res.status(201).json({ material });
+    const { material, merged } = await materialModel.createOrMerge({
+      userId: req.user.sub,
+      ...fields,
+    });
+    return res.status(merged ? 200 : 201).json({ material, merged });
   } catch (err) {
     return sendError(res, err, 'creando el insumo');
   }

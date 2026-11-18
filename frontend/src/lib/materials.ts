@@ -144,12 +144,21 @@ export function listMaterials(filters: MaterialFilters = {}): Promise<Material[]
   )
 }
 
-export function createMaterial(input: MaterialInput): Promise<Material> {
-  return apiFetch<{ material: Material }>('/api/materials', {
+/**
+ * Agrega al inventario. Si ya hay un insumo con ese nombre, el servidor suma la
+ * cantidad a su stock y actualiza sus datos en vez de crear otro (`merged`).
+ */
+export function createMaterial(
+  input: MaterialInput,
+): Promise<{ material: Material; merged: boolean }> {
+  return apiFetch<{ material: Material; merged?: boolean }>('/api/materials', {
     method: 'POST',
     body: JSON.stringify(input),
-  }).then((r) => r.material)
+  }).then((r) => ({ material: r.material, merged: Boolean(r.merged) }))
 }
+
+/** Clave para comparar nombres de insumos igual que el servidor. */
+export const materialKey = (name: string) => name.trim().toLowerCase()
 
 export function updateMaterial(id: string, input: Partial<MaterialInput>): Promise<Material> {
   return apiFetch<{ material: Material }>(`/api/materials/${id}`, {

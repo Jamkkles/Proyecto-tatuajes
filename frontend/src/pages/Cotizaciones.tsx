@@ -13,6 +13,7 @@ import {
   createQuote,
   deleteQuote,
   estimateQuote,
+  consumeQuote,
   formatCoverage,
   listQuotes,
   quoteStatusLabel,
@@ -28,6 +29,7 @@ import {
 } from '../lib/quotes'
 import { listSketches, type Sketch } from '../lib/sketches'
 import { useAppShellHeader } from '../lib/useAppShellHeader'
+import { NOTIFICATIONS_REFRESH } from '../lib/useNotifications'
 import './Studio.css'
 import './Cotizaciones.css'
 
@@ -90,7 +92,8 @@ const toDraft = (item: EstimateItem): DraftItem => ({
  *
  * El flujo tiene dos tiempos, que es como trabaja el artista: primero se
  * estima (HU14) y se ajusta el detalle a mano (HU15), y solo entonces se
- * guarda. El descuento de stock llega después, al cerrar la sesión (HU16).
+ * guarda. El descuento de stock lo pide el artista con «Descontar insumos» en la
+ * cotización guardada (HU16); completar una sesión no descuenta nada.
  */
 export default function Cotizaciones() {
   const [params, setParams] = useSearchParams()
@@ -111,6 +114,16 @@ export default function Cotizaciones() {
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState('')
   const [extraId, setExtraId] = useState('')
+  const [consumingId, setConsumingId] = useState<string | null>(null)
+  // Medida que trajo la escena 3D del proyecto elegido: permite avisar que el
+  // tamaño viene del 3D y volver a ella si el artista la cambió a mano.
+  const [previewSize, setPreviewSize] = useState<TattooSize | null>(null)
+  // Cada elección de proyecto invalida las búsquedas de tamaño anteriores, así
+  // una escena que tarda en llegar no pisa el proyecto elegido después.
+  const sizeRequest = useRef(0)
+  // Sube al volver a la pestaña: el cálculo se rehace con los precios actuales
+  // del inventario por si se cambiaron en otra pestaña.
+  const [refreshTick, setRefreshTick] = useState(0)
 
   useAppShellHeader({
     title: 'Cotizaciones',
@@ -132,7 +145,12 @@ export default function Cotizaciones() {
    * sincronizado. Solo escribe si los campos están vacíos, para no pisar una
    * medida que el artista ya corrigió.
    */
-  const applyPreviewSize = useCallback(async (project: Project, sketchId: string) => {
+  const applyPreviewSize = useCallback(async (
+    project: Project,
+    sketchId: string,
+    { overwrite = false }: { overwrite?: boolean } = {},
+  ) => {
+    const request = ++sizeRequest.current
     // El proyecto ya trae la medida si alguna vez se guardó su escena 3D: es
     // la misma cifra, sin una petición de más. La escena solo se consulta
     // cuando el proyecto todavía no la tiene copiada (escenas guardadas antes
@@ -150,26 +168,78 @@ export default function Cotizaciones() {
         // La escena es una ayuda, no un requisito: si falla se escribe a mano.
       }
     }
-    if (!size) return
+    // Mientras se buscaba la escena el artista eligió otro proyecto: esta
+    // medida ya no corresponde.
+    if (request !== sizeRequest.current || !size) return
+    const found = size
 
-    // Solo escribe si los campos están vacíos: una medida que el artista ya
-    // corrigió a mano manda sobre la del 3D.
+    setPreviewSize(found)
+    // Al cambiar de proyecto la medida se reemplaza por la del proyecto nuevo.
+    // Al elegir solo un boceto, en cambio, una medida que el artista ya
+    // escribió manda sobre la del 3D.
     setForm((f) =>
-      f.widthCm || f.heightCm
+      !overwrite && (f.widthCm || f.heightCm)
         ? f
-        : { ...f, widthCm: String(size.widthCm), heightCm: String(size.heightCm) },
+        : { ...f, widthCm: String(found.widthCm), heightCm: String(found.heightCm) },
     )
-    setNotice(`Tamaño tomado de la escena 3D: ${size.widthCm} × ${size.heightCm} cm.`)
+    setNotice(`Tamaño tomado de la escena 3D: ${found.widthCm} × ${found.heightCm} cm.`)
   }, [])
 
-  /** Elegir proyecto o boceto puede traer el tamaño desde la escena 3D. */
+  /**
+   * Elegir un proyecto reemplaza **todo** lo que viene de él: título, boceto,
+   * modo de color, cobertura, sesiones y tamaño. Antes solo se guardaba el id
+   * y, al pasar de un proyecto a otro, quedaban el boceto, los colores y la
+   * medida del anterior. El trazo es del estilo del artista y se conserva.
+   */
   function pickProject(projectId: string) {
-    setForm((f) => ({ ...f, projectId }))
+    const previous = projects.find((p) => p.id === form.projectId)
     const project = projects.find((p) => p.id === projectId)
+    const sketchId = project?.sketch_id ?? ''
+    const modo = colorModeFromPalette(sketches.find((s) => s.id === sketchId)?.palette ?? null)
+
+    // El título solo se reemplaza si era el del proyecto anterior (o estaba
+    // vacío): uno escrito a mano se respeta.
+    const keepTitle = form.title.trim() && form.title !== previous?.title
+
+    sizeRequest.current++
+    setPreviewSize(null)
+    setForm((f) => ({
+      ...f,
+      projectId,
+      title: keepTitle ? f.title : project?.title ?? '',
+      sketchId,
+      colorMode: modo ?? (sketchId ? f.colorMode : 'negro'),
+      coverage: '',
+      sessionsCount: '',
+      widthCm: '',
+      heightCm: '',
+    }))
+    setNotice('')
+
     // Con la medida ya copiada en el proyecto no hace falta boceto para
     // traerla; solo el camino de respaldo (leer la escena) lo necesita.
-    if (project) void applyPreviewSize(project, form.sketchId || project.sketch_id || '')
+    if (project) void applyPreviewSize(project, sketchId, { overwrite: true })
   }
+
+  /** Vuelve a la medida de la escena 3D después de haberla cambiado a mano. */
+  function restorePreviewSize() {
+    if (!previewSize) return
+    setForm((f) => ({
+      ...f,
+      widthCm: String(previewSize.widthCm),
+      heightCm: String(previewSize.heightCm),
+    }))
+  }
+
+  // Al volver a esta pestaña se recalcula: si el artista cambió precios del
+  // inventario en otra, la estimación los toma sin recargar la página.
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') setRefreshTick((t) => t + 1)
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [])
 
   function pickSketch(sketchId: string) {
     // El modo de color se deduce de lo que se midió en el dibujo, para que el
@@ -284,6 +354,7 @@ export default function Cotizaciones() {
     form.colorMode,
     form.sessionsCount,
     form.sketchId,
+    refreshTick,
   ])
 
   /** Lo que se muestra: una estimación vieja no vale sin medidas válidas. */
@@ -345,6 +416,28 @@ export default function Cotizaciones() {
     const invalid = items.find((i) => !Number.isFinite(i.quantity) || i.quantity <= 0)
     if (invalid) return setFormError(`Revisa la cantidad de "${invalid.name}".`)
 
+    // Guardar variantes de un mismo proyecto está bien (otro tamaño, otro
+    // color); guardar dos veces la misma cotización no aporta nada y confunde.
+    const duplicate = quotes.find(
+      (q) =>
+        (q.project_id ?? '') === form.projectId &&
+        (q.sketch_id ?? '') === form.sketchId &&
+        Math.abs(q.width_cm - (width ?? 0)) < 0.05 &&
+        Math.abs(q.height_cm - (height ?? 0)) < 0.05 &&
+        q.color_mode === form.colorMode &&
+        q.stroke === form.stroke &&
+        Math.abs(q.materials_cost - total) <= 1,
+    )
+    if (
+      duplicate &&
+      !window.confirm(
+        `Ya tienes una cotización igual${form.projectId ? ' para este proyecto' : ''}: ` +
+          `"${duplicate.title}" (${formatCLP(duplicate.materials_cost)}).\n\n¿Guardar otra de todas formas?`,
+      )
+    ) {
+      return
+    }
+
     setSaving(true)
     setFormError('')
     try {
@@ -371,6 +464,7 @@ export default function Cotizaciones() {
       })
       setQuotes((list) => [created, ...list])
       setForm(EMPTY_FORM)
+      setPreviewSize(null)
       setEstimate(null)
       setItems([])
       setNotice(`Cotización "${created.title}" guardada.`)
@@ -390,6 +484,48 @@ export default function Cotizaciones() {
       setNotice('Cotización eliminada.')
     } catch (err) {
       setNotice(apiErrorMessage(err, 'No pudimos eliminar la cotización.'))
+    }
+  }
+
+  /**
+   * Cotización que ya descontó insumos, por proyecto. Un tatuaje se descuenta
+   * una sola vez: las otras cotizaciones del proyecto (variantes) ya no pueden.
+   * El servidor lo hace cumplir igual; esto es para no ofrecer el botón.
+   */
+  const consumedByProject = useMemo(() => {
+    const map = new Map<string, Quote>()
+    for (const q of quotes) if (q.project_id && q.consumed_at) map.set(q.project_id, q)
+    return map
+  }, [quotes])
+
+  /**
+   * Descuenta del inventario todos los insumos de la cotización (HU16). Si
+   * falta stock de alguno no se descuenta nada: el mensaje dice qué reponer y
+   * la campanita lo deja anotado.
+   */
+  async function handleConsume(quote: Quote) {
+    const ok = window.confirm(
+      `¿Descontar del inventario los insumos de "${quote.title}"?\n\n` +
+        'Se descuenta todo lo cotizado de una vez y no se puede repetir.',
+    )
+    if (!ok) return
+
+    setConsumingId(quote.id)
+    try {
+      const { quote: updated, affected } = await consumeQuote(quote.id)
+      setQuotes((list) => list.map((q) => (q.id === updated.id ? updated : q)))
+      const low = affected.filter((m) => m.low)
+      setNotice(
+        `Se descontaron ${affected.length} ${affected.length === 1 ? 'insumo' : 'insumos'} del inventario.` +
+          (low.length
+            ? ` Quedaron en nivel crítico: ${low.map((m) => m.name).join(', ')}.`
+            : ''),
+      )
+    } catch (err) {
+      setNotice(apiErrorMessage(err, 'No pudimos descontar los insumos.'))
+      window.dispatchEvent(new Event(NOTIFICATIONS_REFRESH))
+    } finally {
+      setConsumingId(null)
     }
   }
 
@@ -505,6 +641,26 @@ export default function Cotizaciones() {
                     />
                   </div>
                 </div>
+
+                {previewSize && (
+                  <p className="st-hint">
+                    {String(previewSize.widthCm) === form.widthCm &&
+                    String(previewSize.heightCm) === form.heightCm ? (
+                      <>
+                        Medida de la escena 3D del proyecto. Puedes ajustarla aquí para
+                        cotizar otra variante; la escena no cambia.
+                      </>
+                    ) : (
+                      <>
+                        Cambiaste la medida de la escena 3D ({previewSize.widthCm} ×{' '}
+                        {previewSize.heightCm} cm).{' '}
+                        <button type="button" className="st-link" onClick={restorePreviewSize}>
+                          Volver a la del 3D
+                        </button>
+                      </>
+                    )}
+                  </p>
+                )}
 
                 <div className="st-row">
                   <div className="st-field">
@@ -797,13 +953,32 @@ export default function Cotizaciones() {
                           Aceptar
                         </button>
                       )}
-                      <button
-                        className="st-btn st-btn--sm st-btn--danger"
-                        type="button"
-                        onClick={() => handleDelete(quote)}
-                      >
-                        Eliminar
-                      </button>
+                      {!quote.consumed_at && quote.project_id && consumedByProject.has(quote.project_id) && (
+                        <span className="st-hint">
+                          El proyecto ya descontó con «{consumedByProject.get(quote.project_id)?.title}»
+                        </span>
+                      )}
+                      {!quote.consumed_at && !(quote.project_id && consumedByProject.has(quote.project_id)) && (
+                        <button
+                          className="st-btn st-btn--sm"
+                          type="button"
+                          onClick={() => handleConsume(quote)}
+                          disabled={consumingId !== null}
+                        >
+                          {consumingId === quote.id ? 'Descontando…' : 'Descontar insumos'}
+                        </button>
+                      )}
+                      {/* Una cotización que ya descontó es el registro de ese
+                          descuento: no se elimina (el servidor también lo impide). */}
+                      {!quote.consumed_at && (
+                        <button
+                          className="st-btn st-btn--sm st-btn--danger"
+                          type="button"
+                          onClick={() => handleDelete(quote)}
+                        >
+                          Eliminar
+                        </button>
+                      )}
                     </div>
                   </div>
                 </li>

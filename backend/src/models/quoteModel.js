@@ -250,30 +250,46 @@ async function update(id, userId, fields, items) {
   }
 }
 
+/**
+ * Una cotización que ya descontó stock no se borra: es el registro de ese
+ * descuento, y sin ella otra cotización del mismo proyecto podría descontar de
+ * nuevo. La condición va en el mismo DELETE, así que un descuento simultáneo
+ * (que bloquea la fila) no se cuela entre la comprobación y el borrado.
+ */
 async function remove(id, userId) {
   const { rows } = await pool.query(
-    'DELETE FROM quotes WHERE id = $1 AND user_id = $2 RETURNING id',
+    'DELETE FROM quotes WHERE id = $1 AND user_id = $2 AND consumed_at IS NULL RETURNING id',
     [id, userId]
   );
   return rows[0] ?? null;
 }
 
 /**
- * HU16: descuenta del inventario lo que consumió esta cotización.
+ * HU16: descuenta del inventario todo lo que consume esta cotización. Lo pide
+ * el artista desde la cotización guardada; completar una sesión no lo hace.
  *
- * Todo ocurre en una transacción y el sello `consumed_at` se pone con un
- * UPDATE condicionado a que siga nulo. Esa condición es la que hace la
- * operación idempotente: si la sesión se marca como completada dos veces (dos
- * clics, dos pestañas), el segundo UPDATE no afecta ninguna fila, la
- * transacción se corta y el stock no se descuenta de nuevo.
+ * **Nunca deja el stock incompleto ni negativo**: si a algún insumo no le
+ * alcanza, no se descuenta nada y se devuelven los faltantes, para que el
+ * artista reponga y vuelva a intentarlo. Los insumos se bloquean (FOR UPDATE)
+ * antes de comparar, así un ajuste simultáneo no cuela un descuento de más.
+ *
+ * El sello `consumed_at` se pone con un UPDATE condicionado a que siga nulo:
+ * dos clics o dos pestañas no descuentan dos veces.
+ *
+ * **Un solo descuento por proyecto:** un proyecto puede tener varias
+ * cotizaciones (variantes de tamaño o color), pero el tatuaje se hace una vez.
+ * Si otra cotización del mismo proyecto ya descontó, esta no lo hace. Un
+ * candado por proyecto evita que dos descuentos simultáneos pasen los dos.
  *
  * Se descuenta `round(quantity)` porque `materials.quantity` va en enteros.
- * Los insumos que rinden muchas sesiones (medio rollo de film, un décimo de
- * pomada) quedan bajo 0,5 y no se tocan: se ajustan a mano desde el inventario
- * cuando de verdad se acaban, que es como el artista los controla igual.
+ * Los insumos que rinden muchas sesiones (medio rollo de film) quedan bajo 0,5
+ * y no se tocan. Las líneas sin insumo (tinta «por comprar», o un insumo que
+ * se borró del inventario) no descuentan ni bloquean.
  *
  * @returns {null} si la cotización no existe, no es suya o ya se consumió
- * @returns {{ quote, affected }} con los insumos que quedaron en nivel crítico
+ * @returns {{ alreadyConsumed: { id, title } }} si otra cotización del proyecto ya descontó
+ * @returns {{ shortages }} si falta stock (no se descontó nada)
+ * @returns {{ quote, affected }} con lo descontado y si quedó en nivel crítico
  */
 async function consume(id, userId) {
   const client = await pool.connect();
@@ -291,21 +307,63 @@ async function consume(id, userId) {
       return null;
     }
 
-    // GREATEST(0, …) igual que el ajuste manual de stock: el inventario nunca
-    // queda negativo aunque el artista no hubiera registrado la reposición.
-    // Solo se tocan insumos vivos (`material_id` no nulo) y del mismo dueño.
-    const { rows: affected } = await client.query(
-      `UPDATE materials m
-          SET quantity = GREATEST(0, m.quantity - c.used), updated_at = now()
-         FROM (SELECT material_id, round(sum(quantity))::int AS used
+    const projectId = marked[0].project_id;
+    if (projectId) {
+      await client.query("SELECT pg_advisory_xact_lock(hashtext('quote-consume:' || $1))", [
+        projectId,
+      ]);
+      const { rows: done } = await client.query(
+        `SELECT id, title FROM quotes
+          WHERE project_id = $1 AND user_id = $2 AND id <> $3 AND consumed_at IS NOT NULL
+          ORDER BY consumed_at
+          LIMIT 1`,
+        [projectId, userId, id]
+      );
+      if (done[0]) {
+        await client.query('ROLLBACK');
+        return { alreadyConsumed: done[0] };
+      }
+    }
+
+    // Solo insumos vivos (`material_id` no nulo) y del mismo dueño.
+    const { rows: needed } = await client.query(
+      `SELECT m.id, m.name, m.unit, m.quantity, m.min_quantity, c.used
+         FROM materials m
+         JOIN (SELECT material_id, round(sum(quantity))::int AS used
                  FROM quote_items
                 WHERE quote_id = $1 AND material_id IS NOT NULL
                 GROUP BY material_id
-               HAVING round(sum(quantity))::int > 0) c
-        WHERE m.id = c.material_id AND m.user_id = $2
+               HAVING round(sum(quantity))::int > 0) c ON c.material_id = m.id
+        WHERE m.user_id = $2
+        ORDER BY m.id
+        FOR UPDATE OF m`,
+      [id, userId]
+    );
+
+    const shortages = needed
+      .filter((m) => m.quantity < m.used)
+      .map((m) => ({
+        id: m.id,
+        name: m.name,
+        unit: m.unit,
+        needed: m.used,
+        available: m.quantity,
+        missing: m.used - m.quantity,
+      }));
+    if (shortages.length) {
+      // Se deshace también el sello: la cotización queda como estaba.
+      await client.query('ROLLBACK');
+      return { shortages };
+    }
+
+    const { rows: affected } = await client.query(
+      `UPDATE materials m
+          SET quantity = m.quantity - c.used, updated_at = now()
+         FROM (SELECT * FROM unnest($2::uuid[], $3::int[]) AS t(material_id, used)) c
+        WHERE m.id = c.material_id AND m.user_id = $1
         RETURNING m.id, m.name, m.unit, m.quantity, m.min_quantity,
                   c.used AS discounted`,
-      [id, userId]
+      [userId, needed.map((m) => m.id), needed.map((m) => m.used)]
     );
 
     await client.query('COMMIT');

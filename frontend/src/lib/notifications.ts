@@ -7,6 +7,7 @@ import { apiFetch } from './api'
 
 export type NotificationKind =
   | 'stock_bajo'
+  | 'stock_faltante'
   | 'mensaje_manual'
   | 'mensaje_enviado'
   | 'mensaje_omitido'

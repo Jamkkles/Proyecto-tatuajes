@@ -29,12 +29,33 @@ const material = {
 beforeEach(() => jest.clearAllMocks());
 
 describe('Inventario de insumos (HU11–HU13)', () => {
+  test('agregar un insumo que ya existe suma al stock en vez de duplicarlo', (done) => {
+    materialModel.createOrMerge.mockResolvedValue({
+      material: { ...material, quantity: 39 },
+      merged: true,
+    });
+
+    request(app)
+      .post('/api/materials')
+      .set('Authorization', auth)
+      .send({ name: 'Cartuchos RL 03', quantity: 1, unitCost: 900 })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.merged).toBe(true);
+        expect(res.body.material.quantity).toBe(39);
+        expect(materialModel.createOrMerge).toHaveBeenCalledWith(
+          expect.objectContaining({ userId: USER_ID, name: 'Cartuchos RL 03', quantity: 1 })
+        );
+      })
+      .end(done);
+  });
+
   test('sin token devuelve 401', (done) => {
     request(app).get('/api/materials').expect(401).end(done);
   });
 
   test('registra un insumo con cantidad, nivel crítico y costo (HU11)', (done) => {
-    materialModel.create.mockResolvedValue(material);
+    materialModel.createOrMerge.mockResolvedValue({ material, merged: false });
 
     request(app)
       .post('/api/materials')
@@ -50,7 +71,7 @@ describe('Inventario de insumos (HU11–HU13)', () => {
       })
       .expect(201)
       .expect(() => {
-        expect(materialModel.create).toHaveBeenCalledWith(
+        expect(materialModel.createOrMerge).toHaveBeenCalledWith(
           expect.objectContaining({
             userId: USER_ID,
             name: 'Cartuchos RL 03',
@@ -71,7 +92,7 @@ describe('Inventario de insumos (HU11–HU13)', () => {
       .set('Authorization', auth)
       .send({ quantity: 3 })
       .expect(400)
-      .expect(() => expect(materialModel.create).not.toHaveBeenCalled())
+      .expect(() => expect(materialModel.createOrMerge).not.toHaveBeenCalled())
       .end(done);
   });
 
@@ -90,7 +111,7 @@ describe('Inventario de insumos (HU11–HU13)', () => {
       .set('Authorization', auth)
       .send({ name: 'Guantes', quantity: -2 })
       .expect(400)
-      .expect(() => expect(materialModel.create).not.toHaveBeenCalled())
+      .expect(() => expect(materialModel.createOrMerge).not.toHaveBeenCalled())
       .end(done);
   });
 
