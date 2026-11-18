@@ -26,4 +26,23 @@ async function notifyLowStock(userId, materials, now = new Date()) {
   }
 }
 
-module.exports = { notifyLowStock };
+/**
+ * Avisa de los insumos que no alcanzaron para descontar una cotización. Uno por
+ * insumo, cotización y día: reintentar sin reponer no llena la campanita.
+ *
+ * @param {Array<{id, name, unit, needed, available, missing}>} shortages
+ */
+async function notifyShortages(userId, quote, shortages, now = new Date()) {
+  for (const m of shortages) {
+    await notify(userId, {
+      kind: 'stock_faltante',
+      title: `Falta ${m.name} para descontar «${quote.title}»`,
+      body: `La cotización necesita ${m.needed} ${m.unit} y tienes ${m.available}. Repón ${m.missing} ${m.unit} y vuelve a descontar.`,
+      url: '/inventario',
+      data: { materialId: m.id, quoteId: quote.id },
+      dedupeKey: `faltante:${quote.id}:${m.id}:${day.format(now)}`,
+    });
+  }
+}
+
+module.exports = { notifyLowStock, notifyShortages };

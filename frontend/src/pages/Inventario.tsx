@@ -15,6 +15,7 @@ import {
   isLowStock,
   listMaterials,
   loadDefaultMaterials,
+  materialKey,
   stockValue,
   unitShort,
   updateMaterial,
@@ -95,10 +96,19 @@ interface MaterialFieldsProps {
   idPrefix: string
   value: MaterialFormValue
   onChange: (value: MaterialFormValue) => void
+  /** Texto del campo de cantidad; en el alta de un insumo que ya existe es «Cantidad a sumar». */
+  quantityLabel?: string
+  quantityHint?: string
 }
 
 /** Campos de un insumo, compartidos por el alta y la edición. */
-function MaterialFields({ idPrefix, value, onChange }: MaterialFieldsProps) {
+function MaterialFields({
+  idPrefix,
+  value,
+  onChange,
+  quantityLabel = 'Stock actual',
+  quantityHint,
+}: MaterialFieldsProps) {
   return (
     <>
       <div className="st-field">
@@ -144,7 +154,7 @@ function MaterialFields({ idPrefix, value, onChange }: MaterialFieldsProps) {
 
       <div className="st-row">
         <div className="st-field">
-          <label className="st-label" htmlFor={`${idPrefix}-qty`}>Stock actual</label>
+          <label className="st-label" htmlFor={`${idPrefix}-qty`}>{quantityLabel}</label>
           <input
             id={`${idPrefix}-qty`}
             className="st-input"
@@ -156,6 +166,7 @@ function MaterialFields({ idPrefix, value, onChange }: MaterialFieldsProps) {
             onChange={(e) => onChange({ ...value, quantity: e.target.value })}
             placeholder="0"
           />
+          {quantityHint && <p className="st-hint">{quantityHint}</p>}
         </div>
         <div className="st-field">
           <label className="st-label" htmlFor={`${idPrefix}-min`}>Nivel crítico</label>
@@ -296,6 +307,11 @@ function MaterialFields({ idPrefix, value, onChange }: MaterialFieldsProps) {
 
 /* ---------------- Vista ---------------- */
 
+const CATALOG_KEYS = new Set(MATERIAL_PRESETS.map((p) => materialKey(p.name)))
+
+/** ¿El insumo viene del catálogo (no se puede quitar de la lista) o lo agregó el artista? */
+const isCatalog = (name: string) => CATALOG_KEYS.has(materialKey(name))
+
 type CategoryFilter = MaterialCategory | 'todas'
 
 /**
@@ -319,6 +335,7 @@ export default function Inventario() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [preset, setPreset] = useState('')
   const [saving, setSaving] = useState(false)
+  const [removing, setRemoving] = useState(false)
   const [formError, setFormError] = useState('')
   // Qué hace el kit básico en este momento: cargarlo o vaciar el inventario.
   const [kitBusy, setKitBusy] = useState<'load' | 'clear' | null>(null)
@@ -371,8 +388,58 @@ export default function Inventario() {
   const replaceMaterial = (updated: Material) =>
     setMaterials((list) => sortMaterials(list.map((m) => (m.id === updated.id ? updated : m))))
 
+  /**
+   * Un insumo por nombre. Si quedaron repetidos de antes, manda el más antiguo:
+   * es el mismo al que el servidor le suma el stock, así pantalla y base coinciden.
+   */
+  const ownedByKey = useMemo(() => {
+    const map = new Map<string, Material>()
+    for (const m of [...materials].sort((a, b) => a.created_at.localeCompare(b.created_at))) {
+      const key = materialKey(m.name)
+      if (!map.has(key)) map.set(key, m)
+    }
+    return map
+  }, [materials])
+
+  /** Insumo del inventario con el mismo nombre que el del formulario de alta, si lo hay. */
+  const existing = ownedByKey.get(materialKey(form.name)) ?? null
+
+  /**
+   * Opciones de «Insumos frecuentes»: primero lo que el artista ya tiene en su
+   * inventario (con sus propios precios y datos, y también lo que agregó a mano),
+   * y después lo del catálogo que todavía no tiene.
+   */
+  const presetGroups = useMemo(() => {
+    const owned = [...ownedByKey.values()]
+    return MATERIAL_CATEGORIES.map((c) => ({
+      ...c,
+      options: [
+        ...owned
+          .filter((m) => m.category === c.value)
+          .sort((a, b) => a.name.localeCompare(b.name, 'es'))
+          .map((m) => ({
+            name: m.name,
+            label:
+              `${m.name} · ${m.quantity} ${unitShort(m.unit, m.quantity)} en stock` +
+              (isCatalog(m.name) ? '' : ' · agregado por ti'),
+          })),
+        ...MATERIAL_PRESETS.filter(
+          (p) => p.category === c.value && !ownedByKey.has(materialKey(p.name)),
+        ).map((p) => ({ name: p.name, label: p.name })),
+      ],
+    })).filter((g) => g.options.length > 0)
+  }, [ownedByKey])
+
   function applyPreset(name: string) {
     setPreset(name)
+    // Si ya está en el inventario se rellena con los datos del artista (su
+    // precio, su mínimo, su regla), no con los sugeridos: lo que editó se
+    // respeta. La cantidad queda vacía porque aquí es lo que se va a sumar.
+    const owned = ownedByKey.get(materialKey(name))
+    if (owned) {
+      setForm({ ...materialToForm(owned), quantity: '' })
+      return
+    }
     const found = MATERIAL_PRESETS.find((p) => p.name === name)
     if (!found) return
     // Solo sugiere el insumo: la cantidad la pone el artista. La regla de
@@ -381,7 +448,8 @@ export default function Inventario() {
     // y el precio referencial evita el error más común, cargar lo que cuesta
     // el envase en vez de lo que cuesta la unidad.
     setForm((f) => ({
-      ...f,
+      ...EMPTY_FORM,
+      quantity: f.quantity,
       name: found.name,
       category: found.category,
       unit: found.unit,
@@ -391,6 +459,39 @@ export default function Inventario() {
       colorHex: found.colorHex ?? '',
       cost: formatAmountInput(found.unitCost),
     }))
+  }
+
+  /** El insumo elegido en la lista, si lo agregó el artista (los del catálogo no se quitan). */
+  const removableChoice = preset && !isCatalog(preset) ? ownedByKey.get(materialKey(preset)) ?? null : null
+
+  /**
+   * Quita de la lista (y del inventario) un insumo que agregó el artista. Si
+   * quedaron repetidos con el mismo nombre se borran todos, o seguiría en la lista.
+   */
+  async function removeCustom() {
+    if (!removableChoice) return
+    const key = materialKey(removableChoice.name)
+    const rows = materials.filter((m) => materialKey(m.name) === key)
+    const ok = window.confirm(
+      `¿Quitar «${removableChoice.name}» de la lista y del inventario?\n\n` +
+        'Se elimina el insumo con su stock. Las cotizaciones guardadas conservan sus líneas.',
+    )
+    if (!ok) return
+
+    setRemoving(true)
+    setFormError('')
+    try {
+      await Promise.all(rows.map((m) => deleteMaterial(m.id)))
+      const ids = new Set(rows.map((m) => m.id))
+      setMaterials((list) => list.filter((m) => !ids.has(m.id)))
+      setForm(EMPTY_FORM)
+      setPreset('')
+      setNotice(`«${removableChoice.name}» se quitó de la lista.`)
+    } catch (err) {
+      setFormError(apiErrorMessage(err, 'No pudimos quitar el insumo.'))
+    } finally {
+      setRemoving(false)
+    }
   }
 
   /** Agrega el kit básico. Lo que ya está en el inventario no se toca. */
@@ -449,11 +550,21 @@ export default function Inventario() {
     setSaving(true)
     setFormError('')
     try {
-      const created = await createMaterial(formToInput(form))
-      setMaterials((list) => sortMaterials([...list, created]))
+      const input = formToInput(form)
+      const { material, merged } = await createMaterial(input)
+      if (merged) {
+        replaceMaterial(material)
+        setNotice(
+          (input.quantity ?? 0) > 0
+            ? `«${material.name}»: se sumaron ${input.quantity}. Ahora tienes ${material.quantity} ${unitShort(material.unit, material.quantity)}.`
+            : `«${material.name}» actualizado.`,
+        )
+      } else {
+        setMaterials((list) => sortMaterials([...list, material]))
+        setNotice(`«${material.name}» agregado al inventario.`)
+      }
       setForm(EMPTY_FORM)
       setPreset('')
-      setNotice(`«${created.name}» agregado al inventario.`)
     } catch (err) {
       setFormError(apiErrorMessage(err, 'No pudimos guardar el insumo.'))
     } finally {
@@ -497,25 +608,49 @@ export default function Inventario() {
                 onChange={(e) => applyPreset(e.target.value)}
               >
                 <option value="">Elegir de la lista…</option>
-                {MATERIAL_CATEGORIES.map((c) => (
-                  <optgroup key={c.value} label={c.label}>
-                    {MATERIAL_PRESETS.filter((p) => p.category === c.value).map((p) => (
-                      <option key={p.name} value={p.name}>{p.name}</option>
+                {presetGroups.map((g) => (
+                  <optgroup key={g.value} label={g.label}>
+                    {g.options.map((o) => (
+                      <option key={o.name} value={o.name}>{o.label}</option>
                     ))}
                   </optgroup>
                 ))}
               </select>
+              {removableChoice && (
+                <div className="st-actions st-actions--tight">
+                  <button
+                    type="button"
+                    className="st-btn st-btn--sm st-btn--danger"
+                    onClick={removeCustom}
+                    disabled={removing || saving}
+                  >
+                    {removing ? 'Quitando…' : `Quitar «${removableChoice.name}» de la lista`}
+                  </button>
+                </div>
+              )}
               <p className="st-hint">
-                Rellena nombre, categoría y unidad; tú pones el stock y el costo.
+                Incluye lo que ya tienes en tu inventario, con tus precios. Si eliges uno
+                que ya tienes, lo que agregues se suma a su stock. Los que agregaste tú
+                se pueden quitar de la lista; los del catálogo, no.
               </p>
             </div>
 
             <form onSubmit={handleSubmit} noValidate>
-              <MaterialFields idPrefix="mat" value={form} onChange={setForm} />
+              <MaterialFields
+                idPrefix="mat"
+                value={form}
+                onChange={setForm}
+                quantityLabel={existing ? 'Cantidad a sumar' : 'Stock actual'}
+                quantityHint={
+                  existing
+                    ? `Ya tienes ${existing.quantity} ${unitShort(existing.unit, existing.quantity)}; se suma a eso.`
+                    : undefined
+                }
+              />
               {formError && <p className="st-alert" role="alert">{formError}</p>}
               <div className="st-actions">
                 <button className="st-btn st-btn--primary" type="submit" disabled={saving}>
-                  {saving ? 'Guardando…' : 'Agregar al inventario'}
+                  {saving ? 'Guardando…' : existing ? 'Sumar al inventario' : 'Agregar al inventario'}
                 </button>
               </div>
             </form>

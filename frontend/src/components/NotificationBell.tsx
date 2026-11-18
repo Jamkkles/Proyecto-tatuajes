@@ -33,7 +33,7 @@ const kindIcons = {
 }
 
 function iconFor(kind: string) {
-  if (kind === 'stock_bajo') return kindIcons.stock
+  if (kind === 'stock_bajo' || kind === 'stock_faltante') return kindIcons.stock
   if (kind.startsWith('mensaje')) return kindIcons.chat
   return kindIcons.info
 }

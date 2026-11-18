@@ -2,7 +2,7 @@ const quoteModel = require('../models/quoteModel');
 const materialModel = require('../models/materialModel');
 const projectModel = require('../models/projectModel');
 const sketchModel = require('../models/sketchModel');
-const { notifyLowStock } = require('../services/stockAlerts');
+const { notifyLowStock, notifyShortages } = require('../services/stockAlerts');
 const {
   computeQuote,
   itemsCost,
@@ -346,7 +346,18 @@ async function remove(req, res) {
 
   try {
     const deleted = await quoteModel.remove(req.params.id, req.user.sub);
-    if (!deleted) return res.status(404).json(NOT_FOUND);
+    if (!deleted) {
+      // No se borró: o no existe (o no es suya), o ya descontó stock.
+      const exists = await quoteModel.findByIdForUser(req.params.id, req.user.sub);
+      if (exists) {
+        return res.status(409).json({
+          message:
+            'Esta cotización ya descontó insumos del inventario y no se puede eliminar: es el registro de ese descuento.',
+          code: 'cotizacion_descontada',
+        });
+      }
+      return res.status(404).json(NOT_FOUND);
+    }
     return res.status(204).end();
   } catch (err) {
     return sendError(res, err, 'eliminando la cotización');
@@ -356,8 +367,11 @@ async function remove(req, res) {
 /**
  * POST /api/quotes/:id/consume  → descuenta el stock (HU16)
  *
- * Normalmente esto lo dispara solo el cierre de la sesión; la ruta existe para
- * el caso en que el artista quiera descontar sin pasar por la agenda.
+ * Lo pide el artista con el botón «Descontar insumos» de la cotización guardada
+ * (completar una sesión no descuenta nada). Si a algún insumo no le alcanza el
+ * stock no se descuenta nada: 409 `{ code: 'stock_insuficiente', shortages }` y
+ * un aviso en la campanita por cada insumo que falta. Si otra cotización del
+ * mismo proyecto ya descontó: 409 `{ code: 'proyecto_ya_descontado' }`.
  */
 async function consume(req, res) {
   if (!isUuid(req.params.id)) return res.status(404).json(NOT_FOUND);
@@ -370,6 +384,25 @@ async function consume(req, res) {
         return res.status(409).json({ message: 'Esta cotización ya descontó el stock.' });
       }
       return res.status(404).json(NOT_FOUND);
+    }
+    if (result.alreadyConsumed) {
+      return res.status(409).json({
+        message: `Este proyecto ya descontó sus insumos con la cotización «${result.alreadyConsumed.title}». Un tatuaje se descuenta una sola vez.`,
+        code: 'proyecto_ya_descontado',
+        quoteId: result.alreadyConsumed.id,
+      });
+    }
+    if (result.shortages) {
+      const quote = await quoteModel.findByIdForUser(req.params.id, req.user.sub);
+      await notifyShortages(req.user.sub, quote, result.shortages);
+      const list = result.shortages
+        .map((m) => `${m.name} (necesitas ${m.needed} ${m.unit}, tienes ${m.available})`)
+        .join(', ');
+      return res.status(409).json({
+        message: `No alcanza el stock, no se descontó nada. Falta: ${list}. Repón en Inventario y vuelve a intentarlo.`,
+        code: 'stock_insuficiente',
+        shortages: result.shortages,
+      });
     }
     await notifyLowStock(req.user.sub, result.affected);
     return res.json(result);
