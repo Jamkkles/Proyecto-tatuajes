@@ -16,7 +16,8 @@ services:
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     healthCheckPath: /health
-    autoDeployTrigger: commit
+    # Despliega solo cuando el CI de GitHub (.github/workflows/ci.yml) salió verde.
+    autoDeployTrigger: checksPass
     envVars:
       - key: NODE_ENV
         value: production

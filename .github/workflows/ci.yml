@@ -1,0 +1,132 @@
+# Integración y entrega continuas (CI/CD).
+#
+# CI — en cada push a cualquier rama y en cada pull request:
+#   · backend:  instala desde cero, ESLint (si la rama lo tiene configurado) y
+#               Jest. Levanta un PostgreSQL 16 de verdad para la batería de
+#               integración, igual al de docker-compose.
+#   · frontend: instala desde cero, ESLint y la compilación de producción
+#               (tsc + vite build), que es lo mismo que hará Cloudflare Pages.
+#
+# CD — solo en la rama de producción (Pablo) y solo si el CI pasó:
+#   · Render (backend): no lo llama este archivo. `render.yaml` tiene
+#     `autoDeployTrigger: checksPass`, así que Render espera a que estos checks
+#     salgan verdes en GitHub antes de desplegar el commit.
+#   · Cloudflare Pages (frontend): el job `deploy-frontend` dispara el «deploy
+#     hook» de Pages. Necesita el secreto CF_PAGES_DEPLOY_HOOK en GitHub; sin él
+#     el job avisa y no hace nada. Paso a paso en docs/despliegue.md.
+name: CI/CD
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+# Un push nuevo a la misma rama cancela la corrida anterior, que ya no importa.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend (lint + pruebas)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: tatuajes_user
+          POSTGRES_PASSWORD: tatuajes_pass
+          POSTGRES_DB: tatuajes_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tatuajes_user"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # La batería de integración cambia el nombre de la base por
+      # `tatuajes_test` y la crea sola; nunca toca `tatuajes_db`.
+      DATABASE_URL: postgresql://tatuajes_user:tatuajes_pass@localhost:5432/tatuajes_db
+      JWT_SECRET: secreto_solo_para_el_ci_no_se_usa_en_produccion
+      NODE_ENV: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: ESLint
+        run: |
+          if [ -f eslint.config.js ]; then
+            npx eslint .
+          else
+            echo "Esta rama no tiene ESLint en el backend; se omite."
+          fi
+
+      - name: Pruebas (Jest)
+        run: npx jest --runInBand --ci
+
+  frontend:
+    name: Frontend (lint + build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Compilar (tsc + vite build)
+        run: npm run build
+        env:
+          # Solo para que compile; el valor real lo pone Cloudflare Pages.
+          VITE_API_URL: https://api.ejemplo.invalid
+
+  deploy-frontend:
+    name: Desplegar frontend (Cloudflare Pages)
+    needs: [backend, frontend]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/Pablo'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Disparar el deploy hook
+        env:
+          HOOK: ${{ secrets.CF_PAGES_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::notice::Falta el secreto CF_PAGES_DEPLOY_HOOK: no se dispara el despliegue del frontend (ver docs/despliegue.md)."
+            exit 0
+          fi
+          curl --fail --silent --show-error -X POST "$HOOK" > /dev/null
+          echo "Cloudflare Pages recibió la orden de desplegar ${GITHUB_SHA::7}."

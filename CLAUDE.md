@@ -107,6 +107,14 @@ usar CPU): córrelos en el contenedor del frontend,
 Frontend en Cloudflare Pages, backend en Render (`render.yaml`), PostgreSQL en
 Neon e imágenes en Cloudinary. Paso a paso en `docs/despliegue.md`.
 
+**CI/CD** en `.github/workflows/ci.yml` (GitHub Actions, cada push y PR): backend
+`npm ci` + ESLint (si la rama lo tiene) + Jest con un PostgreSQL 16 de servicio;
+frontend `npm ci` + lint + `npm run build`. Producción es la rama `Pablo`: Render
+despliega solo con los checks verdes (`autoDeployTrigger: checksPass` en
+`render.yaml`) y el job `deploy-frontend` dispara el deploy hook de Cloudflare
+Pages (secreto `CF_PAGES_DEPLOY_HOOK`; sin él solo avisa). Lo que falta configurar
+a mano en los paneles está en `docs/despliegue.md`, sección «CI/CD».
+
 ## Environment
 
 Backend requiere `backend/.env` (copiar de `backend/.env.example`):

@@ -186,8 +186,9 @@ Se abre sin barra del navegador y con el ícono de la «H».
 
 ## Mantenimiento
 
-**Actualizar.** `git push` a la rama conectada despliega solo el frontend y el
-backend. Si cambiaste `schema.sql`, repite el paso 3.
+**Actualizar.** `git push` a la rama de producción (`Pablo`) despliega solo el
+frontend y el backend, **pero solo si el CI pasó** (ver «CI/CD» más abajo). Si
+cambiaste `schema.sql`, repite el paso 3.
 
 **Evitar el letargo del backend (opcional).** Un monitor externo que visite
 `/health` cada pocos minutos mantiene el servicio despierto; 750 horas alcanzan
@@ -226,3 +227,40 @@ funcione. En local sigue sirviendo `SMTP_*` (o Ethereal si no hay nada).
 **Datos locales.** Esta guía empieza con una base vacía. Migrar la de desarrollo
 exigiría reescribir las URLs de los bocetos (guardan `http://localhost:3000/…`) y
 subir los archivos a Cloudinary.
+
+## CI/CD (GitHub Actions)
+
+`.github/workflows/ci.yml` corre en cada push a cualquier rama y en cada pull
+request. Se ve en la pestaña **Actions** del repositorio y como ✓/✗ junto a cada
+commit.
+
+```
+ git push ──► GitHub Actions
+                ├─ Backend:  npm ci → ESLint → Jest (con un PostgreSQL 16 real)
+                └─ Frontend: npm ci → ESLint → tsc + vite build
+                        │
+                 ¿todo verde y es la rama Pablo?
+                        ├─ Render ve los checks verdes y despliega el backend
+                        └─ job deploy-frontend → deploy hook de Cloudflare Pages
+```
+
+Si algo falla, **no se despliega nada**: producción sigue con la versión anterior.
+
+**Configuración que se hace una sola vez en los paneles** (no se puede hacer
+desde el repositorio):
+
+1. **Render.** `render.yaml` ya dice `autoDeployTrigger: checksPass`: Render
+   espera a que los checks de GitHub salgan verdes. Como es un Blueprint, se
+   aplica solo al sincronizar. Comprueba en *Settings → Build & Deploy* que la
+   rama sea `Pablo` y que *Auto-Deploy* diga *After CI Checks Pass*.
+2. **Cloudflare Pages** (para que el frontend también espere al CI):
+   - *Settings → Builds & deployments → Branch control*: desactiva los
+     despliegues automáticos de producción (y de vista previa si no los usas).
+   - *Settings → Builds & deployments → Deploy hooks*: crea uno para la rama
+     `Pablo` y copia la URL.
+   - En GitHub: *Settings → Secrets and variables → Actions → New repository
+     secret*, nombre `CF_PAGES_DEPLOY_HOOK`, valor la URL. Es un secreto:
+     cualquiera que la tenga puede disparar despliegues.
+
+   Sin el secreto el job `deploy-frontend` solo deja un aviso y Cloudflare sigue
+   desplegando como antes, con cada push y sin esperar al CI.
