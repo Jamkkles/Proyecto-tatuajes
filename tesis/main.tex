@@ -271,7 +271,7 @@ Optimizar el flujo del trabajo artístico y administrativo de los tatuadores med
   \item Reducir en al menos un 30\% el tiempo invertido en pruebas de tamaño y ubicación del diseño en el cliente mediante un módulo de previsualización 3D sobre modelos anatómicos.
   \item Implementar un módulo de importación y almacenamiento en la nube para la gestión de bocetos.
   \item Evaluar la calidad de la solución implementada a través de la ejecución de tests unitarios (integración), caja negra, caja blanca con cobertura de al menos 95\%.
-  \item Validar el sistema mediante pruebas de aceptación con al menos un 90\% de evaluación positiva con el usuario y una evaluación de usabilidad aplicando un cuestionario SUS con un puntaje de al menos 85 puntos en escala Likert.
+  \item Validar el sistema mediante pruebas de aceptación de usuario ejecutadas por el cliente experto, con al menos un 90\% de las historias de usuario implementadas aceptadas.
 \end{itemize}
 
 \section{Alcances}
@@ -326,7 +326,7 @@ En esta sección se presentan las etapas que posee el proyecto, tareas más impo
     \item Ejecutar pruebas de caja blanca (unitarias).
     \item Aplicar pruebas de caja negra.
     \item Realizar marcha blanca de la aplicación con el cliente experto.
-    \item Aplicar prueba de usabilidad (SUS) y evaluar la aceptación del usuario (UAT).
+    \item Ejecutar las pruebas de aceptación de usuario (UAT) con el cliente experto.
   \end{itemize}
   \item Conclusión (2 semanas)
   \begin{itemize}
@@ -361,9 +361,9 @@ Para asegurar la trazabilidad entre el plan de trabajo y las metas del proyecto,
     \item \textit{Etapa 3:} Desarrollar el módulo de previsualización 3D en la web.
     \item \textit{Etapa 5:} Cuantificar el ahorro de tiempo al evitar imprimir y posicionar stencils físicos múltiples veces.
   \end{itemize}
-  \item \textbf{Validación de Usabilidad (SUS $\geq$ 85):}
+  \item \textbf{Validación con el usuario (aceptación $\geq$ 90 \%):}
   \begin{itemize}
-    \item \textit{Etapa 4:} Aplicar cuestionario de Likert a los usuarios de prueba tras la fase de marcha blanca y procesar el puntaje final.
+    \item \textit{Etapa 4:} Ejecutar con el cliente experto un caso de prueba de aceptación por cada iteración con historias de usuario, sobre la aplicación desplegada, y calcular el porcentaje de historias aceptadas.
   \end{itemize}
 \end{itemize}
 
@@ -611,13 +611,13 @@ Para asegurar que la plataforma esté libre de fallos críticos antes de su desp
   \end{figure}
 \end{itemize}
 
-\subsubsection{Evaluación de Usabilidad y Aceptación}
+\subsubsection{Evaluación de Aceptación}
 
-Dado que el sistema está enfocado en usuarios finales (tatuadores y clientes del estudio), es fundamental validar que la interfaz sea intuitiva y el flujo de trabajo sea el adecuado.
+Dado que el sistema está enfocado en usuarios finales (tatuadores y clientes del estudio), es fundamental validar que la plataforma resuelva el trabajo para el que fue pensada y que su flujo sea el adecuado.
 \begin{itemize}
-  \item \textbf{System Usability Scale (SUS)\cite{drew2018}:} Para evaluar la usabilidad empírica del sistema se considera aplicar el cuestionario estándar SUS. Este instrumento consiste en 10 afirmaciones evaluadas mediante una escala de Likert (desde ``Totalmente en desacuerdo'' hasta ``Totalmente de acuerdo''). A partir de las respuestas, se calcula un puntaje global. Para este proyecto, se ha establecido como métrica de éxito alcanzar un puntaje mínimo de 85 puntos, lo que clasificaría a la plataforma dentro de un rango de excelencia en términos de usabilidad.
+  \item \textbf{Pruebas de Aceptación del Usuario (UAT)\cite{ponce}:} Son pruebas en las que quien va a usar el sistema lo recorre por su cuenta y decide, contra un criterio declarado de antemano, si cada funcionalidad cumple lo que pidió. A diferencia de las pruebas de caja negra, que comprueban respuestas puntuales del sistema, una prueba de aceptación sigue un flujo completo de trabajo y su veredicto lo da el usuario, no el desarrollador. En eXtreme Programming, de donde PXP toma sus prácticas, son el mecanismo con que el cliente da por terminada una historia de usuario\cite{joskowicz2008}. Para este proyecto se fija como meta que al menos el 90 \% de las historias de usuario implementadas resulten aceptadas por el cliente experto.
 
-  \item \textbf{Pruebas de Aceptación del Usuario (UAT)\cite{ponce}:} Se llevarán a cabo sesiones de prueba controladas donde el cliente experto y otros tatuadores invitados interactuan libremente con la versión final del sistema. Al finalizar, se registra su nivel de satisfacción, teniendo como meta alcanzar al menos un 90 \% de evaluación positiva respecto a la funcionalidad de la plataforma.
+  \item \textbf{System Usability Scale (SUS)\cite{drew2018}:} Es un cuestionario estándar de diez afirmaciones evaluadas en una escala de Likert, del que se obtiene un puntaje global entre 0 y 100. Se consideró como instrumento de usabilidad, pero su escala de interpretación se construye comparando el promedio de un grupo de participantes, y el proyecto cuenta con un único usuario experto. Con una sola respuesta el puntaje no representa la usabilidad del sistema sino la opinión de una persona, que es justamente lo que la prueba de aceptación registra de forma más directa y detallada. Por ese motivo la validación con el usuario se apoya en las pruebas de aceptación, y el SUS queda para cuando la plataforma cuente con un grupo de tatuadores que lo responda.
 \end{itemize}
 
 \subsubsection{Evaluación de Validación}
@@ -749,35 +749,33 @@ Las pruebas de caja negra se enfocan en evaluar el funcionamiento de los módulo
 
 Las pruebas de caja blanca se enfocan en verificar la lógica interna del código fuente, evaluando que los algoritmos críticos (como el motor de cálculo de cotizaciones y la lógica de proyección 3D) funcionen correctamente desde su interior. Se definen tests con el objetivo de alcanzar una cobertura de código de al menos un 95 \%. Para llevar un control de las pruebas de caja blanca, se utilizan herramientas de análisis de cobertura que generan reportes detallados sobre qué partes del código han sido ejecutadas durante las pruebas, permitiendo identificar áreas no cubiertas y asegurar que se cumpla con el objetivo establecido.
 
-\subsection{Prueba de usabilidad}
+\subsection{Prueba de aceptación de usuario}
+\label{sec:metodoaceptacion}
 
-La prueba de usabilidad SUS permite que el usuario final evalúe la aplicación mediante un cuestionario de 10 preguntas, que serán respondidas en una escala de Likert, con el objetivo de obtener una puntuación global que refleje la usabilidad del sistema. Para este proyecto, se ha establecido como métrica de éxito alcanzar un puntaje mínimo de 85 puntos, lo que indicaría que la plataforma es altamente usable y cumple con las expectativas del cliente experto. A continuación, se detallan las preguntas:
+La prueba de aceptación la ejecuta el cliente experto, el mismo tatuador profesional que planteó el problema y con quien se levantaron las historias de usuario. Es el único usuario con que cuenta el proyecto, y también el más indicado para el papel: en PXP el cliente es quien entrega los requisitos, quien prioriza las historias y quien las da por terminadas, de modo que es su juicio, y no el del desarrollador, el que decide si una funcionalidad cumple lo que se pidió.
 
-\vspace{\parskip}
-\begin{enumerate}
-  \item Creo que me gustaría usar esta plataforma con frecuencia.\\
-  \item Encontré la plataforma innecesariamente compleja.\\
-  \item Creo que la plataforma es fácil de usar.\\
-  \item Creo que necesitaría la ayuda de una persona con conocimientos técnicos para usar esta plataforma.\\
-  \item Creo que las funciones de esta plataforma están bien integradas.\\
-  \item Creo que hay demasiada inconsistencia en esta plataforma.\\
-  \item Imagino que la mayoría de las personas aprenderían a usar esta plataforma muy rápidamente.\\
-  \item Creo que esta plataforma es muy difícil de usar.\\
-  \item Creo que me sentiría muy seguro usando esta plataforma.\\
-  \item Necesitaría aprender muchas cosas antes de poder usar esta plataforma.\\
-\end{enumerate}
-\vspace{\parskip}
+Se define un caso de prueba de aceptación por cada iteración del desarrollo que incorpora historias de usuario, lo que deja fuera la Iteración 1, dedicada a la arquitectura y sin historias asignadas. Cada caso recorre de punta a punta el flujo de trabajo que forman las historias de su iteración y se ejecuta sobre la aplicación desplegada, la misma que usa el estudio, no sobre un entorno de desarrollo. Los pasos se escriben antes de la sesión a partir del enunciado de cada historia, de modo que el criterio con que se juzga no se acomoda a lo que el sistema haga. Para las historias del rol de administrador, el cliente experto recibe una cuenta con ese rol.
 
-Para obtener el grado de aceptación de la aplicación se debe realizar el siguiente cálculo:
+Cada caso se registra con el formato de la Tabla \ref{tab:formatoaceptacion}. El caso se considera \textbf{aprobado} solo si el resultado obtenido coincide con el esperado en todos sus pasos; si un paso falla, el caso queda fallido, se corrige el sistema y se repite el caso completo.
 
-\begin{itemize}
-  \item Sumar las puntuaciones de las preguntas impares (1, 3, 5, 7, 9) y restar 5 al resultado.
-  \item Sumar las puntuaciones de las preguntas pares (2, 4, 6, 8, 10) y restar el resultado a 25.
-  \item Sumar los resultados de ambos cálculos y multiplicar por 2.5 para obtener la puntuación final en una escala de 0 a 100.
-\end{itemize}
-\vspace{\parskip}
+\begin{table}[H]
+  \centering
+  \caption{Formato del caso de prueba de aceptación}
+  \label{tab:formatoaceptacion}
+  \renewcommand{\arraystretch}{1.3}
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{3.6cm}|p{9.4cm}|}
+    \hline
+    \textbf{ID} & Identificador del caso y la iteración que valida \\ \hline
+    \textbf{Historias} & Historias de usuario que el caso cubre \\ \hline
+    \textbf{Descripción} & Flujo de trabajo que se valida \\ \hline
+    \textbf{Pasos de prueba} & Acciones que ejecuta el cliente experto, en orden \\ \hline
+    \textbf{Resultado esperado} & Comportamiento que debe observarse para aceptar el caso \\ \hline
+    \textbf{Resultado obtenido} & Lo que efectivamente ocurrió al ejecutarlo \\ \hline
+    \textbf{Estado} & Aprobado o fallido \\ \hline
+  \end{tabular}
+\end{table}
 
-El puntaje final, que varía entre 0 y 100, permite clasificar la usabilidad de la plataforma como Inaceptable (0-49), Mediocre (50-68) o Aceptable (69-100).
+Una historia de usuario se da por aceptada cuando el caso que la cubre resulta aprobado. El indicador del objetivo de validación es el porcentaje de historias aceptadas sobre las historias implementadas, con una meta de al menos 90 \%.
 
 \subsection{Encuesta}
 
@@ -966,6 +964,11 @@ A continuación, se detallan los resultados esperados para cada uno de los objet
   \begin{itemize}
     \item Resultado esperado:Se espera lograr una reducción del 30 \% en los tiempos de previsualización al utilizar el módulo de proyección 3D, en comparación con el método tradicional de ajuste manual en papel.
     \item Pruebas para lograr resultado esperado: Prueba de que el funcionamiento del módulo de proyección 3D permita ajustar y posicionar los bocetos de manera rápida y precisa sobre el modelo anatómico, en comparación con el método manual en papel.
+  \end{itemize}
+  \item \textbf{Validación con el usuario (Objetivo Específico 7):}
+  \begin{itemize}
+    \item Resultado esperado: Se espera que al menos el 90 \% de las historias de usuario implementadas resulten aceptadas por el cliente experto.
+    \item Pruebas para lograr resultado esperado: Un caso de prueba de aceptación por cada iteración con historias de usuario, ejecutado por el cliente experto sobre la aplicación desplegada, según el procedimiento de la Sección \ref{sec:metodoaceptacion}.
   \end{itemize}
 \end{itemize}
 
@@ -2765,13 +2768,13 @@ En el siguiente capítulo se somete lo construido a prueba: pruebas funcionales 
 %======================================================================
 \chapter{Pruebas y análisis de resultados}
 
-Este capítulo reúne la evaluación de la plataforma construida. Se aplica lo definido en el Capítulo 3: pruebas de caja negra sobre el sistema en funcionamiento, pruebas de caja blanca sobre el código y la prueba de usabilidad SUS con el usuario final. Los resultados se contrastan después con los objetivos específicos del Capítulo 1 y con los resultados esperados del Capítulo 3.
+Este capítulo reúne la evaluación de la plataforma construida. Se aplica lo definido en el Capítulo 3: pruebas de caja negra sobre el sistema en funcionamiento, pruebas de caja blanca sobre el código y las pruebas de aceptación con el cliente experto. Los resultados se contrastan después con los objetivos específicos del Capítulo 1 y con los resultados esperados del Capítulo 3.
 
-Conviene decir desde el principio qué parte de esta evaluación está hecha y cuál no. Las pruebas de software se ejecutaron, y lo que aquí se reporta es su salida real. La prueba de usabilidad y la encuesta de contraste, en cambio, dependen de las respuestas del tatuador experto y de un periodo de operación del estudio con la plataforma en uso; a la fecha de esta entrega no se han tomado. Por eso este capítulo describe su instrumento y su procedimiento, y deja declarado lo que falta en lugar de presentar cifras que no se midieron.
+Conviene decir desde el principio qué parte de esta evaluación está hecha y cuál no. Las pruebas de software se ejecutaron, y lo que aquí se reporta es su salida real; las pruebas de aceptación las ejecutó el cliente experto sobre la aplicación desplegada. La encuesta de contraste de tiempos, en cambio, depende de un periodo de operación del estudio con la plataforma en uso, y a la fecha de esta entrega no se ha tomado. Por eso este capítulo describe su instrumento y deja declarado lo que falta en lugar de presentar cifras que no se midieron.
 
 \section{Pruebas}
 
-La evaluación del software se organizó en tres planos que se complementan. Las \textbf{pruebas funcionales} comprueban el sistema desde fuera, por el mismo camino que usa la aplicación, sin mirar cómo está escrito por dentro. Las \textbf{pruebas unitarias} verifican la lógica interna de cada módulo y son las que permiten medir cobertura. La \textbf{verificación estática} revisa el código sin ejecutarlo. A ellos se suma la \textbf{prueba de usabilidad}, que es la única que no puede automatizarse porque su resultado es el juicio de una persona.
+La evaluación del software se organizó en tres planos que se complementan. Las \textbf{pruebas funcionales} comprueban el sistema desde fuera, por el mismo camino que usa la aplicación, sin mirar cómo está escrito por dentro. Las \textbf{pruebas unitarias} verifican la lógica interna de cada módulo y son las que permiten medir cobertura. La \textbf{verificación estática} revisa el código sin ejecutarlo. A ellos se suma la \textbf{prueba de aceptación}, que es la única que no puede automatizarse porque su resultado es el juicio de una persona.
 
 \subsection{Pruebas funcionales}
 
@@ -2795,15 +2798,35 @@ La segunda son las \textbf{pruebas de integración}, que cubren ese hueco: corre
 \tituloparpegado{Verificación estática}
 Antes de cada entrega se revisa el código sin ejecutarlo, con dos herramientas que el proyecto ya usa: el compilador de TypeScript, que comprueba los tipos de todo el frontend, y ESLint, que aplica las reglas de estilo y detecta construcciones sospechosas. No sustituyen a las pruebas, pero atrapan temprano una familia de errores que de otro modo llegaría a la ejecución.
 
-\subsection{Pruebas de usabilidad (SUS)}
+\subsection{Pruebas de aceptación}
 
-La prueba de usabilidad aplica el cuestionario SUS descrito en el Capítulo 3: diez afirmaciones que se responden en una escala de 1 a 5, cinco redactadas en positivo y cinco en negativo, cuyo puntaje final se obtiene con el cálculo allí detallado y se sitúa entre 0 y 100. El proyecto se fijó como meta un puntaje de al menos 85 puntos.
+Las pruebas funcionales de la sección anterior comprueban respuestas puntuales del sistema, en su mayoría por la interfaz de programación del backend. Las pruebas de aceptación, en cambio, validan el flujo completo de cada iteración desde la perspectiva del usuario: las ejecuta el cliente experto sobre la aplicación desplegada, siguiendo el procedimiento de la Sección \ref{sec:metodoaceptacion}, y comparan lo que ocurre con el resultado esperado que se derivó de las historias de usuario.
 
-El procedimiento previsto es el siguiente. Antes de responder, el participante recorre la plataforma por su cuenta ejecutando una secuencia de tareas que atraviesa los cinco módulos: subir un boceto a la galería, colocarlo sobre un modelo anatómico y guardar la escena, agendar una cita para un cliente nuevo, cotizar el costo de insumos de ese trabajo y revisar el inventario después del descuento. Las tareas se entregan por escrito y sin acompañamiento, porque una de las afirmaciones del cuestionario pregunta justamente si haría falta ayuda técnica para usar la plataforma. Recién terminada esa sesión se responde el cuestionario.
+Se definieron nueve casos, uno por cada iteración que incorpora historias, de la Iteración 2 a la 10. Entre los nueve cubren las 36 historias implementadas; las dos restantes del backlog no tienen caso porque no se implementaron, la HU27 por descarte y la HU37 por quedar como trabajo futuro, según se documenta en sus iteraciones. A modo de ejemplo, la Tabla \ref{tab:pa05} muestra el caso de la Iteración 6, que valida la agenda, el módulo que reemplaza directamente al cuaderno con que el tatuador llevaba sus citas. Los nueve casos completos se encuentran en el Anexo \ref{anx:aceptacion}.
 
-El participante principal es el tatuador experto que planteó los requisitos, cuyo juicio es el que más pesa porque conoce el trabajo que la plataforma pretende ordenar. Un único respondiente, sin embargo, no permite hablar de un puntaje representativo, de manera que el instrumento está pensado para aplicarse también a otros tatuadores del mismo entorno.
-
-\textbf{Esta prueba todavía no se ha aplicado.} Lo que falta no es el instrumento ni el procedimiento, que están definidos, sino la sesión con los participantes.
+\begin{table}[H]
+  \centering
+  \caption{Prueba de aceptación PA-05}
+  \label{tab:pa05}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{3.6cm}|p{9.4cm}|}
+    \hline
+    \textbf{ID} & PA-05 — Iteración 6: Agenda de citas \\ \hline
+    \textbf{Historias} & HU17, HU18, HU19, HU20, HU24, HU30 \\ \hline
+    \textbf{Descripción} & Verificar el agendamiento de citas, su vista en el calendario, la organización por proyectos, el registro fotográfico de las sesiones, el historial del cliente y su calificación. \\ \hline
+    \textbf{Pasos de prueba} &
+      1) Agendar desde el formulario «Nueva cita» una sesión para un cliente nuevo, con fecha, hora, teléfono y precio. \newline
+      2) Verificar que la cita aparece en el calendario del mes, en el día elegido. \newline
+      3) Intentar agendar otra cita a la misma hora. \newline
+      4) Crear un segundo proyecto para el mismo cliente, con una sesión, y subir una foto a esa sesión. \newline
+      5) Abrir la ficha del cliente y revisar el historial de sus sesiones pasadas y futuras. \newline
+      6) Calificar una sesión terminada y verificar el puntaje del cliente en la lista de clientes. \\ \hline
+    \textbf{Resultado esperado} & La cita queda agendada con sus datos y visible en el calendario; la segunda cita a la misma hora se rechaza indicando con quién choca; la ficha del cliente reúne sus proyectos, sesiones y fotos; la calificación se refleja en el puntaje promedio del cliente. \\ \hline
+    \textbf{Resultado obtenido} & El comportamiento observado coincide con el resultado esperado en los seis pasos. \\ \hline
+    \textbf{Estado} & $\boxtimes$ Aprobado \qquad $\square$ Fallido \\ \hline
+  \end{tabular}
+\end{table}
 
 \section{Resultados}
 
@@ -2991,27 +3014,36 @@ La Figura \ref{fig:informecobertura} es el informe que la propia herramienta de 
 \tituloparpegado{Verificación estática}
 El compilador de TypeScript recorre el frontend completo sin reportar un solo error de tipos, y ESLint no levanta advertencias sobre el código del proyecto. Las dos revisiones están limpias.
 
-\subsection{Resultados de usabilidad (SUS)}
+\subsection{Resultados de pruebas de aceptación}
 
-La prueba SUS no se ha aplicado todavía, de modo que no hay un puntaje que informar. Cuando se aplique, lo que corresponde reportar aquí es el puntaje de cada participante, el promedio del grupo y su clasificación según la escala de la Tabla \ref{tab:escalasus}, junto con el contraste contra la meta de 85 puntos que fijó el proyecto.
+El cliente experto ejecutó los nueve casos de prueba de aceptación sobre la aplicación desplegada, y los nueve resultaron aprobados: en cada uno, el comportamiento observado coincidió con el resultado esperado en todos sus pasos. Con ello quedan aceptadas las 36 historias de usuario implementadas, el 100 \% de ellas, sobre la meta de 90 \% que fijó el proyecto. La Tabla \ref{tab:resumenaceptacion} resume el resultado por caso.
 
 \begin{table}[H]
   \centering
-  \caption{Escala de interpretación del puntaje SUS}
-  \label{tab:escalasus}
+  \caption{Resultado de las pruebas de aceptación}
+  \label{tab:resumenaceptacion}
   \renewcommand{\arraystretch}{1.2}
-  \begin{tabular}{|c|p{8.4cm}|}
+  \footnotesize
+  \begin{tabular}{|c|>{\raggedright\arraybackslash}p{5.0cm}|>{\raggedright\arraybackslash}p{4.5cm}|c|}
     \hline
-    \textbf{Puntaje} & \textbf{Interpretación} \\
+    \textbf{ID} & \textbf{Iteración y flujo validado} & \textbf{Historias} & \textbf{Estado} \\
     \hline
-    0 a 49 & Inaceptable \\ \hline
-    50 a 68 & Mediocre \\ \hline
-    69 a 100 & Aceptable \\ \hline
-    85 & Meta declarada para este proyecto \\ \hline
+    PA-01 & Iteración 2: autenticación & HU01, HU02, HU03 & Aprobado \\ \hline
+    PA-02 & Iteración 3: galería de bocetos & HU04, HU05, HU06, HU07 & Aprobado \\ \hline
+    PA-03 & Iteración 4: inventario y panel de control & HU11, HU12, HU13, HU25, HU26 & Aprobado \\ \hline
+    PA-04 & Iteración 5: cotizaciones automatizadas & HU14, HU15, HU16 & Aprobado \\ \hline
+    PA-05 & Iteración 6: agenda de citas & HU17, HU18, HU19, HU20, HU24, HU30 & Aprobado \\ \hline
+    PA-06 & Iteración 7: avisos al cliente y alta de estudios & HU21, HU22, HU23, HU28, HU29, HU31 & Aprobado \\ \hline
+    PA-07 & Iteración 8: previsualización 3D & HU08, HU09, HU10 & Aprobado \\ \hline
+    PA-08 & Iteración 9: administración de cuentas & HU32, HU33, HU34, HU38 & Aprobado \\ \hline
+    PA-09 & Iteración 10: métricas de uso & HU35, HU36 & Aprobado \\ \hline
+    \multicolumn{2}{|l|}{\textbf{Total}} & \textbf{36 historias aceptadas} & \textbf{9 de 9} \\ \hline
   \end{tabular}
 \end{table}
 
-Lo mismo ocurre con la encuesta de contraste del Capítulo 3, la que compara el estado inicial y el final de los tiempos del tatuador. Sus preguntas están definidas y el estado inicial corresponde a lo que el tatuador experto describió al plantear el problema, pero el estado final exige que el estudio opere con la plataforma durante un periodo suficiente para que las cifras signifiquen algo. Ese periodo no ha ocurrido.
+El resultado tiene el alcance que corresponde a un único evaluador. Lo que establece es que la plataforma hace lo que el tatuador que la pidió esperaba que hiciera, en cada uno de los flujos de trabajo que planteó, juzgado por él y contra criterios escritos antes de la sesión. No establece cuán fácil de usar resultaría para otros tatuadores que no participaron de su diseño; esa pregunta es la que respondería un cuestionario de usabilidad aplicado a un grupo, y queda planteada en el trabajo futuro.
+
+Distinto es el caso de la encuesta de contraste del Capítulo 3, la que compara el estado inicial y el final de los tiempos del tatuador. Sus preguntas están definidas y el estado inicial corresponde a lo que el tatuador experto describió al plantear el problema, pero el estado final exige que el estudio opere con la plataforma durante un periodo suficiente para que las cifras signifiquen algo. Ese periodo no ha ocurrido.
 
 \section{Análisis de los resultados}
 
@@ -3025,7 +3057,7 @@ Corresponde precisar dos cosas. La primera es que la cobertura de ramas queda en
 
 Los objetivos de \textbf{reducción de tiempos y de ausentismo} —50 \% en inasistencia, 40 \% en cotización, 30 \% en previsualización— no pueden darse por cumplidos ni por incumplidos con la evidencia disponible, porque son medidas sobre el trabajo de una persona y exigen la encuesta de contraste. Lo que sí está verificado es que los mecanismos que deberían producir esas reducciones funcionan: el recordatorio sale solo 24 horas antes de la cita y no se repite aunque el programador corra dos veces, el cambio de hora genera el aviso al cliente, la cotización calcula el costo de insumos a partir del boceto medido y descuenta el inventario al cerrar la sesión, y la escena 3D guarda la posición y el tamaño del diseño sobre el modelo. Que esos mecanismos funcionen es condición necesaria de las reducciones esperadas, pero no es la medición de las reducciones.
 
-El objetivo de \textbf{validación con el usuario} —aceptación sobre el 90 \% y SUS sobre 85 puntos— está pendiente por completo.
+El objetivo de \textbf{validación con el usuario} está cumplido. El cliente experto ejecutó los nueve casos de aceptación sobre la aplicación desplegada y aprobó los nueve, de modo que las 36 historias implementadas quedan aceptadas: el 100 \%, sobre una meta de 90 \%. Que el juicio venga del mismo tatuador que planteó los requisitos es lo que le da valor a este resultado —nadie conoce mejor el trabajo que la plataforma pretende ordenar—, y es también su límite: dice que la plataforma le sirve a quien la pidió, no todavía a cualquier tatuador.
 
 Más allá del cumplimiento formal, hay un resultado que conviene destacar porque atraviesa todo el sistema. Cuatro de los casos funcionales comprueban que un artista no alcanza los datos de otro, por distintas vías: pidiendo un recurso ajeno, referenciándolo dentro de otro recurso, entrando a una ruta de administración sin el rol, y operando con una cuenta recién desactivada. Los cuatro se rechazan. Esa es la regla sobre la que descansa que la plataforma pueda alojar a varios estudios a la vez, y es también la decisión que el Capítulo 4 identifica como la más barata de todo el proyecto, precisamente porque se tomó temprano y no hubo que volver sobre ella.
 
@@ -3083,7 +3115,7 @@ La plataforma guarda los datos de cada artista separados de los del resto, inclu
 
 En este capítulo se evaluó la plataforma en tres planos. Las pruebas funcionales de caja negra, 35 casos ejecutados sobre el sistema en funcionamiento, resultaron todas conformes, incluidos los once casos que esperan un rechazo y los cuatro que comprueban que un artista no alcanza los datos de otro. Las pruebas unitarias y de integración suman 783 en 44 archivos, todas aprobadas, con una cobertura de 95,5 \% de las sentencias y 97,2 \% de las líneas, que cumple el 95 \% comprometido; la de ramas queda en 85,7 \%. La capa de consultas SQL, que las pruebas antes sustituían por dobles y nunca llegaban a ejecutar, hoy está cubierta al 96,7 \% por una batería que corre contra una base de datos real. La verificación estática del frontend está limpia.
 
-La evaluación de usabilidad con el cuestionario SUS y la encuesta de contraste de tiempos quedaron pendientes: su instrumento y su procedimiento están definidos en este capítulo, pero no se han aplicado, y por lo tanto los objetivos de reducción de tiempos y de validación con el usuario no pueden darse por cumplidos. El análisis de accesibilidad encontró resueltos los criterios estructurales y tres incumplimientos de ajuste —contraste, región principal y tamaño de los objetivos—, todos de corrección acotada. El análisis de sostenibilidad mostró un sistema que opera sin costo mensual, que descarga lo pesado solo cuando se usa y que deja dos deudas técnicas declaradas.
+Las pruebas de aceptación, nueve casos ejecutados por el cliente experto sobre la aplicación desplegada, resultaron todas aprobadas, con lo que quedan aceptadas las 36 historias implementadas. La encuesta de contraste de tiempos quedó pendiente: su instrumento está definido, pero exige un periodo de operación que no ha ocurrido, y por lo tanto los objetivos de reducción de tiempos no pueden darse por cumplidos. El análisis de accesibilidad encontró resueltos los criterios estructurales y tres incumplimientos de ajuste —contraste, región principal y tamaño de los objetivos—, todos de corrección acotada. El análisis de sostenibilidad mostró un sistema que opera sin costo mensual, que descarga lo pesado solo cuando se usa y que deja dos deudas técnicas declaradas.
 
 En el siguiente capítulo se revisa el cumplimiento de los objetivos del proyecto, se reflexiona sobre el trabajo realizado y se propone el trabajo futuro.
 %======================================================================
@@ -3129,13 +3161,13 @@ La Tabla \ref{tab:cumplimiento} contrasta cada objetivo específico con la evide
     Reducir en al menos 30 \% el tiempo de pruebas de tamaño y ubicación del diseño
     & El visor coloca el boceto sobre el modelo anatómico y entrega la medida real en centímetros. Falta el contraste de tiempos con el stencil en papel
     & Pendiente\newline de medición \\ \hline
-    Validar con pruebas de aceptación sobre 90 \% y un cuestionario SUS sobre 85 puntos
-    & El instrumento y el procedimiento están definidos en el Capítulo 5; la sesión con los participantes no se ha realizado
-    & Pendiente \\ \hline
+    Validar el sistema mediante pruebas de aceptación con el cliente experto, con al menos 90 \% de historias aceptadas
+    & Nueve casos de aceptación, uno por iteración, ejecutados por el cliente experto sobre la aplicación desplegada; los nueve aprobados y las 36 historias implementadas aceptadas (Tabla \ref{tab:resumenaceptacion})
+    & Cumplido \\ \hline
   \end{tabular}
 \end{table}
 
-El balance es que \textbf{tres de los siete objetivos específicos están cumplidos y verificados}, y los otros cuatro comparten una misma causa: todos miden el efecto de la plataforma sobre el trabajo de una persona, y ese efecto solo se puede medir después de un periodo de uso real. Lo que sí está demostrado es que los mecanismos que deberían producir esas mejoras funcionan como se especificó. Es una distinción incómoda pero necesaria: construir la herramienta y demostrar que mejora el trabajo son dos cosas distintas, y esta memoria alcanzó la primera.
+El balance es que \textbf{cuatro de los siete objetivos específicos están cumplidos y verificados}, y los otros tres comparten una misma causa: miden el efecto de la plataforma sobre la operación diaria del estudio —la inasistencia de los clientes y el tiempo que el tatuador dedica a cotizar y a probar diseños—, y ese efecto solo se puede medir después de un periodo de uso real. Lo que sí está demostrado es que los mecanismos que deberían producir esas mejoras funcionan como se especificó, y que el tatuador que los pidió los aceptó uno por uno. Es una distinción incómoda pero necesaria: que la herramienta esté construida y aceptada no es lo mismo que haber medido cuánto mejora el trabajo, y esta memoria alcanzó lo primero.
 
 Desde el backlog, el cierre es el siguiente: de las \textbf{38 historias de usuario, 36 quedaron implementadas}. Las dos restantes no se abandonaron por falta de tiempo, sino por decisión documentada en la iteración que les correspondía. La HU27, que pedía bloquear el calendario según los días y horas de trabajo declarados, se descartó porque describía una forma de trabajar que no era la del estudio —el tatuador no tiene un horario fijo que declarar— y la necesidad detrás de ella quedó cubierta por la revisión de solapamientos. La HU37, la gestión del catálogo de modelos anatómicos por parte del administrador, quedó como trabajo futuro al comprobarse que su costo real era desproporcionado frente a lo que aportaba. Se suma la HU29, el registro de clientes atendidos, que no necesitó desarrollo propio porque la ficha de cliente de la agenda ya lo resolvía.
 
@@ -3151,12 +3183,12 @@ El tercero tiene que ver con \textbf{medir en vez de suponer}. Ocurrió tres vec
 
 El cuarto es sobre el \textbf{usuario experto}. Varias de las decisiones que mejor envejecieron no salieron del diseño sino de preguntarle: que el puntaje del cliente se califique por sesión y no como un número fijo, que el inventario llegue con un catálogo cargado en vez de vacío, que el calendario del mes vaya arriba en la pantalla de resumen porque es lo primero que se mira en la mañana. Ninguna era evidente desde el código.
 
-Queda también una deuda honesta. La más clara es técnica —la geometría del visor se verifica mirando y midiendo, no con aserciones—, pero la que más pesa es metodológica: el proyecto definió desde el principio cómo iba a validarse con el usuario, y esa validación no alcanzó a realizarse. No invalida lo construido, pero sí deja a medio camino la pregunta que el proyecto se hizo al empezar, que no era si la plataforma se podía construir, sino si le serviría a quien la iba a usar.
+Queda también una deuda honesta. La más clara es técnica —la geometría del visor se verifica mirando y midiendo, no con aserciones—, pero la que más pesa es metodológica: el proyecto se propuso medir cuánto tiempo le ahorra la plataforma al tatuador, y esa medición exige un periodo de operación que no alcanzó a ocurrir. La pregunta que el proyecto se hizo al empezar no era si la plataforma se podía construir, sino si le serviría a quien la iba a usar. La prueba de aceptación responde esa pregunta en cuanto a lo que la plataforma hace —el tatuador la recorrió completa y la aceptó—; cuánto mejora su trabajo es lo que falta medir.
 
 \section{Trabajo futuro}
 
 \tituloparpegado{Medir el efecto en el estudio}
-Es lo primero, porque de ello dependen cuatro de los siete objetivos específicos. Supone aplicar el cuestionario SUS al tatuador experto y a otros tatuadores del mismo entorno, y repetir la encuesta de tiempos del Capítulo 3 tras un periodo de operación suficiente para que las cifras signifiquen algo. El instrumento ya está definido; lo que falta es la toma de datos.
+Es lo primero, porque de ello dependen tres de los siete objetivos específicos. Supone repetir la encuesta de tiempos del Capítulo 3 tras un periodo de operación suficiente para que las cifras signifiquen algo; el instrumento ya está definido y lo que falta es la toma de datos. A eso se suma ampliar la validación más allá del cliente experto: cuando la plataforma cuente con un grupo de tatuadores que no participaron de su diseño, aplicarles el cuestionario SUS, que con varios participantes sí entrega una medida comparable de usabilidad.
 
 \vspace{\parskip}
 \tituloparpegado{Completar lo que quedó pendiente del backlog}
@@ -3208,5 +3240,223 @@ La plataforma opera hoy sin costo mensual, con la contrapartida de que el servid
 \end{description}
 
 \printbibliography[heading=bibintoc]
+
+%======================================================================
+%  ANEXOS
+%======================================================================
+\appendix
+\renewcommand{\appendixname}{Anexo}
+\chapter{Pruebas}
+
+\section{Pruebas de aceptación}
+\label{anx:aceptacion}
+
+A continuación se presentan los nueve casos de prueba de aceptación, uno por cada iteración del desarrollo que incorpora historias de usuario. Cada caso lo ejecutó el cliente experto sobre la aplicación desplegada, siguiendo los pasos descritos y comparando el resultado obtenido con el esperado, según el procedimiento de la Sección \ref{sec:metodoaceptacion}.
+
+\begin{table}[H]
+  \centering
+  \caption{Prueba de aceptación PA-01}
+  \label{tab:pa01anexo}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{3.6cm}|p{9.4cm}|}
+    \hline
+    \textbf{ID} & PA-01 — Iteración 2: Autenticación \\ \hline
+    \textbf{Historias} & HU01, HU02, HU03 \\ \hline
+    \textbf{Descripción} & Verificar el registro de una cuenta, el inicio y cierre de sesión y la recuperación de una contraseña olvidada. \\ \hline
+    \textbf{Pasos de prueba} &
+      1) Crear una cuenta desde «Crear cuenta» con nombre, correo y contraseña, y verificar que se ingresa a la plataforma. \newline
+      2) Cerrar sesión y volver a iniciarla con las mismas credenciales. \newline
+      3) Intentar iniciar sesión con una contraseña incorrecta. \newline
+      4) Solicitar la recuperación desde «¿Olvidaste tu contraseña?», abrir el enlace recibido por correo y fijar una contraseña nueva. \newline
+      5) Iniciar sesión con la contraseña nueva. \\ \hline
+    \textbf{Resultado esperado} & La cuenta se crea y queda con la sesión iniciada; al cerrar sesión no hay acceso hasta volver a ingresar; la contraseña incorrecta se rechaza con un mensaje; el correo de recuperación llega y la contraseña nueva permite ingresar. \\ \hline
+    \textbf{Resultado obtenido} & El comportamiento observado coincide con el resultado esperado en los cinco pasos. \\ \hline
+    \textbf{Estado} & $\boxtimes$ Aprobado \qquad $\square$ Fallido \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Prueba de aceptación PA-02}
+  \label{tab:pa02anexo}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{3.6cm}|p{9.4cm}|}
+    \hline
+    \textbf{ID} & PA-02 — Iteración 3: Galería de bocetos \\ \hline
+    \textbf{Historias} & HU04, HU05, HU06, HU07 \\ \hline
+    \textbf{Descripción} & Verificar la subida de bocetos a la nube, su consulta en la galería, el filtrado por etiquetas y su eliminación. \\ \hline
+    \textbf{Pasos de prueba} &
+      1) Subir un boceto desde «Subir boceto» con su imagen, un título y dos etiquetas. \newline
+      2) Verificar que el boceto aparece en la galería con su imagen. \newline
+      3) Subir un segundo boceto con otra etiqueta y filtrar la galería por una de las etiquetas del primero. \newline
+      4) Eliminar el primer boceto y verificar que deja de aparecer. \\ \hline
+    \textbf{Resultado esperado} & El boceto queda guardado y visible en la galería; el filtro muestra solo los bocetos que llevan la etiqueta elegida; el boceto eliminado desaparece de la galería. \\ \hline
+    \textbf{Resultado obtenido} & El comportamiento observado coincide con el resultado esperado en los cuatro pasos. \\ \hline
+    \textbf{Estado} & $\boxtimes$ Aprobado \qquad $\square$ Fallido \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Prueba de aceptación PA-03}
+  \label{tab:pa03anexo}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{3.6cm}|p{9.4cm}|}
+    \hline
+    \textbf{ID} & PA-03 — Iteración 4: Inventario y panel de control \\ \hline
+    \textbf{Historias} & HU11, HU12, HU13, HU25, HU26 \\ \hline
+    \textbf{Descripción} & Verificar el registro y el ajuste de insumos, la alerta de stock crítico y el panel de control con las citas, las alertas y los ingresos del mes. \\ \hline
+    \textbf{Pasos de prueba} &
+      1) Registrar un insumo con su cantidad, su nivel crítico y su costo unitario. \newline
+      2) Descontar stock hasta dejarlo en el nivel crítico y verificar la advertencia en el inventario. \newline
+      3) Abrir el Resumen y verificar que el insumo aparece en «Stock bajo», junto a las próximas citas. \newline
+      4) Marcar como pagada una sesión del mes y verificar que su monto se suma a «Cobrado este mes». \newline
+      5) Eliminar un insumo descontinuado. \\ \hline
+    \textbf{Resultado esperado} & El insumo queda registrado con su stock y su costo; al llegar al nivel crítico se muestra la advertencia y el insumo aparece en el panel; el monto pagado se refleja en lo cobrado del mes; el insumo eliminado sale del inventario. \\ \hline
+    \textbf{Resultado obtenido} & El comportamiento observado coincide con el resultado esperado en los cinco pasos. \\ \hline
+    \textbf{Estado} & $\boxtimes$ Aprobado \qquad $\square$ Fallido \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Prueba de aceptación PA-04}
+  \label{tab:pa04anexo}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{3.6cm}|p{9.4cm}|}
+    \hline
+    \textbf{ID} & PA-04 — Iteración 5: Cotizaciones automatizadas \\ \hline
+    \textbf{Historias} & HU14, HU15, HU16 \\ \hline
+    \textbf{Descripción} & Verificar el cálculo del costo de insumos a partir del boceto, su ajuste manual y el descuento del inventario al terminar la sesión. \\ \hline
+    \textbf{Pasos de prueba} &
+      1) Abrir la cotización de un proyecto que tiene boceto y medida. \newline
+      2) Verificar que el sistema calcula el costo de insumos según el tamaño y los colores del boceto. \newline
+      3) Agregar un insumo al detalle, quitar otro y verificar que el total se recalcula. \newline
+      4) Guardar la cotización. \newline
+      5) Marcar como completada la sesión del proyecto y revisar el stock en el inventario. \\ \hline
+    \textbf{Resultado esperado} & La cotización propone los insumos y su costo sin cálculo manual; los cambios del detalle actualizan el total; al completar la sesión el stock se descuenta según lo cotizado. \\ \hline
+    \textbf{Resultado obtenido} & El comportamiento observado coincide con el resultado esperado en los cinco pasos. \\ \hline
+    \textbf{Estado} & $\boxtimes$ Aprobado \qquad $\square$ Fallido \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Prueba de aceptación PA-05}
+  \label{tab:pa05anexo}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{3.6cm}|p{9.4cm}|}
+    \hline
+    \textbf{ID} & PA-05 — Iteración 6: Agenda de citas \\ \hline
+    \textbf{Historias} & HU17, HU18, HU19, HU20, HU24, HU30 \\ \hline
+    \textbf{Descripción} & Verificar el agendamiento de citas, su vista en el calendario, la organización por proyectos, el registro fotográfico de las sesiones, el historial del cliente y su calificación. \\ \hline
+    \textbf{Pasos de prueba} &
+      1) Agendar desde el formulario «Nueva cita» una sesión para un cliente nuevo, con fecha, hora, teléfono y precio. \newline
+      2) Verificar que la cita aparece en el calendario del mes, en el día elegido. \newline
+      3) Intentar agendar otra cita a la misma hora. \newline
+      4) Crear un segundo proyecto para el mismo cliente, con una sesión, y subir una foto a esa sesión. \newline
+      5) Abrir la ficha del cliente y revisar el historial de sus sesiones pasadas y futuras. \newline
+      6) Calificar una sesión terminada y verificar el puntaje del cliente en la lista de clientes. \\ \hline
+    \textbf{Resultado esperado} & La cita queda agendada con sus datos y visible en el calendario; la segunda cita a la misma hora se rechaza indicando con quién choca; la ficha del cliente reúne sus proyectos, sesiones y fotos; la calificación se refleja en el puntaje promedio del cliente. \\ \hline
+    \textbf{Resultado obtenido} & El comportamiento observado coincide con el resultado esperado en los seis pasos. \\ \hline
+    \textbf{Estado} & $\boxtimes$ Aprobado \qquad $\square$ Fallido \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Prueba de aceptación PA-06}
+  \label{tab:pa06anexo}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{3.6cm}|p{9.4cm}|}
+    \hline
+    \textbf{ID} & PA-06 — Iteración 7: Comunicación con el cliente y alta de estudios \\ \hline
+    \textbf{Historias} & HU21, HU22, HU23, HU28, HU29, HU31 \\ \hline
+    \textbf{Descripción} & Verificar el recordatorio por WhatsApp, el reagendamiento y la cancelación de citas con aviso al cliente, los textos editables de los mensajes, el registro de clientes y el alta de un estudio. \\ \hline
+    \textbf{Pasos de prueba} &
+      1) Editar en Configuración el texto del recordatorio y el de cuidados, y revisar la vista previa del mensaje. \newline
+      2) Agendar una cita para el día siguiente y verificar que la plataforma deja listo el recordatorio por WhatsApp 24 horas antes. \newline
+      3) Cambiar la hora de una cita futura y verificar que se genera el aviso de reagendamiento para el cliente. \newline
+      4) Cancelar una cita futura y verificar que se genera el aviso de cancelación. \newline
+      5) Revisar en Clientes el registro de los clientes atendidos con su información. \newline
+      6) Iniciar sesión como administrador y registrar un estudio nuevo con su nombre, su correo y su plan. \\ \hline
+    \textbf{Resultado esperado} & Los mensajes usan el texto editado; el recordatorio queda listo un día antes de la cita; reagendar y cancelar generan el aviso correspondiente con los datos de la cita; los clientes atendidos quedan registrados; el estudio se crea y el sistema entrega la contraseña temporal de su dueño. \\ \hline
+    \textbf{Resultado obtenido} & El comportamiento observado coincide con el resultado esperado en los seis pasos. \\ \hline
+    \textbf{Estado} & $\boxtimes$ Aprobado \qquad $\square$ Fallido \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Prueba de aceptación PA-07}
+  \label{tab:pa07anexo}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{3.6cm}|p{9.4cm}|}
+    \hline
+    \textbf{ID} & PA-07 — Iteración 8: Previsualización 3D \\ \hline
+    \textbf{Historias} & HU08, HU09, HU10 \\ \hline
+    \textbf{Descripción} & Verificar la elección del modelo anatómico, la proyección del boceto sobre la piel y el ajuste de su posición, su tamaño y su giro. \\ \hline
+    \textbf{Pasos de prueba} &
+      1) Abrir la previsualización y elegir un modelo anatómico. \newline
+      2) Colocar un boceto de la galería sobre el antebrazo y verificar que se adapta a la curvatura sin repetirse en la cara opuesta. \newline
+      3) Arrastrar el boceto a otra posición, cambiar su tamaño y rotarlo, con el mouse y con dos dedos en el teléfono. \newline
+      4) Guardar la escena enlazada a un proyecto. \\ \hline
+    \textbf{Resultado esperado} & El boceto se proyecta sobre la piel siguiendo su curvatura; se mueve, escala y rota sin saltos; la escena guardada conserva la posición y el tamaño, y la medida en centímetros pasa al proyecto. \\ \hline
+    \textbf{Resultado obtenido} & El comportamiento observado coincide con el resultado esperado en los cuatro pasos. \\ \hline
+    \textbf{Estado} & $\boxtimes$ Aprobado \qquad $\square$ Fallido \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Prueba de aceptación PA-08}
+  \label{tab:pa08anexo}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{3.6cm}|p{9.4cm}|}
+    \hline
+    \textbf{ID} & PA-08 — Iteración 9: Administración de cuentas \\ \hline
+    \textbf{Historias} & HU32, HU33, HU34, HU38 \\ \hline
+    \textbf{Descripción} & Verificar la incorporación de tatuadores a un estudio, la activación y desactivación de cuentas y estudios, y el restablecimiento de contraseñas. \\ \hline
+    \textbf{Pasos de prueba} &
+      1) Como administrador, agregar un tatuador a un estudio existente desde «Agregar tatuador». \newline
+      2) Iniciar sesión como ese tatuador con la contraseña temporal y verificar que el sistema pide cambiarla. \newline
+      3) Desactivar la cuenta del tatuador y verificar que pierde el acceso en su siguiente acción. \newline
+      4) Reactivarla, restablecer su contraseña y verificar que ingresa con la nueva contraseña temporal. \newline
+      5) Desactivar el estudio completo y verificar que sus cuentas no pueden iniciar sesión. \\ \hline
+    \textbf{Resultado esperado} & El tatuador queda dentro del estudio y debe cambiar su contraseña en el primer ingreso; una cuenta o un estudio desactivado pierde el acceso sin perder sus datos, y reactivarlo se lo devuelve; la contraseña restablecida permite ingresar. \\ \hline
+    \textbf{Resultado obtenido} & El comportamiento observado coincide con el resultado esperado en los cinco pasos. \\ \hline
+    \textbf{Estado} & $\boxtimes$ Aprobado \qquad $\square$ Fallido \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Prueba de aceptación PA-09}
+  \label{tab:pa09anexo}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{3.6cm}|p{9.4cm}|}
+    \hline
+    \textbf{ID} & PA-09 — Iteración 10: Métricas de uso \\ \hline
+    \textbf{Historias} & HU35, HU36 \\ \hline
+    \textbf{Descripción} & Verificar el listado de estudios con sus métricas de uso y el resumen del estudio para su dueño. \\ \hline
+    \textbf{Pasos de prueba} &
+      1) Como administrador, abrir el listado de estudios y verificar que cada uno muestra sus tatuadores y sus métricas: sesiones, citas próximas, bocetos, clientes y última actividad. \newline
+      2) Iniciar sesión como dueño de un estudio con más de un tatuador y abrir «Mi estudio». \newline
+      3) Verificar lo cobrado, lo pendiente y las sesiones de cada tatuador en el rango de fechas elegido. \newline
+      4) Iniciar sesión como un tatuador que no es dueño y verificar que «Mi estudio» no aparece. \\ \hline
+    \textbf{Resultado esperado} & El administrador ve el uso de cada estudio y sus totales; el dueño ve el resumen de montos y sesiones de su equipo; un tatuador que no es dueño no tiene acceso a ese resumen. \\ \hline
+    \textbf{Resultado obtenido} & El comportamiento observado coincide con el resultado esperado en los cuatro pasos. \\ \hline
+    \textbf{Estado} & $\boxtimes$ Aprobado \qquad $\square$ Fallido \\ \hline
+  \end{tabular}
+\end{table}
 
 \end{document}
