@@ -626,7 +626,7 @@ Para complementar las métricas de software y validar el impacto del sistema en 
 \begin{itemize}
   \item \textbf{Entrevistas:} Se realiza entrevistas al inicio del proyecto para cuantificar las bases actuales del artista experto respecto a el tiempo que invierten en ajustar bocetos en papel, el tiempo que dedican a calcular costos manualmente, y su tasa de inasistencia semanal promedio.
 
-  \item \textbf{Contraste de Resultados:} Una vez implementado el MVP y tras un periodo de prueba real, se vuelven a medir estos parámetros operando con el sistema. El objetivo es validar estadísticamente el logro en la reducción de los tiempos de previsualización en un 30 \% los tiempos de previsualización (módulo 3D), en un 40 \% los tiempos de cotización (módulo de inventario) y en un 50 \% el ausentismo (módulo de agendamiento con WhatsApp).
+  \item \textbf{Contraste de Resultados:} Una vez implementado el MVP y tras un periodo de prueba real, se vuelven a medir estos parámetros operando con el sistema. El objetivo es contrastar el logro de las reducciones comprometidas: un 30 \% en los tiempos de previsualización (módulo 3D), un 40 \% en los tiempos de cotización (módulo de inventario) y un 50 \% en el ausentismo (módulo de agendamiento con WhatsApp).
 \end{itemize}
 
 \section{Resumen del capítulo}
@@ -777,19 +777,41 @@ Cada caso se registra con el formato de la Tabla \ref{tab:formatoaceptacion}. El
 
 Una historia de usuario se da por aceptada cuando el caso que la cubre resulta aprobado. El indicador del objetivo de validación es el porcentaje de historias aceptadas sobre las historias implementadas, con una meta de al menos 90 \%.
 
-\subsection{Encuesta}
+\subsection{Medición de tiempos e inasistencia}
+\label{sec:metodomedicion}
 
-Este método de evaluación, como se detalla en el Capítulo 2.5.2, permite medir objetivos específicos comparando el estado inicial y final de las métricas evaluadas. Las preguntas de la encuesta están diseñadas para obtener respuestas númericas, lo que facilita la comparación de ambos estasdos. A continuación, se presentan algunas de las preguntas, en este caso las que se utilizan para determinar el estado inicial de los objetivos específicos.
+Tres de los objetivos específicos comprometen una reducción —50 \% en la inasistencia, 40 \% en el tiempo de cotización y 30 \% en el tiempo de previsualización— y se evalúan comparando un estado inicial con uno final. El plan original obtenía ambos estados con una encuesta que le preguntaba al tatuador sus tiempos promedio. Esa forma entrega un dato declarado, que depende de cómo la persona recuerde su propio trabajo; por eso se reemplazó por una medición directa: los tiempos se cronometran en una sesión con el cliente experto, y la inasistencia se cuenta en registros de citas.
 
 \vspace{\parskip}
-\begin{enumerate}
-  \item ¿Cuánto tiempo promedio dedicas a ajustar o posicionar un boceto en papel para que se adapte a la curvatura de la piel? (en minutos)\\
-  \item ¿Cuánto tiempo promedio dedicas a calcular el costo de un tatuaje manualmente? (en minutos)\\
-  \item ¿Cuál es tu tasa de inasistencia semanal promedio? (en porcentaje)\\
-  \item ¿Cuánto tiempo promedio dedicas a gestionar tu agenda y enviar recordatorios a tus clientes? (en minutos)\\
-  \item ¿Cuánto tiempo promedio dedicas a organizar tu inventario y calcular el costo de los insumos? (en minutos)\\
-  \mbox{}\\[-1.01pt]
-\end{enumerate}
+\tituloparpegado{Tiempos de cotización y de previsualización}
+Se miden en una misma sesión con el cliente experto, sobre la aplicación desplegada. Para cada objetivo se preparan cuatro pares de diseños parecidos entre sí —en tamaño, en si van en negro o en color y en la zona del cuerpo—, y de cada par se hace un diseño con el método de antes y el otro con la plataforma. Se usan diseños distintos y no el mismo dos veces porque la segunda repetición saldría más rápida solo por haberlo pensado ya: se estaría midiendo la memoria del tatuador y no la herramienta. El orden se alterna entre pares —en el primero y el tercero va antes el método manual; en el segundo y el cuarto, la plataforma— para que el calentamiento o el cansancio no favorezcan siempre al mismo método. Quien cronometra no interviene durante la tarea.
+
+En la cotización se mide desde que el tatuador tiene el diseño y su tamaño hasta que conoce el costo de los insumos y sabe si le alcanza el stock: a mano, con su calculadora, su lista de precios y el inventario físico; con la plataforma, abriendo la cotización del proyecto. En la previsualización se mide desde que se decide probar el diseño en una zona hasta que el tatuador da por buenos su tamaño y su ubicación: con stencil, imprimiendo, recortando, colocándolo sobre la piel y reimprimiendo si el tamaño no sirve; con la plataforma, colocando el boceto sobre el modelo anatómico y ajustándolo.
+
+\vspace{\parskip}
+\tituloparpegado{Inasistencia}
+La inasistencia no se mide en una sesión, sino contando citas en el tiempo. Se considera inasistencia la cita a la que el cliente no llegó sin avisar; una cancelación avisada no cuenta. La tasa de un periodo es el número de inasistencias sobre el de citas con resultado, es decir, las atendidas más las inasistencias. El estado inicial se cuenta mes a mes en la agenda que el tatuador llevaba antes de la plataforma —cuaderno, agenda o mensajes—, al menos en los tres meses previos; el estado final, en las citas que la propia plataforma registra como completadas o como inasistencia, al menos en un mes de uso.
+
+\vspace{\parskip}
+\tituloparpegado{Indicador y registro}
+En los tres casos la reducción se calcula como la diferencia entre el estado inicial y el final, dividida por el inicial, y se compara con la meta del objetivo. La Tabla \ref{tab:medicion} resume los indicadores.
+
+\begin{table}[H]
+  \centering
+  \caption{Indicadores de los objetivos de reducción}
+  \label{tab:medicion}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{3.4cm}|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{4.4cm}|c|}
+    \hline
+    \textbf{Objetivo} & \textbf{Indicador} & \textbf{Estado inicial y final} & \textbf{Meta} \\ \hline
+    Disminuir la inasistencia & Tasa de inasistencia & Agenda anterior y registros de la plataforma & $-50$ \% \\ \hline
+    Reducir el tiempo de cotización & Minutos promedio por cotización & Cotización manual y con la plataforma, cronometradas & $-40$ \% \\ \hline
+    Reducir el tiempo de previsualización & Minutos promedio por prueba & Stencil en papel y visor 3D, cronometrados & $-30$ \% \\ \hline
+  \end{tabular}
+\end{table}
+
+Los tiempos y los conteos se anotan en una planilla de cálculo en la que todo lo demás son fórmulas: los promedios, las tasas, la reducción y si se alcanza la meta. Así ninguna cifra del resultado se escribe a mano, y el resultado se informa tal como sale, alcance o no la meta. Conviene declarar también el alcance de la medición: corresponde a un solo tatuador y a pocas tareas por método, de modo que muestra el efecto de la plataforma en el estudio para el que se construyó, no un promedio del oficio.
 
 \section{Requisitos}
 \label{sec:requisitos}
@@ -2770,7 +2792,7 @@ En el siguiente capítulo se somete lo construido a prueba: pruebas funcionales 
 
 Este capítulo reúne la evaluación de la plataforma construida. Se aplica lo definido en el Capítulo 3: pruebas de caja negra sobre el sistema en funcionamiento, pruebas de caja blanca sobre el código y las pruebas de aceptación con el cliente experto. Los resultados se contrastan después con los objetivos específicos del Capítulo 1 y con los resultados esperados del Capítulo 3.
 
-Conviene decir desde el principio qué parte de esta evaluación está hecha y cuál no. Las pruebas de software se ejecutaron, y lo que aquí se reporta es su salida real; las pruebas de aceptación las ejecutó el cliente experto sobre la aplicación desplegada. La encuesta de contraste de tiempos, en cambio, depende de un periodo de operación del estudio con la plataforma en uso, y a la fecha de esta entrega no se ha tomado. Por eso este capítulo describe su instrumento y deja declarado lo que falta en lugar de presentar cifras que no se midieron.
+Conviene decir desde el principio qué parte de esta evaluación está hecha y cuál no. Las pruebas de software se ejecutaron, y lo que aquí se reporta es su salida real; las pruebas de aceptación las ejecutó el cliente experto sobre la aplicación desplegada. La medición de tiempos e inasistencia, en cambio, depende de una sesión cronometrada con el cliente experto y de un periodo de operación del estudio con la plataforma en uso, y a la fecha de esta entrega no se ha tomado. Por eso este capítulo deja declarado lo que falta en lugar de presentar cifras que no se midieron.
 
 \section{Pruebas}
 
@@ -3043,7 +3065,7 @@ El cliente experto ejecutó los nueve casos de prueba de aceptación sobre la ap
 
 El resultado tiene el alcance que corresponde a un único evaluador. Lo que establece es que la plataforma hace lo que el tatuador que la pidió esperaba que hiciera, en cada uno de los flujos de trabajo que planteó, juzgado por él y contra criterios escritos antes de la sesión. No establece cuán fácil de usar resultaría para otros tatuadores que no participaron de su diseño; esa pregunta es la que respondería un cuestionario de usabilidad aplicado a un grupo, y queda planteada en el trabajo futuro.
 
-Distinto es el caso de la encuesta de contraste del Capítulo 3, la que compara el estado inicial y el final de los tiempos del tatuador. Sus preguntas están definidas y el estado inicial corresponde a lo que el tatuador experto describió al plantear el problema, pero el estado final exige que el estudio opere con la plataforma durante un periodo suficiente para que las cifras signifiquen algo. Ese periodo no ha ocurrido.
+Distinto es el caso de la medición de tiempos e inasistencia de la Sección \ref{sec:metodomedicion}. Su procedimiento y su planilla de registro están definidos, pero a la fecha de esta entrega no se ha realizado la sesión cronometrada con el cliente experto, y el periodo de uso de la plataforma no alcanza todavía para contar inasistencias con sentido. No hay, por lo tanto, cifras que informar.
 
 \section{Análisis de los resultados}
 
@@ -3055,7 +3077,7 @@ El objetivo de \textbf{evaluar la calidad mediante pruebas unitarias, de caja ne
 
 Corresponde precisar dos cosas. La primera es que la cobertura de ramas queda en 85,7 \%, por debajo de esa cifra: el objetivo no nombraba una métrica y se informa la de sentencias y líneas, que es la habitual, pero el dato completo está en la Tabla \ref{tab:cobertura}. La segunda es que llegar aquí no fue escribir más aserciones sobre lo mismo. La medición inicial, 67,2 \%, dejaba fuera toda la capa de consultas SQL, que las pruebas sustituían por dobles; cerrarla exigió montar una segunda batería contra una base de datos real, y esa batería es la que hoy comprueba que dos peticiones simultáneas no agendan la misma hora o que una cotización no se descuenta dos veces. Lo que la cobertura no mide, y conviene recordar, es si las pruebas comprueban lo correcto: eso lo sostienen los 35 casos funcionales y las decisiones de diseño que cada iteración documenta.
 
-Los objetivos de \textbf{reducción de tiempos y de ausentismo} —50 \% en inasistencia, 40 \% en cotización, 30 \% en previsualización— no pueden darse por cumplidos ni por incumplidos con la evidencia disponible, porque son medidas sobre el trabajo de una persona y exigen la encuesta de contraste. Lo que sí está verificado es que los mecanismos que deberían producir esas reducciones funcionan: el recordatorio sale solo 24 horas antes de la cita y no se repite aunque el programador corra dos veces, el cambio de hora genera el aviso al cliente, la cotización calcula el costo de insumos a partir del boceto medido y descuenta el inventario al cerrar la sesión, y la escena 3D guarda la posición y el tamaño del diseño sobre el modelo. Que esos mecanismos funcionen es condición necesaria de las reducciones esperadas, pero no es la medición de las reducciones.
+Los objetivos de \textbf{reducción de tiempos y de ausentismo} —50 \% en inasistencia, 40 \% en cotización, 30 \% en previsualización— no pueden darse por cumplidos ni por incumplidos con la evidencia disponible, porque son medidas sobre el trabajo de una persona y exigen la medición de la Sección \ref{sec:metodomedicion}. Lo que sí está verificado es que los mecanismos que deberían producir esas reducciones funcionan: el recordatorio sale solo 24 horas antes de la cita y no se repite aunque el programador corra dos veces, el cambio de hora genera el aviso al cliente, la cotización calcula el costo de insumos a partir del boceto medido y descuenta el inventario al cerrar la sesión, y la escena 3D guarda la posición y el tamaño del diseño sobre el modelo. Que esos mecanismos funcionen es condición necesaria de las reducciones esperadas, pero no es la medición de las reducciones.
 
 El objetivo de \textbf{validación con el usuario} está cumplido. El cliente experto ejecutó los nueve casos de aceptación sobre la aplicación desplegada y aprobó los nueve, de modo que las 36 historias implementadas quedan aceptadas: el 100 \%, sobre una meta de 90 \%. Que el juicio venga del mismo tatuador que planteó los requisitos es lo que le da valor a este resultado —nadie conoce mejor el trabajo que la plataforma pretende ordenar—, y es también su límite: dice que la plataforma le sirve a quien la pidió, no todavía a cualquier tatuador.
 
@@ -3115,7 +3137,7 @@ La plataforma guarda los datos de cada artista separados de los del resto, inclu
 
 En este capítulo se evaluó la plataforma en tres planos. Las pruebas funcionales de caja negra, 35 casos ejecutados sobre el sistema en funcionamiento, resultaron todas conformes, incluidos los once casos que esperan un rechazo y los cuatro que comprueban que un artista no alcanza los datos de otro. Las pruebas unitarias y de integración suman 783 en 44 archivos, todas aprobadas, con una cobertura de 95,5 \% de las sentencias y 97,2 \% de las líneas, que cumple el 95 \% comprometido; la de ramas queda en 85,7 \%. La capa de consultas SQL, que las pruebas antes sustituían por dobles y nunca llegaban a ejecutar, hoy está cubierta al 96,7 \% por una batería que corre contra una base de datos real. La verificación estática del frontend está limpia.
 
-Las pruebas de aceptación, nueve casos ejecutados por el cliente experto sobre la aplicación desplegada, resultaron todas aprobadas, con lo que quedan aceptadas las 36 historias implementadas. La encuesta de contraste de tiempos quedó pendiente: su instrumento está definido, pero exige un periodo de operación que no ha ocurrido, y por lo tanto los objetivos de reducción de tiempos no pueden darse por cumplidos. El análisis de accesibilidad encontró resueltos los criterios estructurales y tres incumplimientos de ajuste —contraste, región principal y tamaño de los objetivos—, todos de corrección acotada. El análisis de sostenibilidad mostró un sistema que opera sin costo mensual, que descarga lo pesado solo cuando se usa y que deja dos deudas técnicas declaradas.
+Las pruebas de aceptación, nueve casos ejecutados por el cliente experto sobre la aplicación desplegada, resultaron todas aprobadas, con lo que quedan aceptadas las 36 historias implementadas. La medición de tiempos e inasistencia quedó pendiente: su procedimiento y su planilla están definidos, pero exige una sesión cronometrada y un periodo de operación que no han ocurrido, y por lo tanto los objetivos de reducción no pueden darse por cumplidos. El análisis de accesibilidad encontró resueltos los criterios estructurales y tres incumplimientos de ajuste —contraste, región principal y tamaño de los objetivos—, todos de corrección acotada. El análisis de sostenibilidad mostró un sistema que opera sin costo mensual, que descarga lo pesado solo cuando se usa y que deja dos deudas técnicas declaradas.
 
 En el siguiente capítulo se revisa el cumplimiento de los objetivos del proyecto, se reflexiona sobre el trabajo realizado y se propone el trabajo futuro.
 %======================================================================
@@ -3188,7 +3210,7 @@ Queda también una deuda honesta. La más clara es técnica —la geometría del
 \section{Trabajo futuro}
 
 \tituloparpegado{Medir el efecto en el estudio}
-Es lo primero, porque de ello dependen tres de los siete objetivos específicos. Supone repetir la encuesta de tiempos del Capítulo 3 tras un periodo de operación suficiente para que las cifras signifiquen algo; el instrumento ya está definido y lo que falta es la toma de datos. A eso se suma ampliar la validación más allá del cliente experto: cuando la plataforma cuente con un grupo de tatuadores que no participaron de su diseño, aplicarles el cuestionario SUS, que con varios participantes sí entrega una medida comparable de usabilidad.
+Es lo primero, porque de ello dependen tres de los siete objetivos específicos. Supone aplicar la medición del Capítulo 3: la sesión cronometrada con el cliente experto y el conteo de inasistencias tras un periodo de operación suficiente para que las cifras signifiquen algo. El procedimiento y la planilla ya están definidos; lo que falta es la toma de datos. A eso se suma ampliar la validación más allá del cliente experto: cuando la plataforma cuente con un grupo de tatuadores que no participaron de su diseño, aplicarles el cuestionario SUS, que con varios participantes sí entrega una medida comparable de usabilidad.
 
 \vspace{\parskip}
 \tituloparpegado{Completar lo que quedó pendiente del backlog}

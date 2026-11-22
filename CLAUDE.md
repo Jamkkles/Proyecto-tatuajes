@@ -110,6 +110,18 @@ admin es la cuenta real de Pablo, así que la contraseña la pone él). Deja
 las Tablas 5.2 a 5.5 de la tesis. Las pruebas de aceptación (PA-01 a PA-09,
 Anexo A) no tienen guión: las ejecuta a mano el cliente experto.
 
+### Medición de los objetivos de reducción (inasistencia, cotización, previsualización)
+```bash
+node backend/medicion/planilla.js   # docs/medicion/planilla-medicion.xlsx, VACÍA
+```
+Planilla Excel sin dependencias (el .xlsx se arma con zlib) para la sesión
+cronometrada con Héctor y el conteo de inasistencias; procedimiento en
+`docs/medicion/README.md` y en la Sección 3.2.4 de la tesis. Las celdas
+amarillas son lo medido y el resto son fórmulas (la hoja Resumen dice si se
+cumple cada meta). **Regenerarla la deja vacía**: la planilla con datos se
+guarda aparte. A la fecha esos tres objetivos siguen sin medir y la tesis lo
+declara así: **no se escriben cifras que no salgan de esa planilla llena**.
+
 Se corren **dentro del contenedor**: en el host `jest` se cuelga cuando el
 proyecto está en una carpeta sincronizada con iCloud. Lo mismo pasa con `tsc` y
 `eslint` del frontend (leen `node_modules` desde iCloud y se quedan bloqueados sin
