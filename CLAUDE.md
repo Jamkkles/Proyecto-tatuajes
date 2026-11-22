@@ -121,6 +121,9 @@ amarillas son lo medido y el resto son fórmulas (la hoja Resumen dice si se
 cumple cada meta). **Regenerarla la deja vacía**: la planilla con datos se
 guarda aparte. A la fecha esos tres objetivos siguen sin medir y la tesis lo
 declara así: **no se escriben cifras que no salgan de esa planilla llena**.
+`--ejemplo` genera `planilla-ejemplo.xlsx`, llena con datos inventados y
+rotulada así en cada hoja, solo para mostrar cómo se llena: sus cifras nunca
+van a la tesis.
 
 Se corren **dentro del contenedor**: en el host `jest` se cuelga cuando el
 proyecto está en una carpeta sincronizada con iCloud. Lo mismo pasa con `tsc` y

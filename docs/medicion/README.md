@@ -17,6 +17,15 @@ La planilla se genera con `node backend/medicion/planilla.js`. Volver a
 generarla la deja **vacía**: después de la sesión, la planilla con datos se
 guarda aparte y no se regenera encima.
 
+### Planilla de ejemplo
+
+**`planilla-ejemplo.xlsx`** es la misma planilla llena con **datos inventados**,
+para ver cómo queda completa y cómo se llena antes de la sesión real. Cada hoja
+lo dice en su título («EJEMPLO CON DATOS INVENTADOS»). **No es una medición y
+sus cifras no van a la memoria**: los tres objetivos siguen pendientes hasta
+llenar `planilla-medicion.xlsx` con lo que se mida con Héctor. Se genera con
+`node backend/medicion/planilla.js --ejemplo`.
+
 ## Tiempos: sesión cronometrada con el cliente experto
 
 Una sesión de una a dos horas con Héctor, sobre la plataforma desplegada.

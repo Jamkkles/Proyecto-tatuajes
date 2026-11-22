@@ -18,7 +18,21 @@ const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
 
-const SALIDA = path.join(__dirname, '..', '..', 'docs', 'medicion', 'planilla-medicion.xlsx');
+// Con --ejemplo arma una copia llena con datos INVENTADOS, para ver cómo queda
+// la planilla completa y cómo se llena. Cada hoja lo dice en su título: ese
+// archivo no es una medición y sus cifras no van a la memoria.
+const EJEMPLO = process.argv.includes('--ejemplo');
+const SALIDA = path.join(
+  __dirname,
+  '..',
+  '..',
+  'docs',
+  'medicion',
+  EJEMPLO ? 'planilla-ejemplo.xlsx' : 'planilla-medicion.xlsx'
+);
+const marca = (titulo) => (EJEMPLO ? `EJEMPLO CON DATOS INVENTADOS · ${titulo}` : titulo);
+const AVISO_EJEMPLO =
+  'EJEMPLO: datos inventados para mostrar cómo se llena la planilla. No son mediciones y no van a la memoria.';
 
 // ------------------------------------------------------------------ ZIP mínimo
 const CRC = (() => {
@@ -214,12 +228,17 @@ const PARES = 4;
  * uno se hace con el método de antes y el otro con la plataforma, alternando
  * cuál va primero para que el aprendizaje no favorezca a ninguno.
  */
-function hojaTiempos({ titulo, explica, columnaExtra, valoresExtra, antes, despues }) {
+function hojaTiempos({ titulo, explica, columnaExtra, valoresExtra, antes, despues, ejemplo }) {
   const PRIMERA = 6; // primera fila de datos
   const filas = [
-    [txt(titulo, E.titulo)],
+    [txt(marca(titulo), E.titulo)],
     [txt(explica, E.nota)],
-    [txt('Las celdas amarillas se llenan durante la sesión. Las blancas son fórmulas: no se tocan.', E.nota)],
+    [
+      txt(
+        EJEMPLO ? AVISO_EJEMPLO : 'Las celdas amarillas se llenan durante la sesión. Las blancas son fórmulas: no se tocan.',
+        E.nota
+      ),
+    ],
     [],
     ['Par', 'Diseño (nombre o referencia)', 'Tamaño (cm)', columnaExtra, 'Método', 'Orden', 'Minutos', 'Segundos', 'Tiempo (min)', 'Observaciones'].map(
       (h) => txt(h, E.encabezado)
@@ -230,17 +249,20 @@ function hojaTiempos({ titulo, explica, columnaExtra, valoresExtra, antes, despu
     // En los pares impares va primero el método de antes; en los pares, la plataforma.
     const orden = par % 2 === 1 ? [antes, despues] : [despues, antes];
     for (let k = 0; k < 2; k++) {
+      const e = EJEMPLO ? ejemplo[(par - 1) * 2 + k] : null;
+      const texto = (v) => (v ? txt(v, E.datoTexto) : vacio(E.datoTexto));
+      const numero = (v) => (v === undefined || v === null ? vacio() : num(v, E.dato));
       filas.push([
         num(par, E.calculo),
-        vacio(E.datoTexto),
-        vacio(E.datoTexto),
-        vacio(E.datoTexto),
+        texto(e?.diseno),
+        texto(e?.tamano),
+        texto(e?.extra),
         txt(orden[k], E.calculo),
         num((par - 1) * 2 + k + 1, E.calculo),
-        vacio(),
-        vacio(),
+        numero(e?.min),
+        numero(e?.seg),
         fx(`IF(COUNT(G${r}:H${r})=0,"",N(G${r})+N(H${r})/60)`, E.minutos),
-        vacio(E.datoTexto),
+        texto(e?.obs),
       ]);
       r++;
     }
@@ -284,6 +306,18 @@ const cotizacion = hojaTiempos({
   valoresExtra: ['Negro', 'Color'],
   antes: 'Manual',
   despues: 'Plataforma',
+  // Solo para --ejemplo. Mismo orden que las filas: Manual, Plataforma,
+  // Plataforma, Manual, Manual, Plataforma, Plataforma, Manual.
+  ejemplo: [
+    { diseno: 'Rosa tradicional', tamano: '10 x 12', extra: 'Color', min: 14, seg: 20 },
+    { diseno: 'Clavel tradicional', tamano: '10 x 11', extra: 'Color', min: 4, seg: 5 },
+    { diseno: 'Golondrina', tamano: '8 x 8', extra: 'Color', min: 3, seg: 10 },
+    { diseno: 'Gorrión', tamano: '8 x 9', extra: 'Color', min: 11, seg: 45 },
+    { diseno: 'Calavera', tamano: '12 x 15', extra: 'Negro', min: 16, seg: 30, obs: 'Revisó dos veces el stock de agujas' },
+    { diseno: 'Lobo realista', tamano: '12 x 14', extra: 'Negro', min: 4, seg: 40 },
+    { diseno: 'Lettering «Familia»', tamano: '15 x 4', extra: 'Negro', min: 2, seg: 50 },
+    { diseno: 'Frase en cursiva', tamano: '14 x 4', extra: 'Negro', min: 9, seg: 55 },
+  ],
 });
 
 const previsualizacion = hojaTiempos({
@@ -294,12 +328,24 @@ const previsualizacion = hojaTiempos({
   valoresExtra: ['Antebrazo', 'Brazo', 'Pierna', 'Espalda', 'Pecho', 'Otra'],
   antes: 'Stencil',
   despues: 'Visor 3D',
+  // Solo para --ejemplo. Orden: Stencil, Visor, Visor, Stencil, Stencil,
+  // Visor, Visor, Stencil.
+  ejemplo: [
+    { diseno: 'Mandala', tamano: '14 x 14', extra: 'Antebrazo', min: 17, seg: 40 },
+    { diseno: 'Rosetón geométrico', tamano: '13 x 13', extra: 'Antebrazo', min: 7, seg: 15 },
+    { diseno: 'Pez koi', tamano: '20 x 12', extra: 'Brazo', min: 8, seg: 30 },
+    { diseno: 'Dragón oriental', tamano: '20 x 13', extra: 'Brazo', min: 21, seg: 10, obs: 'Se reimprimió el stencil una vez' },
+    { diseno: 'Línea floral', tamano: '10 x 6', extra: 'Antebrazo', min: 12, seg: 5 },
+    { diseno: 'Rama con hojas', tamano: '10 x 5', extra: 'Antebrazo', min: 6, seg: 20 },
+    { diseno: 'Brújula', tamano: '9 x 9', extra: 'Pierna', min: 5, seg: 50 },
+    { diseno: 'Reloj de bolsillo', tamano: '9 x 10', extra: 'Pierna', min: 13, seg: 30 },
+  ],
 });
 
 // --------------------------------------------------------------- inasistencia
 const MESES = 6;
 const formatoInas = { anchos: [38, 20, 15, 14], combinar: ['A2:D2'], alto: { 2: 48 } };
-function bloqueInasistencia(filas, titulo, fuente) {
+function bloqueInasistencia(filas, titulo, fuente, ejemplo = []) {
   filas.push([txt(titulo, E.negrita)]);
   const rFuente = filas.length + 1;
   filas.push([txt(fuente, E.nota)]);
@@ -309,7 +355,13 @@ function bloqueInasistencia(filas, titulo, fuente) {
   const desde = filas.length + 1;
   for (let i = 0; i < MESES; i++) {
     const r = filas.length + 1;
-    filas.push([vacio(E.datoTexto), vacio(), vacio(), fx(`IF(N(B${r})=0,"",C${r}/B${r})`, E.porcentaje)]);
+    const e = EJEMPLO ? ejemplo[i] : null;
+    filas.push([
+      e ? txt(e.mes, E.datoTexto) : vacio(E.datoTexto),
+      e ? num(e.citas, E.dato) : vacio(),
+      e ? num(e.faltas, E.dato) : vacio(),
+      fx(`IF(N(B${r})=0,"",C${r}/B${r})`, E.porcentaje),
+    ]);
   }
   const hasta = filas.length;
   const t = filas.length + 1;
@@ -324,24 +376,36 @@ function bloqueInasistencia(filas, titulo, fuente) {
 }
 
 const inas = [
-  [txt('Inasistencia de clientes: antes y después de la plataforma (meta: −50 %)', E.titulo)],
+  [txt(marca('Inasistencia de clientes: antes y después de la plataforma (meta: −50 %)'), E.titulo)],
   [
     txt(
       'Una inasistencia es una cita a la que el cliente no llegó sin avisar. Una cancelación avisada no cuenta como inasistencia. «Citas con resultado» = citas atendidas + inasistencias, sin contar las canceladas.',
       E.nota
     ),
   ],
-  [],
+  EJEMPLO ? [txt(AVISO_EJEMPLO, E.nota)] : [],
 ];
+if (EJEMPLO) formatoInas.combinar.push('A3:D3');
 const tasaAntes = bloqueInasistencia(
   inas,
   'Antes: agenda anterior a la plataforma',
-  'Se cuentan en el cuaderno, la agenda o los mensajes de Instagram los meses previos a usar la plataforma.'
+  'Se cuentan en el cuaderno, la agenda o los mensajes de Instagram los meses previos a usar la plataforma.',
+  // Solo para --ejemplo.
+  [
+    { mes: '2026-05', citas: 22, faltas: 4 },
+    { mes: '2026-06', citas: 19, faltas: 3 },
+    { mes: '2026-07', citas: 24, faltas: 5 },
+  ]
 );
 const tasaDespues = bloqueInasistencia(
   inas,
   'Después: citas registradas en la plataforma',
-  'Se cuentan en la plataforma (estado «completada» y «no asistió»); la consulta está en docs/medicion/README.md. Cada cita pasada debe quedar marcada con su resultado.'
+  'Se cuentan en la plataforma (estado «completada» y «no asistió»); la consulta está en docs/medicion/README.md. Cada cita pasada debe quedar marcada con su resultado.',
+  // Solo para --ejemplo.
+  [
+    { mes: '2026-10', citas: 21, faltas: 1 },
+    { mes: '2026-11', citas: 18, faltas: 1 },
+  ]
 );
 const rRed = inas.length + 1;
 inas.push([
@@ -354,10 +418,12 @@ inas.push([
 // -------------------------------------------------------------------- resumen
 const cumple = (red, meta) => `IF(${red}="","Falta medir",IF(${red}>=${meta},"Cumple","No cumple"))`;
 const resumen = [
-  [txt('Medición de los objetivos de reducción', E.titulo)],
+  [txt(marca('Medición de los objetivos de reducción'), E.titulo)],
   [
     txt(
-      'Esta hoja no se llena: toma sus valores de las otras tres. Una meta se cumple cuando la reducción medida es igual o mayor que la comprometida en la memoria.',
+      EJEMPLO
+        ? AVISO_EJEMPLO
+        : 'Esta hoja no se llena: toma sus valores de las otras tres. Una meta se cumple cuando la reducción medida es igual o mayor que la comprometida en la memoria.',
       E.nota
     ),
   ],
