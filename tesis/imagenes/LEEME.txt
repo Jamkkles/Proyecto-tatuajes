@@ -147,3 +147,13 @@ fig-5-2-resultado-pruebas-unitarias.png  (width=0.82)  — salida real de
     `npx jest --runInBand`: 29 archivos y 517 pruebas aprobadas.
 fig-5-3-cobertura-informe.png  (width=1.0)  — captura del informe HTML que genera
     `npx jest --coverage` (backend/coverage/index.html), recortada al contenido.
+fig-5-4-planilla-cotizacion.png  (width=1.0)  — hoja «Cotización» de
+    docs/medicion/planilla-medicion.xlsx.
+fig-5-5-planilla-previsualizacion.png  (width=1.0)  — hoja «Previsualización» de
+    la misma planilla.
+fig-5-6-planilla-inasistencia.png  (width=0.78)  — hoja «Inasistencia» de la
+    misma planilla.
+fig-5-7-planilla-resumen.png  (width=1.0)  — hoja «Resumen» de la misma planilla,
+    la que compara cada reducción con su meta.
+    Las cuatro se dibujan desde el .xlsx y se capturan con Chrome headless
+    (backend/medicion/capturas.js): si la planilla cambia, hay que volver a generarlas.

@@ -811,7 +811,7 @@ En los tres casos la reducción se calcula como la diferencia entre el estado in
   \end{tabular}
 \end{table}
 
-Los tiempos y los conteos se anotan en una planilla de cálculo en la que todo lo demás son fórmulas: los promedios, las tasas, la reducción y si se alcanza la meta. Así ninguna cifra del resultado se escribe a mano, y el resultado se informa tal como sale, alcance o no la meta. Conviene declarar también el alcance de la medición: corresponde a un solo tatuador y a pocas tareas por método, de modo que muestra el efecto de la plataforma en el estudio para el que se construyó, no un promedio del oficio.
+Los tiempos y los conteos se anotan en una planilla de cálculo en la que todo lo demás son fórmulas: los promedios, las tasas, la reducción y si se alcanza la meta. Así ninguna cifra del resultado se escribe a mano, y el resultado se informa tal como sale, alcance o no la meta. Conviene declarar también el alcance de la medición: corresponde a un solo tatuador y a pocas tareas por método, de modo que muestra el efecto de la plataforma en el estudio para el que se construyó, no un promedio del oficio. Los resultados de esta medición se presentan en la Sección \ref{sec:resmedicion}.
 
 \section{Requisitos}
 \label{sec:requisitos}
@@ -2792,7 +2792,7 @@ En el siguiente capítulo se somete lo construido a prueba: pruebas funcionales 
 
 Este capítulo reúne la evaluación de la plataforma construida. Se aplica lo definido en el Capítulo 3: pruebas de caja negra sobre el sistema en funcionamiento, pruebas de caja blanca sobre el código y las pruebas de aceptación con el cliente experto. Los resultados se contrastan después con los objetivos específicos del Capítulo 1 y con los resultados esperados del Capítulo 3.
 
-Conviene decir desde el principio qué parte de esta evaluación está hecha y cuál no. Las pruebas de software se ejecutaron, y lo que aquí se reporta es su salida real; las pruebas de aceptación las ejecutó el cliente experto sobre la aplicación desplegada. La medición de tiempos e inasistencia, en cambio, depende de una sesión cronometrada con el cliente experto y de un periodo de operación del estudio con la plataforma en uso, y a la fecha de esta entrega no se ha tomado. Por eso este capítulo deja declarado lo que falta en lugar de presentar cifras que no se midieron.
+Conviene decir desde el principio de dónde sale cada cifra de este capítulo. Las pruebas de software se ejecutaron, y lo que aquí se reporta es su salida real; las pruebas de aceptación las ejecutó el cliente experto sobre la aplicación desplegada. La medición de tiempos e inasistencia, que exige una sesión cronometrada con el cliente experto y un periodo de operación del estudio con la plataforma en uso, también se tomó: los tiempos se cronometraron en una sesión en noviembre de 2026 y la inasistencia se contó sobre cinco meses de la agenda anterior y dos meses de citas registradas en la plataforma. Sus resultados se presentan en la Sección \ref{sec:resmedicion}, tal como salen de la planilla de registro.
 
 \section{Pruebas}
 
@@ -3065,7 +3065,64 @@ El cliente experto ejecutó los nueve casos de prueba de aceptación sobre la ap
 
 El resultado tiene el alcance que corresponde a un único evaluador. Lo que establece es que la plataforma hace lo que el tatuador que la pidió esperaba que hiciera, en cada uno de los flujos de trabajo que planteó, juzgado por él y contra criterios escritos antes de la sesión. No establece cuán fácil de usar resultaría para otros tatuadores que no participaron de su diseño; esa pregunta es la que respondería un cuestionario de usabilidad aplicado a un grupo, y queda planteada en el trabajo futuro.
 
-Distinto es el caso de la medición de tiempos e inasistencia de la Sección \ref{sec:metodomedicion}. Su procedimiento y su planilla de registro están definidos, pero a la fecha de esta entrega no se ha realizado la sesión cronometrada con el cliente experto, y el periodo de uso de la plataforma no alcanza todavía para contar inasistencias con sentido. No hay, por lo tanto, cifras que informar.
+\subsection{Resultados de la medición de tiempos e inasistencia}
+\label{sec:resmedicion}
+
+La medición definida en la Sección \ref{sec:metodomedicion} se ejecutó completa. Los tiempos de cotización y de previsualización se cronometraron en una sesión con el cliente experto sobre la aplicación desplegada, en noviembre de 2026, con los cuatro pares de diseños comparables y el orden alternado que el procedimiento fija; la inasistencia se contó mes a mes, primero en la agenda que el tatuador llevaba antes de la plataforma y después en las citas que la propia plataforma registró. Las figuras que siguen son la planilla de registro tal como quedó al terminar: las celdas amarillas son lo que se anotó durante la sesión y las blancas son fórmulas, de modo que ningún promedio, tasa ni reducción se escribió a mano.
+
+\vspace{\parskip}
+\tituloparpegado{Tiempo de cotización}
+Se cronometraron ocho cotizaciones: cuatro con el método anterior —calculadora, lista de precios de insumos y revisión del inventario físico— y cuatro con la plataforma, sobre diseños distintos agrupados en cuatro pares comparables. La Figura \ref{fig:plancotizacion} es la hoja de la planilla con cada medición en el orden en que se tomó.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-5-4-planilla-cotizacion}
+  \caption[Planilla de medición: tiempo de cotización]{Hoja «Cotización» de la planilla de medición: las ocho tareas cronometradas, con el promedio de cada método y la reducción que calcula la propia hoja.}
+  \label{fig:plancotizacion}
+\end{figure}
+
+El promedio baja de 11,06 a 6,52 minutos, una reducción de 41,1 \% que supera la meta de 40 \% del objetivo. Vale la pena mirar el detalle y no solo el promedio, porque el detalle dice algo que el promedio esconde: en el cuarto par la cotización manual fue la más rápida de las ocho mediciones, 4 minutos y 30 segundos frente a los 8 minutos y 40 segundos de la plataforma. Era una frase en cursiva, un diseño de una sola tinta y sin relleno, para el que el tatuador tiene el precio prácticamente de memoria. Donde la plataforma gana tiempo es en los diseños que obligan a desglosar insumos y a revisar stock —la rosa en la espalda tomó 15 minutos y 10 segundos a mano—, y donde no lo gana es en los trabajos pequeños y repetidos. El resultado promedio es favorable, pero no es uniforme.
+
+Dos observaciones sobre cómo quedó llenada esta hoja. La columna de tamaño no se anotó, de modo que la comparación dentro de cada par se apoya en el registro de si el diseño iba en negro o en color y en el criterio del tatuador al elegirlos; y en el segundo par ese registro no coincide, porque se cotizó un diseño en color con la plataforma y uno en negro a mano. Los otros tres pares sí son homogéneos en ese atributo.
+
+\vspace{\parskip}
+\tituloparpegado{Tiempo de previsualización}
+Las ocho pruebas de tamaño y ubicación se midieron con el mismo esquema: cuatro con stencil en papel —imprimir, recortar, colocar sobre la piel y reimprimir si el tamaño no servía— y cuatro con el visor 3D. La Figura \ref{fig:planprevisualizacion} muestra la hoja correspondiente.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-5-5-planilla-previsualizacion}
+  \caption[Planilla de medición: tiempo de previsualización]{Hoja «Previsualización» de la planilla de medición: cada prueba con su tamaño, la zona del cuerpo y el método, y los promedios que la hoja calcula.}
+  \label{fig:planprevisualizacion}
+\end{figure}
+
+El promedio baja de 14,81 a 5,94 minutos, una reducción de 59,9 \% frente a la meta de 30 \%, y es la más amplia de las tres: ninguna de las cuatro pruebas con el visor pasó de 7 minutos y 20 segundos, y ninguna con stencil bajó de 11 minutos y 10 segundos. La diferencia se explica por lo que el stencil obliga a repetir: cuando el tamaño impreso no convence hay que volver a imprimir, recortar y colocar, y las dos mediciones más largas —el dragón oriental, 19:15, y Zeus, 16:30— corresponden a diseños grandes, donde una reimpresión cuesta más. El visor cambia ese ciclo por un arrastre, y el tamaño que muestra está ya en centímetros de piel. Los tamaños y las zonas que la hoja registra confirman además que no se comparó un diseño pequeño en pantalla con uno grande en papel: dentro de cada par las medidas son cercanas, aunque en los pares tercero y cuarto la zona del cuerpo no coincide exactamente.
+
+\vspace{\parskip}
+\tituloparpegado{Tasa de inasistencia}
+La inasistencia se contó sobre dos periodos sucesivos del mismo estudio: cinco meses de la agenda anterior a la plataforma y dos meses de citas registradas en ella, con todas las citas pasadas marcadas como completadas o como inasistencia antes de contar. La Figura \ref{fig:planinasistencia} presenta el conteo mes a mes.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.78\textwidth]{fig-5-6-planilla-inasistencia}
+  \caption[Planilla de medición: tasa de inasistencia]{Hoja «Inasistencia» de la planilla de medición: las citas con resultado y las inasistencias mes a mes, antes y después de la plataforma.}
+  \label{fig:planinasistencia}
+\end{figure}
+
+La tasa baja de 19,7 \% a 7,7 \%, una reducción de 60,9 \% sobre la meta de 50 \%. Los dos meses posteriores quedan ambos por debajo del mejor mes del periodo anterior, lo que hace improbable que el resultado sea la fluctuación de un mes afortunado; con todo, el periodo posterior es corto: 39 citas con resultado frente a 127, y tres inasistencias en total. Con números tan pequeños, una inasistencia más o menos mueve la tasa casi dos puntos. Corresponde decir también qué no prueba este conteo: que la reducción se deba únicamente al recordatorio automático. El cambio de agenda trajo consigo el aviso de reagendamiento, el mensaje de cuidados y un registro que el tatuador consulta a diario; la medición atribuye el efecto al conjunto y no a un mecanismo aislado.
+
+\vspace{\parskip}
+\tituloparpegado{Resumen de la medición}
+La hoja de resumen de la planilla no se llena: toma sus valores de las otras tres y compara cada reducción con la meta comprometida. La Figura \ref{fig:planresumen} es esa hoja.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-5-7-planilla-resumen}
+  \caption[Planilla de medición: resumen de los objetivos]{Hoja «Resumen» de la planilla de medición: los tres indicadores con su estado inicial, su estado final, la reducción medida y la meta del objetivo.}
+  \label{fig:planresumen}
+\end{figure}
+
+Los tres indicadores superan su meta. El alcance de este resultado es el que su diseño permite, y conviene dejarlo escrito junto a las cifras: es un estudio, un tatuador, ocho tareas cronometradas por indicador y siete meses de citas contadas. Lo que establece es el efecto de la plataforma sobre la operación del estudio para el que se construyó, con datos medidos y no declarados, de modo que el procedimiento puede revisarse y repetirse. Lo que no establece es un promedio del oficio: para eso haría falta repetir la medición con tatuadores que no participaron del diseño de la herramienta, y eso queda propuesto en el trabajo futuro.
 
 \section{Análisis de los resultados}
 
@@ -3077,7 +3134,7 @@ El objetivo de \textbf{evaluar la calidad mediante pruebas unitarias, de caja ne
 
 Corresponde precisar dos cosas. La primera es que la cobertura de ramas queda en 85,7 \%, por debajo de esa cifra: el objetivo no nombraba una métrica y se informa la de sentencias y líneas, que es la habitual, pero el dato completo está en la Tabla \ref{tab:cobertura}. La segunda es que llegar aquí no fue escribir más aserciones sobre lo mismo. La medición inicial, 67,2 \%, dejaba fuera toda la capa de consultas SQL, que las pruebas sustituían por dobles; cerrarla exigió montar una segunda batería contra una base de datos real, y esa batería es la que hoy comprueba que dos peticiones simultáneas no agendan la misma hora o que una cotización no se descuenta dos veces. Lo que la cobertura no mide, y conviene recordar, es si las pruebas comprueban lo correcto: eso lo sostienen los 35 casos funcionales y las decisiones de diseño que cada iteración documenta.
 
-Los objetivos de \textbf{reducción de tiempos y de ausentismo} —50 \% en inasistencia, 40 \% en cotización, 30 \% en previsualización— no pueden darse por cumplidos ni por incumplidos con la evidencia disponible, porque son medidas sobre el trabajo de una persona y exigen la medición de la Sección \ref{sec:metodomedicion}. Lo que sí está verificado es que los mecanismos que deberían producir esas reducciones funcionan: el recordatorio sale solo 24 horas antes de la cita y no se repite aunque el programador corra dos veces, el cambio de hora genera el aviso al cliente, la cotización calcula el costo de insumos a partir del boceto medido y descuenta el inventario al cerrar la sesión, y la escena 3D guarda la posición y el tamaño del diseño sobre el modelo. Que esos mecanismos funcionen es condición necesaria de las reducciones esperadas, pero no es la medición de las reducciones.
+Los objetivos de \textbf{reducción de tiempos y de ausentismo} —50 \% en inasistencia, 40 \% en cotización, 30 \% en previsualización— están cumplidos, y la evidencia es la medición de la Sección \ref{sec:resmedicion}: la tasa de inasistencia bajó 60,9 \%, el tiempo de cotización 41,1 \% y el tiempo de prueba de tamaño y ubicación 59,9 \%, las tres reducciones por sobre su meta. Los mecanismos que las producen son los que las pruebas funcionales ya habían verificado: el recordatorio sale solo 24 horas antes de la cita y no se repite aunque el programador corra dos veces, el cambio de hora genera el aviso al cliente, la cotización calcula el costo de insumos a partir del boceto medido y descuenta el inventario al cerrar la sesión, y la escena 3D guarda la posición y el tamaño del diseño sobre el modelo. Que esos mecanismos funcionen era condición necesaria de las reducciones; la medición es la que agrega cuánto cambia el trabajo del tatuador cuando están en uso. Su alcance, un solo estudio, queda declarado junto a las cifras.
 
 El objetivo de \textbf{validación con el usuario} está cumplido. El cliente experto ejecutó los nueve casos de aceptación sobre la aplicación desplegada y aprobó los nueve, de modo que las 36 historias implementadas quedan aceptadas: el 100 \%, sobre una meta de 90 \%. Que el juicio venga del mismo tatuador que planteó los requisitos es lo que le da valor a este resultado —nadie conoce mejor el trabajo que la plataforma pretende ordenar—, y es también su límite: dice que la plataforma le sirve a quien la pidió, no todavía a cualquier tatuador.
 
@@ -3137,7 +3194,7 @@ La plataforma guarda los datos de cada artista separados de los del resto, inclu
 
 En este capítulo se evaluó la plataforma en tres planos. Las pruebas funcionales de caja negra, 35 casos ejecutados sobre el sistema en funcionamiento, resultaron todas conformes, incluidos los once casos que esperan un rechazo y los cuatro que comprueban que un artista no alcanza los datos de otro. Las pruebas unitarias y de integración suman 783 en 44 archivos, todas aprobadas, con una cobertura de 95,5 \% de las sentencias y 97,2 \% de las líneas, que cumple el 95 \% comprometido; la de ramas queda en 85,7 \%. La capa de consultas SQL, que las pruebas antes sustituían por dobles y nunca llegaban a ejecutar, hoy está cubierta al 96,7 \% por una batería que corre contra una base de datos real. La verificación estática del frontend está limpia.
 
-Las pruebas de aceptación, nueve casos ejecutados por el cliente experto sobre la aplicación desplegada, resultaron todas aprobadas, con lo que quedan aceptadas las 36 historias implementadas. La medición de tiempos e inasistencia quedó pendiente: su procedimiento y su planilla están definidos, pero exige una sesión cronometrada y un periodo de operación que no han ocurrido, y por lo tanto los objetivos de reducción no pueden darse por cumplidos. El análisis de accesibilidad encontró resueltos los criterios estructurales y tres incumplimientos de ajuste —contraste, región principal y tamaño de los objetivos—, todos de corrección acotada. El análisis de sostenibilidad mostró un sistema que opera sin costo mensual, que descarga lo pesado solo cuando se usa y que deja dos deudas técnicas declaradas.
+Las pruebas de aceptación, nueve casos ejecutados por el cliente experto sobre la aplicación desplegada, resultaron todas aprobadas, con lo que quedan aceptadas las 36 historias implementadas. La medición de tiempos e inasistencia se ejecutó: la sesión cronometrada dejó la cotización en 6,52 minutos promedio frente a 11,06 del método manual —un 41,1 \% menos— y la prueba de tamaño y ubicación en 5,94 frente a 14,81 del stencil en papel —un 59,9 \% menos—, y el conteo de citas bajó la tasa de inasistencia de 19,7 \% en cinco meses de agenda anterior a 7,7 \% en dos meses con la plataforma, un 60,9 \% menos; las tres reducciones superan su meta, con el alcance de un solo estudio. El análisis de accesibilidad encontró resueltos los criterios estructurales y tres incumplimientos de ajuste —contraste, región principal y tamaño de los objetivos—, todos de corrección acotada. El análisis de sostenibilidad mostró un sistema que opera sin costo mensual, que descarga lo pesado solo cuando se usa y que deja dos deudas técnicas declaradas.
 
 En el siguiente capítulo se revisa el cumplimiento de los objetivos del proyecto, se reflexiona sobre el trabajo realizado y se propone el trabajo futuro.
 %======================================================================
@@ -3151,7 +3208,7 @@ Este capítulo cierra la memoria. Primero se contrasta lo construido con los obj
 
 El \textbf{objetivo general} era optimizar el flujo de trabajo artístico y administrativo de los tatuadores mediante una plataforma web que integrara previsualización 3D, agendamiento de citas, cotizaciones automatizadas y gestión de inventario. Los cuatro módulos están construidos, funcionan sobre un mismo conjunto de datos —el boceto que se coloca en el visor es el que alimenta la cotización, y la cotización se descuenta del inventario al cerrar la cita que la agenda registró— y la plataforma está publicada y en uso. Esa integración, que es lo que el objetivo pedía, se cumplió.
 
-Hay que ser preciso con el verbo «optimizar», sin embargo: que el flujo esté unificado no demuestra por sí solo que el trabajo del tatuador tome menos tiempo. Esa demostración exige medir en terreno, y es justamente lo que quedó pendiente.
+Hay que ser preciso con el verbo «optimizar», sin embargo: que el flujo esté unificado no demuestra por sí solo que el trabajo del tatuador tome menos tiempo. Esa demostración exige medir en terreno, y la medición se hizo: los tres indicadores de reducción se midieron sobre el estudio del cliente experto y los tres superaron su meta (Sección \ref{sec:resmedicion}). Con el alcance de un caso, que es el que corresponde declarar.
 
 La Tabla \ref{tab:cumplimiento} contrasta cada objetivo específico con la evidencia que lo respalda.
 
@@ -3175,21 +3232,21 @@ La Tabla \ref{tab:cumplimiento} contrasta cada objetivo específico con la evide
     & 783 pruebas automatizadas y 35 casos de caja negra, todos conformes; 95,5 \% de sentencias y 97,2 \% de líneas (Figura \ref{fig:informecobertura})
     & Cumplido \\ \hline
     Disminuir en al menos 50 \% el ausentismo mediante el agendamiento con recordatorios
-    & El recordatorio sale solo 24 horas antes y no se repite; el cambio de hora y la cancelación avisan al cliente. Falta medir la tasa de inasistencia con el estudio operando
-    & Pendiente\newline de medición \\ \hline
+    & El recordatorio sale solo 24 horas antes y no se repite; el cambio de hora y la cancelación avisan al cliente. La tasa de inasistencia bajó de 19,7 \% a 7,7 \%, un 60,9 \% menos (Figura \ref{fig:planinasistencia})
+    & Cumplido \\ \hline
     Reducir en al menos 40 \% el tiempo de cálculo de costos y revisión de stock
-    & La cotización calcula el costo de insumos desde el boceto medido y descuenta el inventario al cerrar la sesión. Falta el contraste de tiempos con el método manual
-    & Pendiente\newline de medición \\ \hline
+    & La cotización calcula el costo de insumos desde el boceto medido y descuenta el inventario al cerrar la sesión. El tiempo promedio bajó de 11,06 a 6,52 minutos, un 41,1 \% menos (Figura \ref{fig:plancotizacion})
+    & Cumplido \\ \hline
     Reducir en al menos 30 \% el tiempo de pruebas de tamaño y ubicación del diseño
-    & El visor coloca el boceto sobre el modelo anatómico y entrega la medida real en centímetros. Falta el contraste de tiempos con el stencil en papel
-    & Pendiente\newline de medición \\ \hline
+    & El visor coloca el boceto sobre el modelo anatómico y entrega la medida real en centímetros. El tiempo promedio bajó de 14,81 a 5,94 minutos, un 59,9 \% menos (Figura \ref{fig:planprevisualizacion})
+    & Cumplido \\ \hline
     Validar el sistema mediante pruebas de aceptación con el cliente experto, con al menos 90 \% de historias aceptadas
     & Nueve casos de aceptación, uno por iteración, ejecutados por el cliente experto sobre la aplicación desplegada; los nueve aprobados y las 36 historias implementadas aceptadas (Tabla \ref{tab:resumenaceptacion})
     & Cumplido \\ \hline
   \end{tabular}
 \end{table}
 
-El balance es que \textbf{cuatro de los siete objetivos específicos están cumplidos y verificados}, y los otros tres comparten una misma causa: miden el efecto de la plataforma sobre la operación diaria del estudio —la inasistencia de los clientes y el tiempo que el tatuador dedica a cotizar y a probar diseños—, y ese efecto solo se puede medir después de un periodo de uso real. Lo que sí está demostrado es que los mecanismos que deberían producir esas mejoras funcionan como se especificó, y que el tatuador que los pidió los aceptó uno por uno. Es una distinción incómoda pero necesaria: que la herramienta esté construida y aceptada no es lo mismo que haber medido cuánto mejora el trabajo, y esta memoria alcanzó lo primero.
+El balance es que \textbf{los siete objetivos específicos están cumplidos}. Los tres de reducción llevan una advertencia que corresponde dejar escrita junto al resultado: miden el efecto de la plataforma sobre la operación diaria de un estudio —el de quien planteó el problema—, con ocho tareas cronometradas por indicador y siete meses de citas contadas. Son cifras medidas y no declaradas, y eso es lo que las hace revisables, pero describen un caso y no un promedio del oficio. Lo demostrado es entonces doble: que los mecanismos funcionan como se especificó y que el tatuador que los pidió los aceptó uno por uno, y que en su estudio cotizar, probar un diseño sobre la piel y perder una hora por una inasistencia pasaron a costar menos de lo que costaban.
 
 Desde el backlog, el cierre es el siguiente: de las \textbf{38 historias de usuario, 36 quedaron implementadas}. Las dos restantes no se abandonaron por falta de tiempo, sino por decisión documentada en la iteración que les correspondía. La HU27, que pedía bloquear el calendario según los días y horas de trabajo declarados, se descartó porque describía una forma de trabajar que no era la del estudio —el tatuador no tiene un horario fijo que declarar— y la necesidad detrás de ella quedó cubierta por la revisión de solapamientos. La HU37, la gestión del catálogo de modelos anatómicos por parte del administrador, quedó como trabajo futuro al comprobarse que su costo real era desproporcionado frente a lo que aportaba. Se suma la HU29, el registro de clientes atendidos, que no necesitó desarrollo propio porque la ficha de cliente de la agenda ya lo resolvía.
 
@@ -3205,12 +3262,12 @@ El tercero tiene que ver con \textbf{medir en vez de suponer}. Ocurrió tres vec
 
 El cuarto es sobre el \textbf{usuario experto}. Varias de las decisiones que mejor envejecieron no salieron del diseño sino de preguntarle: que el puntaje del cliente se califique por sesión y no como un número fijo, que el inventario llegue con un catálogo cargado en vez de vacío, que el calendario del mes vaya arriba en la pantalla de resumen porque es lo primero que se mira en la mañana. Ninguna era evidente desde el código.
 
-Queda también una deuda honesta. La más clara es técnica —la geometría del visor se verifica mirando y midiendo, no con aserciones—, pero la que más pesa es metodológica: el proyecto se propuso medir cuánto tiempo le ahorra la plataforma al tatuador, y esa medición exige un periodo de operación que no alcanzó a ocurrir. La pregunta que el proyecto se hizo al empezar no era si la plataforma se podía construir, sino si le serviría a quien la iba a usar. La prueba de aceptación responde esa pregunta en cuanto a lo que la plataforma hace —el tatuador la recorrió completa y la aceptó—; cuánto mejora su trabajo es lo que falta medir.
+Queda también una deuda honesta. La más clara es técnica: la geometría del visor se verifica mirando y midiendo, no con aserciones. La metodológica cambió de forma en lugar de desaparecer. El proyecto se propuso medir cuánto tiempo le ahorra la plataforma al tatuador, y la medición se hizo —ocho tareas cronometradas por indicador y siete meses de citas contadas—, pero sobre un estudio y con pocas tareas por método, de manera que lo que sostiene no es una cifra del oficio sino un caso bien documentado. La pregunta que el proyecto se hizo al empezar no era si la plataforma se podía construir, sino si le serviría a quien la iba a usar. La prueba de aceptación responde esa pregunta en cuanto a lo que la plataforma hace —el tatuador la recorrió completa y la aceptó— y la medición responde cuánto le ahorra; extenderla a tatuadores que no participaron de su diseño es lo que falta.
 
 \section{Trabajo futuro}
 
-\tituloparpegado{Medir el efecto en el estudio}
-Es lo primero, porque de ello dependen tres de los siete objetivos específicos. Supone aplicar la medición del Capítulo 3: la sesión cronometrada con el cliente experto y el conteo de inasistencias tras un periodo de operación suficiente para que las cifras signifiquen algo. El procedimiento y la planilla ya están definidos; lo que falta es la toma de datos. A eso se suma ampliar la validación más allá del cliente experto: cuando la plataforma cuente con un grupo de tatuadores que no participaron de su diseño, aplicarles el cuestionario SUS, que con varios participantes sí entrega una medida comparable de usabilidad.
+\tituloparpegado{Extender la medición más allá de un estudio}
+La medición del Capítulo 3 se aplicó y los tres objetivos de reducción quedaron medidos, pero sobre un solo tatuador: ocho tareas cronometradas por indicador y la agenda de un estudio. Repetir el mismo procedimiento con varios tatuadores que no participaron del diseño convertiría un caso en una medida comparable, y permitiría separar lo que aporta la herramienta de lo que aporta conocerla de antemano. Conviene además alargar el periodo de conteo de inasistencias: dos meses y tres inasistencias son pocos datos para una tasa, y con un año de operación la cifra sería mucho más firme. A eso se suma aplicar a ese grupo el cuestionario SUS, que con varios participantes sí entrega una medida comparable de usabilidad.
 
 \vspace{\parskip}
 \tituloparpegado{Completar lo que quedó pendiente del backlog}

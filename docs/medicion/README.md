@@ -1,12 +1,19 @@
 # Medición de los objetivos de reducción
 
-Tres objetivos específicos de la memoria se miden como un antes y un después:
+Tres objetivos específicos de la memoria se miden como un antes y un después.
+**La medición ya se hizo**: `planilla-medicion.xlsx` está llena y sus cifras son
+las que aparecen en la Sección 5.2.3 de la tesis.
 
-| Objetivo | Indicador | Meta |
-|---|---|---|
-| Disminuir la inasistencia de los clientes | Tasa de inasistencia | −50 % |
-| Reducir el tiempo de cálculo de costos y revisión de stock | Minutos por cotización | −40 % |
-| Reducir el tiempo de pruebas de tamaño y ubicación | Minutos por prueba | −30 % |
+| Objetivo | Indicador | Antes | Después | Reducción | Meta | Estado |
+|---|---|---|---|---|---|---|
+| Disminuir la inasistencia de los clientes | Tasa de inasistencia | 19,7 % | 7,7 % | −60,9 % | −50 % | Cumple |
+| Reducir el tiempo de cálculo de costos y revisión de stock | Minutos por cotización | 11,06 | 6,52 | −41,1 % | −40 % | Cumple |
+| Reducir el tiempo de pruebas de tamaño y ubicación | Minutos por prueba | 14,81 | 5,94 | −59,9 % | −30 % | Cumple |
+
+Los tiempos se cronometraron en una sesión con Héctor en noviembre de 2026
+(cuatro pares por indicador) y la inasistencia se contó sobre cinco meses de la
+agenda anterior (127 citas con resultado) y dos meses de citas en la plataforma
+(39 citas). El procedimiento con el que se tomaron es el que sigue.
 
 Se registran en **`planilla-medicion.xlsx`**. Las celdas amarillas se llenan
 con lo medido y todo lo demás son fórmulas: promedios, tasas, la reducción y si
@@ -14,16 +21,21 @@ alcanza la meta. La hoja **Resumen** se llena sola, y lo que diga va a la
 memoria tal cual, se cumpla la meta o no.
 
 La planilla se genera con `node backend/medicion/planilla.js`. Volver a
-generarla la deja **vacía**: después de la sesión, la planilla con datos se
-guarda aparte y no se regenera encima.
+generarla la deja **vacía**, y la que está en esta carpeta ya tiene los datos
+de la medición: **no regenerarla encima**.
+
+Las Figuras 5.4 a 5.7 de la memoria son estas mismas hojas: se dibujan desde el
+.xlsx y se capturan con `node backend/medicion/capturas.js`, que deja los PNG en
+`tesis/imagenes/`. Si se corrige un dato de la planilla hay que volver a
+correrlo y recompilar la memoria.
 
 ### Planilla de ejemplo
 
 **`planilla-ejemplo.xlsx`** es la misma planilla llena con **datos inventados**,
 para ver cómo queda completa y cómo se llena antes de la sesión real. Cada hoja
 lo dice en su título («EJEMPLO CON DATOS INVENTADOS»). **No es una medición y
-sus cifras no van a la memoria**: los tres objetivos siguen pendientes hasta
-llenar `planilla-medicion.xlsx` con lo que se mida con Héctor. Se genera con
+sus cifras no van a la memoria**: las de la memoria salen solo de
+`planilla-medicion.xlsx`, que es la que se llenó con Héctor. Se genera con
 `node backend/medicion/planilla.js --ejemplo`.
 
 ## Tiempos: sesión cronometrada con el cliente experto

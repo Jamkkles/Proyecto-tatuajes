@@ -113,14 +113,23 @@ Anexo A) no tienen guión: las ejecuta a mano el cliente experto.
 ### Medición de los objetivos de reducción (inasistencia, cotización, previsualización)
 ```bash
 node backend/medicion/planilla.js   # docs/medicion/planilla-medicion.xlsx, VACÍA
+node backend/medicion/capturas.js   # tesis/imagenes/fig-5-4…5-7, las hojas de la planilla
 ```
 Planilla Excel sin dependencias (el .xlsx se arma con zlib) para la sesión
 cronometrada con Héctor y el conteo de inasistencias; procedimiento en
 `docs/medicion/README.md` y en la Sección 3.2.4 de la tesis. Las celdas
 amarillas son lo medido y el resto son fórmulas (la hoja Resumen dice si se
-cumple cada meta). **Regenerarla la deja vacía**: la planilla con datos se
-guarda aparte. A la fecha esos tres objetivos siguen sin medir y la tesis lo
-declara así: **no se escriben cifras que no salgan de esa planilla llena**.
+cumple cada meta). **Regenerarla la deja vacía**: `planilla-medicion.xlsx` ya
+está llena con la medición real, así que **no volver a generarla encima**. Los
+tres objetivos están medidos y las cifras van en la Sección 5.2.3 de la tesis
+(inasistencia 19,7 % → 7,7 %, −60,9 %; cotización 11,06 → 6,52 min, −41,1 %;
+previsualización 14,81 → 5,94 min, −59,9 %; las tres metas se cumplen). Regla
+que sigue en pie: **no se escriben cifras que no salgan de esa planilla**, y si
+cambia un dato medido se corrige la planilla y después la tesis, nunca al revés.
+Las Figuras 5.4 a 5.7 del Capítulo 5 **son las hojas de la planilla**, dibujadas
+desde el propio .xlsx y capturadas con Chrome headless por CDP (`capturas.js`,
+sin dependencias, como `calidad/imprimir.js`): al tocar la planilla hay que
+volver a correrlo o las figuras quedan mostrando lo anterior.
 `--ejemplo` genera `planilla-ejemplo.xlsx`, llena con datos inventados y
 rotulada así en cada hoja, solo para mostrar cómo se llena: sus cifras nunca
 van a la tesis.
