@@ -1,0 +1,87 @@
+\begin{table}[H]
+  \centering
+  \caption{Casos de prueba funcional: autenticación y bocetos}
+  \label{tab:casosauth}
+  \renewcommand{\arraystretch}{1.2}
+  \footnotesize
+  \begin{tabular}{|c|p{5.9cm}|p{5.3cm}|}
+    \hline
+    \textbf{ID} & \textbf{Caso de prueba y resultado esperado} & \textbf{Resultado obtenido} \\
+    \hline
+    CP-01 & Registrar una cuenta nueva (HU01). 201 con token y datos del usuario & 201, token emitido para cp-mwegg7pc-a@pruebas.local \\ \hline
+    CP-02 & Registrar con un correo ya usado (HU01). 409 y ninguna cuenta nueva & 409 Ya existe una cuenta con ese correo. \\ \hline
+    CP-03 & Iniciar sesión con credenciales válidas (HU02). 200 con token y rol del usuario & 200, rol tatuador \\ \hline
+    CP-04 & Iniciar sesión con contraseña incorrecta (HU02). 401 sin token & 401 sin token \\ \hline
+    CP-05 & Entrar a un recurso privado sin sesión (HU02). 401 y ningún dato & 401 sin datos \\ \hline
+    CP-06 & Subir un boceto con su imagen (HU04). 201, el boceto queda con enlace y cobertura de tinta medida & 201, cobertura 0.7 \% \\ \hline
+    CP-07 & Subir un boceto sin título (HU04). 400 y el boceto no se guarda & 400 El título es obligatorio. \\ \hline
+    CP-08 & Filtrar la galería por etiqueta (HU06). Solo los bocetos que la tienen & 200, 1 boceto(s) \\ \hline
+    CP-09 & Editar los datos de un boceto (HU05). 200 con los datos actualizados & 200, título «Boceto editado» \\ \hline
+    CP-10 & Editar el boceto de otro artista (HU06). 404, sin revelar que existe & 404, sin cambios \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Casos de prueba funcional: previsualización, inventario y cotizaciones}
+  \label{tab:casosinv}
+  \renewcommand{\arraystretch}{1.2}
+  \footnotesize
+  \begin{tabular}{|c|p{5.9cm}|p{5.3cm}|}
+    \hline
+    \textbf{ID} & \textbf{Caso de prueba y resultado esperado} & \textbf{Resultado obtenido} \\
+    \hline
+    CP-11 & Guardar una escena 3D con el boceto colocado (HU09). 201 y la escena conserva la calca & 201, 1 calca(s) \\ \hline
+    CP-12 & Guardar una escena con el boceto de otro artista (HU09). 400, la referencia ajena se rechaza & 400 Alguno de los bocetos no existe o no es tuyo. \\ \hline
+    CP-13 & Entrar por primera vez al inventario (HU11). Se cargan los 42 insumos del kit inicial & 200, 42 insumos \\ \hline
+    CP-14 & Registrar un insumo nuevo (HU11). 201 con el insumo creado & 201, insumo creado \\ \hline
+    CP-15 & Descontar más stock del que hay (HU12). El stock queda en 0, nunca negativo & 200, stock 0 \\ \hline
+    CP-16 & Listar los insumos en nivel crítico (HU13). Aparece el insumo cuyo stock llegó a 0 & 200, 1 en nivel crítico \\ \hline
+    CP-17 & Estimar el costo de un tatuaje (HU14). Costo mayor que cero, con tiempo y sesiones calculados & 200, \$7340, 30 min, 1 sesión(es) \\ \hline
+    CP-18 & Guardar la cotización (HU15). 201 con el detalle por insumo & 201, 22 líneas de insumo \\ \hline
+    CP-19 & Descontar del inventario lo cotizado (HU16). El stock de los insumos baja según el detalle & 200, «Cartuchos magnum 09 (M1)» de 20 a 19 \\ \hline
+    CP-20 & Descontar dos veces la misma cotización (HU16). 409, el inventario no se descuenta de nuevo & 409 Esta cotización ya descontó el stock. \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Casos de prueba funcional: agenda y pagos}
+  \label{tab:casosagenda}
+  \renewcommand{\arraystretch}{1.2}
+  \footnotesize
+  \begin{tabular}{|c|p{5.9cm}|p{5.3cm}|}
+    \hline
+    \textbf{ID} & \textbf{Caso de prueba y resultado esperado} & \textbf{Resultado obtenido} \\
+    \hline
+    CP-21 & Crear una ficha de cliente (HU20). 201 con el cliente creado & 201, cliente creado \\ \hline
+    CP-22 & Crear un proyecto del cliente (HU19). 201 con el proyecto enlazado al cliente & 201, proyecto creado \\ \hline
+    CP-23 & Agendar una cita (HU17). 201 con la cita agendada & 201, cita agendada \\ \hline
+    CP-24 & Agendar una cita que se solapa con otra (HU17). 409 nombrando con quién y a qué hora choca & 409 Ese horario se cruza con la cita de Cliente de prueba del viernes 20 de noviembre, de 10:00 a 12:00. Elige otra hora. \\ \hline
+    CP-25 & Agendar una cita contigua a otra (HU17). 201, las citas seguidas no se consideran choque & 201, cita agendada \\ \hline
+    CP-26 & Cancelar una cita libera su horario (HU21). 201, la hora vuelve a estar disponible & 201, hora reutilizada \\ \hline
+    CP-27 & Calificar una sesión con un valor fuera de rango (HU30). 400 y la calificación no se guarda & 400 El puntaje debe ser un número entero entre 1 y 5. \\ \hline
+    CP-28 & Calificar una sesión completada (HU30). El cliente queda con promedio 4,0 sobre una sesión calificada & promedio 4 sobre 1 sesión(es) \\ \hline
+    CP-29 & Marcar una sesión como pagada (HU24). Queda sellada la fecha de pago y el monto entra en lo cobrado del mes & fecha de pago sellada, cobrado \$90000 \\ \hline
+    CP-30 & Subir una foto del avance (HU18). 201 y la foto queda asociada a la sesión & 201, foto guardada \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Casos de prueba funcional: avisos y administración}
+  \label{tab:casosadmin}
+  \renewcommand{\arraystretch}{1.2}
+  \footnotesize
+  \begin{tabular}{|c|p{5.9cm}|p{5.3cm}|}
+    \hline
+    \textbf{ID} & \textbf{Caso de prueba y resultado esperado} & \textbf{Resultado obtenido} \\
+    \hline
+    CP-31 & Cambiar la hora de una cita futura (HU23). La respuesta trae el aviso de reagendamiento para el cliente & 200, aviso «reagendamiento» \\ \hline
+    CP-32 & Editar el texto de los mensajes al cliente (HU28). Los textos quedan guardados y se leen igual & 200, nota guardada \\ \hline
+    CP-33 & Entrar a la administración sin ser administrador (HU31). 403, la ruta es solo del administrador & 403 \\ \hline
+    CP-34 & Registrar un estudio con su primer tatuador (HU31). 201 con el estudio, la cuenta y una contraseña temporal & 201, estudio y cuenta creados con contraseña temporal \\ \hline
+    CP-35 & Desactivar una cuenta (HU34). Su siguiente petición es rechazada con 401 y el motivo & 401 con código «user\_inactive» \\ \hline
+  \end{tabular}
+\end{table}
+

@@ -96,6 +96,20 @@ su cuenta `carga-…@pruebas.local`, borra al terminar lo que creó y deja el
 detalle en `docs/pruebas-estres/resultados.json`; la cuenta vacía se borra a
 mano con el `DELETE` que el propio script imprime al final.
 
+### Pruebas funcionales (caja negra, CP-01 a CP-35)
+```bash
+ADMIN_EMAIL=… ADMIN_PASSWORD=… node backend/funcional/correr.js   # corre en el host
+node backend/funcional/tablas.js  # docs/pruebas-funcionales/tablas-casos.tex
+```
+Los 35 casos del capítulo 5 de la memoria, por la API y contra el backend
+local: el guión se niega a correr si `BASE` no es `localhost`. CP-34 y CP-35
+necesitan la cuenta de administrador; sin `ADMIN_*` fallan solo esos dos (el
+admin es la cuenta real de Pablo, así que la contraseña la pone él). Deja
+`docs/pruebas-funcionales/casos.json` y no borra lo que crea: imprime el
+`DELETE` de las cuentas `cp-…@pruebas.local`. `tablas.js` arma desde ese JSON
+las Tablas 5.2 a 5.5 de la tesis. Las pruebas de aceptación (PA-01 a PA-09,
+Anexo A) no tienen guión: las ejecuta a mano el cliente experto.
+
 Se corren **dentro del contenedor**: en el host `jest` se cuelga cuando el
 proyecto está en una carpeta sincronizada con iCloud. Lo mismo pasa con `tsc` y
 `eslint` del frontend (leen `node_modules` desde iCloud y se quedan bloqueados sin

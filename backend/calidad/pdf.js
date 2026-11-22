@@ -120,13 +120,6 @@ const PREGUNTAS = [
 
 // ------------------------------------------------------------------ página
 
-const filaCapas = m.coberturaPorCapa
-  .map(
-    (c) =>
-      `<tr><td>${esc(c.nombre)}</td><td class="num">${coma(c.pct)} %</td><td class="num">${miles(c.cubierto)} / ${miles(c.total)}</td></tr>`
-  )
-  .join('\n');
-
 const filasCarga = carga.escenarios
   .map((e) => {
     const peor = e.medidas[e.medidas.length - 1];
