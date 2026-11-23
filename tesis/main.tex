@@ -89,6 +89,10 @@
 % Los índices van sin espacio entre párrafos (solo el texto lo lleva).
 % En los índices de figuras y tablas el espacio que deja el primer capítulo se
 % absorbe en el del rótulo (\vskip en vez de \vspace), como en el original.
+% Atributo HTML con comillas rectas: `"` es activo con babel-spanish y
+% \textquotedbl no existe en OT1, así que la comilla sale de la posición 34
+% de la fuente monoespaciada. Uso: \attr{role}{toolbar} -> role="toolbar"
+\newcommand{\attr}[2]{\texttt{#1=\symbol{34}#2\symbol{34}}}
 \newcommand{\rotulopagina}[1]{\par\vspace{-5.69pt}\hfill página\par#1}
 \newcommand{\indice}[3]{%
   \titulopreliminar{#1}\rotulopagina{#3}{\setlength{\parskip}{0pt}\@starttoc{#2}}}
@@ -182,7 +186,7 @@ Agradecimientos ...
 \titulopreliminar{RESUMEN}
 \vspace{10.75pt}
 
-En la actualidad, el flujo de trabajo de los tatuadores presenta una alta fragmentación tecnológica, lo que hace hace que los profesionales dividan sus tareas administativas y artísticas en múltiples sistemas no integados. La falta de herramientas unificadas genera ineficiencias a la hora de trabajar, ya sea adecuando el tatuaje en una zona establecida del cuerpo, en pérdidas de tiempo en el cálculo de presupuestos y problemas gestionando las citas con los clientes.
+En la actualidad, el flujo de trabajo de los tatuadores presenta una alta fragmentación tecnológica, lo que hace que los profesionales dividan sus tareas administrativas y artísticas en múltiples sistemas no integrados. La falta de herramientas unificadas genera ineficiencias a la hora de trabajar, ya sea adecuando el tatuaje en una zona establecida del cuerpo, en pérdidas de tiempo en el cálculo de presupuestos y problemas gestionando las citas con los clientes.
 
 El proyecto propone el diseño y construcción de una plataforma web integral que unifica el flujo de trabajo del estudio de tatuajes. El sistema incorpora módulos de almacenamiento en la nube para bocetos, previsualización 3D sobre modelos anatómicos, gestión de inventario con cotizaciones automatizadas, y un agendador de citas integrando una API de mensajería para los recordatorios.
 
@@ -249,7 +253,7 @@ Sobre el módulo de agendamientos de citas con recordatorios, este permite hacer
 
 El módulo de gestión de cotizaciones automatizadas, permite calcular el precio aproximado del costo del tatuaje a partir del boceto subido a la plataforma, esto se realiza mediante un algoritmo que procesa las dimensiones del boceto, junto con otros parámetros como el grosor de los trazados y colores, ya que el costo se centra en los gastos de material como agujas, tinta y otros insumos para la elaboración del tatuaje, dejando de lado valor adicional que le quiera dar el artista de acuerdo a la complejidad del diseño.
 
-Por último, el módulo de gestión de inventario se encarga de gestionar los materiales que posea el tatuador, ya sea agujas, tintas, insumos de higiene, entre otros, los que puede a editar a su disposición y a la vez se pueden actualizar automaticamente cada vez que se haga una cotización automatizada.
+Por último, el módulo de gestión de inventario se encarga de gestionar los materiales que posea el tatuador, ya sea agujas, tintas, insumos de higiene, entre otros, los que puede a editar a su disposición y a la vez se pueden actualizar automáticamente cada vez que se haga una cotización automatizada.
 
 En términos de factibilidad, esta solución es viable gracias a varios factores en los que incluye factibilidad técnica, operativa y económica. En el ámbito técnico, la solución se apoya en las tecnologías orientadas al desarrollo web, empleando librerías de código abierto establecidas para el renderizado 3D en el navegador e integraciones mediante protocolos estándar para las APIs de mensajería, lo que elimina la necesidad de desarrollar motores gráficos desde cero o adquirir licencias de software. Operativamente, se sustenta directamente con las necesidades reales de los tatuadores, en mayor medida dentro de la zona local, debido a que gran parte de los requerimientos son parte de las ideas del tatuador experto, que estuvo dispuesto a buscar mejoras en el flujo de su trabajo con la plataforma gracias a sus requerimientos, y es por ello que estuvo dispuesto a participar y validar prototipos y avances relacionados a la plataforma. Finalmente, la viabilidad económica se garantiza al basar la arquitectura en lenguajes de programación y gestores de bases de datos gratuitos, lo que reduce a cero los costos iniciales por licencias, mientras que los gastos de infraestructura se mantendrán al mínimo aprovechando entornos locales y capas gratuitas de servicios en la nube durante las fases de desarrollo y pruebas de concepto.
 
@@ -335,11 +339,11 @@ En esta sección se presentan las etapas que posee el proyecto, tareas más impo
   \end{itemize}
 \end{enumerate}
 
-Quedando así un total de 30 semanas para el desarrollo del proyecto. Para mayor detalle de la planificación revisar la Carta Gantt anexo al documento.
+Quedando así un total de 30 semanas para el desarrollo del proyecto. El detalle semanal de esa planificación está en la Carta Gantt del Anexo \ref{anx:gantt}.
 
 \subsection{Tareas para objetivos específicos}
 
-Para asegurar la trazabilidad entre el plan de trabajo y las metas del proyecto, se detallan las acciones que darán cumpliento a los objetivos específicos planteados:
+Para asegurar la trazabilidad entre el plan de trabajo y las metas del proyecto, se detallan las acciones que darán cumplimiento a los objetivos específicos planteados:
 
 \begin{itemize}
   \item \textbf{Análisis de los procesos actuales y obtención de métricas a optimizar:}
@@ -465,7 +469,9 @@ Los avisos al artista no se consiguen con HTTP corriente, porque el servidor no 
 \tituloparpegado{Correo: SMTP frente a API sobre HTTPS}
 El correo electrónico se transporta tradicionalmente por SMTP, un protocolo propio que usa los puertos 25, 465 y 587. Cuando el entorno de despliegue bloquea esos puertos —algo habitual en los planes gratuitos de alojamiento—, el envío se hace llamando por HTTPS a la interfaz del proveedor de correo, que es quien habla SMTP por detrás. Son dos caminos para el mismo fin, y la diferencia entre ellos es puramente de transporte.
 
-\tituloparpegado{Mensajería instantánea}
+\vspace{0.2cm}
+
+\tituloparpegado{Mensajería instantáneaa}
 El envío de mensajes al cliente final usa la interfaz de WhatsApp\cite{whatsappapi}, que también es HTTPS: el servidor hace una petición con los datos de la plantilla y el proveedor se encarga de la entrega. El canal alternativo, en cambio, no usa una interfaz pública sino el mismo protocolo con que WhatsApp conecta sus dispositivos vinculados, a través de una biblioteca que lo implementa\cite{baileys}.
 
 \section{Trabajo relacionado}
@@ -893,9 +899,9 @@ A continuación, la Tabla \ref{tab:hu} ilustra las historias de usuario obtenida
   HU25 & Tatuador & quiero ver un panel de control al iniciar sesión con las citas programadas y alertas de stock bajo, para organizar mi jornada de un vistazo. \\ \hline
   HU26 & Tatuador & quiero visualizar una suma básica de los ingresos generados en el mes actual, para evaluar la rentabilidad del estudio. \\ \hline
   HU27 & Tatuador & quiero definir mis días y horas de trabajo, para que el calendario bloquee automáticamente mis días libres. \\ \hline
-  HU28 & Tatuador & quiero poder editar el texto base del mensaje que se envía por WhatsApp, para darle recomendaciones del trato del tatuajes posteriormente al trabajo realizado. \\ \hline
-  HU29 & Tatuador & quiero tener el resgistro de todos mis clientes atendidos con su información. \\ \hline
-  HU30 & Tatuador & quiero poder visualizar un marcardor de todos mis clientes y asignarles puntaje para saber su responsabilidad de llegada y poder filtrarlos de acuerdo a ello. \\ \hline
+  HU28 & Tatuador & quiero poder editar el texto base del mensaje que se envía por WhatsApp, para darle recomendaciones del trato del tatuaje posteriormente al trabajo realizado. \\ \hline
+  HU29 & Tatuador & quiero tener el registro de todos mis clientes atendidos con su información. \\ \hline
+  HU30 & Tatuador & quiero poder visualizar un marcador de todos mis clientes y asignarles puntaje para saber su responsabilidad de llegada y poder filtrarlos de acuerdo a ello. \\ \hline
   HU31 & Administrador & quiero registrar nuevos estudios de tatuaje en la plataforma indicando nombre, correo y plan contratado, para incorporar a nuevos clientes del sistema. \\ \hline
   HU32 & Administrador & quiero activar o desactivar una cuenta de estudio, para gestionar el acceso a la plataforma ante impagos o solicitudes de baja. \\ \hline
   HU33 & Administrador & quiero agregar tatuadores adicionales dentro de un estudio existente, para dar soporte a estudios con más de un profesional. \\ \hline
@@ -984,7 +990,7 @@ A continuación, se detallan los resultados esperados para cada uno de los objet
   \end{itemize}
   \item \textbf{Reducción del tiempo de previsualización (Objetivo Específico 4):}
   \begin{itemize}
-    \item Resultado esperado:Se espera lograr una reducción del 30 \% en los tiempos de previsualización al utilizar el módulo de proyección 3D, en comparación con el método tradicional de ajuste manual en papel.
+    \item Resultado esperado: Se espera lograr una reducción del 30 \% en los tiempos de previsualización al utilizar el módulo de proyección 3D, en comparación con el método tradicional de ajuste manual en papel.
     \item Pruebas para lograr resultado esperado: Prueba de que el funcionamiento del módulo de proyección 3D permita ajustar y posicionar los bocetos de manera rápida y precisa sobre el modelo anatómico, en comparación con el método manual en papel.
   \end{itemize}
   \item \textbf{Validación con el usuario (Objetivo Específico 7):}
@@ -996,7 +1002,7 @@ A continuación, se detallan los resultados esperados para cada uno de los objet
 
 \section{Resumen del capítulo}
 
-En este capítulo se presentó detallademente la forma en que se aplicará la metodología PXP en el proyecto. También, se explican las metodologías de evaluación, mediante pruebas de software y, pruebas cualititativas y cuantitativas, en donde se agregan ejemplos de estas. Finalmente, se mencionan los resultados esperados, los cuales responden a los objetivos específicos planteados en el Capítulo 1.2.2.
+En este capítulo se presentó detalladamente la forma en que se aplicará la metodología PXP en el proyecto. También, se explican las metodologías de evaluación, mediante pruebas de software y, pruebas cualitativas y cuantitativas, en donde se agregan ejemplos de estas. Finalmente, se mencionan los resultados esperados, los cuales responden a los objetivos específicos planteados en el Capítulo 1.2.2.
 
 En el siguiente capítulo se detallará la implementación de la metodología de desarrollo, en donde se explicará el trabajo realizado en las iteraciones, siguiendo las etapas de inicio de iteración, diseño, implementación, sistema de pruebas y retrospectiva.
 \titleformat{\chapter}[hang]
@@ -3141,8 +3147,13 @@ El objetivo de \textbf{validación con el usuario} está cumplido. El cliente ex
 Más allá del cumplimiento formal, hay un resultado que conviene destacar porque atraviesa todo el sistema. Cuatro de los casos funcionales comprueban que un artista no alcanza los datos de otro, por distintas vías: pidiendo un recurso ajeno, referenciándolo dentro de otro recurso, entrando a una ruta de administración sin el rol, y operando con una cuenta recién desactivada. Los cuatro se rechazan. Esa es la regla sobre la que descansa que la plataforma pueda alojar a varios estudios a la vez, y es también la decisión que el Capítulo 4 identifica como la más barata de todo el proyecto, precisamente porque se tomó temprano y no hubo que volver sobre ella.
 
 \section{Análisis de accesibilidad}
+\label{sec:accesibilidad}
 
-La accesibilidad se evaluó tomando como referencia las pautas WCAG 2.1 en su nivel AA, a las que se suma el criterio de tamaño de objetivo que incorporó la versión 2.2. La revisión se hizo con un guion propio que recorre el árbol del documento de las vistas ya cargadas en el navegador y comprueba criterios verificables de forma automática —texto alternativo, nombre accesible de los controles, etiquetas de formulario, idioma declarado, relación de contraste y tamaño de los objetivos táctiles—, complementada con una revisión visual de las mismas pantallas. Se revisaron el resumen, la agenda y el inventario, que entre las tres reúnen los patrones de interfaz que el resto de las pantallas repite.
+La accesibilidad se evaluó tomando como referencia las pautas WCAG 2.1 en su nivel AA, a las que se suma el criterio de tamaño de objetivo que incorporó la versión 2.2, y se hizo con dos instrumentos que se complementan. El primero es un guion propio que recorre el árbol del documento de las vistas ya cargadas en el navegador y comprueba criterios verificables de forma automática —texto alternativo, nombre accesible de los controles, etiquetas de formulario, idioma declarado, relación de contraste y tamaño de los objetivos táctiles—, complementado con una revisión visual de las mismas pantallas. El segundo es \textbf{WAVE} \cite{wave}, la herramienta de evaluación de accesibilidad web de WebAIM, que se aplicó sobre las once vistas de la aplicación y cuyo detalle se presenta más adelante. Usar una herramienta externa y de uso extendido, además del guion propio, evita que el resultado dependa de los criterios que el mismo autor eligió programar.
+
+\vspace{\parskip}
+\tituloparpegado{Revisión por criterio}
+El guion revisó el resumen, la agenda y el inventario, que entre las tres reúnen los patrones de interfaz que el resto de las pantallas repite. La Tabla \ref{tab:accesibilidad} presenta el resultado criterio por criterio.
 
 \begin{table}[H]
   \centering
@@ -3160,16 +3171,56 @@ La accesibilidad se evaluó tomando como referencia las pautas WCAG 2.1 en su ni
     Idioma de la página (3.1.1) & El documento declara español & Cumple \\ \hline
     Contraste mínimo (1.4.3) & El color del texto secundario sobre las tarjetas da 4,42:1, bajo el 4,5:1 exigido; afecta a 144 textos de 12 px en una sola vista & No cumple \\ \hline
     Estructura de encabezados (1.3.1) & El resumen salta del encabezado de primer nivel al de tercero & Parcial \\ \hline
-    Región principal y salto de bloques (2.4.1) & Las vistas declaran cabecera y navegación, pero no una región de contenido principal & No cumple \\ \hline
+    Región principal y salto de bloques (2.4.1) & Las vistas internas declaran cabecera y navegación, pero no una región de contenido principal; las vistas públicas, que usan otra plantilla, sí la declaran & Parcial \\ \hline
     Tamaño del objetivo (2.5.8, WCAG 2.2) & Entre 42 y 46 controles por vista miden menos de 24 px en una de sus dimensiones, sobre todo las celdas del calendario y los enlaces en línea & No cumple \\ \hline
   \end{tabular}
 \end{table}
 
 Lo que la revisión deja claro es que la base está bien puesta y lo que falla es de ajuste. Los puntos difíciles de corregir después —que cada control tenga nombre, que cada campo tenga etiqueta, que las imágenes tengan alternativa— están resueltos desde el código, y eso se debe a que la interfaz se escribió con etiquetas de accesibilidad desde el principio y no como un parche final.
 
-Los tres incumplimientos son, en cambio, baratos de cerrar. El contraste falla por ocho centésimas: basta aclarar un paso el color del texto secundario para pasar el umbral en todas las pantallas a la vez, porque es un único valor del sistema de diseño. La región principal se resuelve envolviendo el contenido de la plantilla común. El tamaño de los objetivos exige algo más de trabajo, porque implica agrandar las celdas del calendario del mes, que es donde se concentra el problema.
+Los incumplimientos son, en cambio, baratos de cerrar. El contraste falla por ocho centésimas: basta aclarar un paso el color del texto secundario para pasar el umbral en todas las pantallas a la vez, porque es un único valor del sistema de diseño. La región principal se resuelve envolviendo el contenido de la plantilla común, y el patrón correcto ya existe en el proyecto, puesto que las vistas públicas sí la declaran. El tamaño de los objetivos exige algo más de trabajo, porque implica agrandar las celdas del calendario del mes, que es donde se concentra el problema.
 
-Queda una limitación declarada: la medición de contraste del \textbf{tema claro} no pudo hacerse de forma sistemática con el guion, porque cada pantalla redefine sus propios colores para ese tema y el guion no siempre resuelve cuál es el fondo real de un texto. Se revisó visualmente sin encontrar texto ilegible, pero esa comprobación no tiene el mismo valor que una medición y queda como trabajo pendiente.
+\vspace{\parskip}
+\tituloparpegado{Evaluación con WAVE}
+Para contrastar ese resultado con una herramienta externa se evaluaron con WAVE las \textbf{once vistas} de la aplicación: nueve del espacio de trabajo del tatuador y dos públicas. Para cada una, WAVE entrega el conteo de errores, errores de contraste, alertas y funciones de accesibilidad detectadas, más un puntaje compuesto (Puntaje AIM) de 0 a 10. La Tabla \ref{tab:wave} resume esos resultados, y el detalle de cada vista junto con su captura de pantalla está en el Anexo \ref{anx:wave}.
+
+\begin{table}[H]
+  \centering
+  \caption{Comparación de resultados de la evaluación de accesibilidad con WAVE entre las vistas analizadas}
+  \label{tab:wave}
+  \renewcommand{\arraystretch}{1.2}
+  \footnotesize
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{4.2cm}|c|c|c|c|c|}
+    \hline
+    \textbf{Vista} & \textbf{Errores} & \textbf{Errores de contraste} & \textbf{Alertas} & \textbf{Funciones} & \textbf{Puntaje AIM} \\
+    \hline
+    Resumen & 0 & 0 & 5 & 3 & 9,9 \\ \hline
+    Galería de bocetos & 0 & 10 & 3 & 10 & \textbf{7,0} \\ \hline
+    Agenda de citas & 0 & 0 & 1 & 9 & 10 \\ \hline
+    Clientes & 0 & 0 & 1 & 8 & 10 \\ \hline
+    Inventario & 0 & 0 & 42 & 13 & 9,4 \\ \hline
+    Cotizaciones & 0 & 0 & 0 & 12 & 10 \\ \hline
+    Previsualización 3D & 0 & 0 & 1 & 5 & 10 \\ \hline
+    Configuración & 0 & 0 & 0 & 12 & 10 \\ \hline
+    Ficha de proyecto & 0 & 0 & 4 & 13 & 9,9 \\ \hline
+    Inicio de sesión & 0 & 0 & 0 & 4 & 10 \\ \hline
+    Crear cuenta & 0 & 0 & 0 & 6 & 10 \\ \hline
+    \textbf{Total} & \textbf{0} & \textbf{10} & \textbf{57} & \textbf{95} & \textbf{9,65} \\ \hline
+  \end{tabular}
+
+  \vspace{2pt}
+  {\footnotesize Puntaje AIM medido sobre 10; el total es el promedio de las once vistas.}
+\end{table}
+
+El resultado más relevante es que \textbf{WAVE no detecta ningún error de accesibilidad en ninguna de las once vistas}. Los errores que la herramienta busca son los de consecuencia directa para un lector de pantalla —imagen sin alternativa, botón vacío, campo de formulario sin etiqueta, enlace sin texto—, y la aplicación no presenta ninguno. Esto respalda, desde una herramienta que no se escribió para este proyecto, lo que la revisión por criterio ya indicaba: el marcado accesible está puesto desde el código.
+
+El \textbf{error de contraste} aparece en una sola vista, la galería de bocetos, con diez instancias. Corresponden al texto secundario del formulario de importación —la línea que enumera los formatos admitidos, las etiquetas de los filtros de estado— y son el mismo color único del sistema de diseño que la revisión por criterio midió en 4,42:1. Que se concentre en una vista y no en todas confirma que no es un problema de la paleta general sino de un token aplicado a texto pequeño, y que corregir ese valor lo cierra en todas partes a la vez.
+
+Las \textbf{alertas} no son incumplimientos sino recomendaciones, y su conteo bruto engaña si se lee sin contexto. De las 57 alertas del sistema, 42 están en el inventario y son todas del mismo tipo, «posible encabezado»: el nombre de cada insumo se muestra en negrita dentro de su tarjeta y WAVE sugiere marcarlo como encabezado real. Son 42 porque el catálogo tiene 42 insumos, de modo que esa cifra mide el tamaño del inventario y no la gravedad del problema; con el inventario vacío serían cero. Las quince restantes se reparten entre saltos de nivel de encabezado, textos muy pequeños, un enlace redundante y dos textos alternativos sospechosos.
+
+En el extremo opuesto, cinco vistas alcanzan el puntaje máximo y tres de ellas —cotizaciones, configuración y las dos públicas— no presentan error, error de contraste ni alerta alguna. Conviene destacar el caso de la \textbf{previsualización 3D}, que obtiene 10 de 10 pese a ser la vista más difícil de hacer accesible: el modelo se dibuja sobre un lienzo WebGL, que para un lector de pantalla es una superficie opaca, y aun así los controles del visor declaran su nombre (\texttt{aria-label} en acercar, alejar, girar, subir y bajar la vista) agrupados bajo \attr{role}{toolbar}, y el selector de zona del cuerpo expone su estado con \attr{role}{tab} y \texttt{aria-pressed}. Algo equivalente ocurre con la calificación de sesiones de la ficha de proyecto, donde las estrellas no son iconos sueltos sino un \attr{role}{radiogroup} cuyas cinco opciones llevan etiqueta de texto.
+
+Queda dicho también qué \textbf{no} prueba este resultado. Un puntaje alto en WAVE significa que no hay errores de los que una herramienta automática puede detectar, no que la aplicación sea usable con lector de pantalla o solo con teclado. Las dos limitaciones reales del sistema quedan fuera del alcance de la herramienta y se declaran aquí: el manejo por teclado de los elementos que responden al puntero, señaladamente la colocación del tatuaje en el visor 3D, que hoy exige ratón o pantalla táctil; y la falta de una alternativa explícita a la previsualización tridimensional para quien no pueda usarla. A ello se suma que la medición de contraste del \textbf{tema claro} no pudo hacerse de forma sistemática con el guion propio, porque cada pantalla redefine sus propios colores para ese tema y el guion no siempre resuelve cuál es el fondo real de un texto; se revisó visualmente sin encontrar texto ilegible, pero esa comprobación no tiene el mismo valor que una medición y queda como trabajo pendiente.
 
 \section{Análisis de sostenibilidad}
 
@@ -3325,6 +3376,29 @@ La plataforma opera hoy sin costo mensual, con la contrapartida de que el servid
 %======================================================================
 \appendix
 \renewcommand{\appendixname}{Anexo}
+\chapter{Planificación}
+
+\section{Carta Gantt}
+\label{anx:gantt}
+
+A continuación se presenta el detalle de la planificación temporal del proyecto a través de la Carta Gantt resumida en la Sección \ref{sec:plantrabajo}. Cubre las 30 semanas de desarrollo, repartidas en cinco etapas y veintidós tareas, y se divide en dos partes para que pueda leerse a tamaño de página: la primera, en la Figura \ref{fig:gantt1}, abarca las semanas 1 a 16, correspondientes al primer semestre; la segunda, en la Figura \ref{fig:gantt2}, las semanas 17 a 30 del segundo semestre. En ambas se repiten el código, el nombre y el estado de cada tarea, de modo que cada figura se entiende por sí sola. Las barras verdes marcan las etapas y las azules, las tareas que las componen.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[height=0.86\textheight,keepaspectratio]{fig-a-1-gantt-1}
+  \caption[Primera parte de la planificación Carta Gantt]{Primera parte de la planificación Carta Gantt: semanas 1 a 16.}
+  \label{fig:gantt1}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[height=0.86\textheight,keepaspectratio]{fig-a-2-gantt-2}
+  \caption[Segunda parte de la planificación Carta Gantt]{Segunda parte de la planificación Carta Gantt: semanas 17 a 30.}
+  \label{fig:gantt2}
+\end{figure}
+
+\input{fichas-hu}
+
 \chapter{Pruebas}
 
 \section{Pruebas de aceptación}
@@ -3537,5 +3611,296 @@ A continuación se presentan los nueve casos de prueba de aceptación, uno por c
     \textbf{Estado} & $\boxtimes$ Aprobado \qquad $\square$ Fallido \\ \hline
   \end{tabular}
 \end{table}
+
+\section{Evaluación de accesibilidad con WAVE}
+\label{anx:wave}
+
+A continuación se presenta el detalle individual de la evaluación con WAVE para cada una de las once vistas resumidas en la Tabla \ref{tab:wave} (Sección \ref{sec:accesibilidad}), junto con la captura de pantalla del panel de resultados de la herramienta sobre cada vista. Las nueve primeras corresponden al espacio de trabajo del tatuador, con sesión iniciada; las dos últimas son las vistas públicas.
+
+\vspace{\parskip}
+\tituloparpegado{1. Resumen}
+
+\begin{table}[H]
+  \centering
+  \caption{Resultados de WAVE para la vista Resumen}
+  \label{tab:waveresumen}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{5.0cm}|p{3.0cm}|}
+    \hline
+    \textbf{Errores} & 0 \\ \hline
+    \textbf{Errores de contraste} & 0 \\ \hline
+    \textbf{Alertas} & 5 \\ \hline
+    \textbf{Funciones} & 3 \\ \hline
+    \textbf{Puntaje AIM} & 9,9 / 10 \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-b-1-wave-resumen}
+  \caption[Resultado de WAVE para la vista Resumen]{Resultado de WAVE para la vista Resumen.}
+  \label{fig:waveresumen}
+\end{figure}
+
+\vspace{\parskip}
+\tituloparpegado{2. Galería de bocetos}
+
+\begin{table}[H]
+  \centering
+  \caption{Resultados de WAVE para la vista Galería de bocetos}
+  \label{tab:wavebocetos}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{5.0cm}|p{3.0cm}|}
+    \hline
+    \textbf{Errores} & 0 \\ \hline
+    \textbf{Errores de contraste} & 10 \\ \hline
+    \textbf{Alertas} & 3 \\ \hline
+    \textbf{Funciones} & 10 \\ \hline
+    \textbf{Puntaje AIM} & 7,0 / 10 \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-b-2-wave-bocetos}
+  \caption[Resultado de WAVE para la vista Galería de bocetos]{Resultado de WAVE para la vista Galería de bocetos. Es la única vista con errores de contraste: los diez corresponden al texto secundario del formulario de importación.}
+  \label{fig:wavebocetos}
+\end{figure}
+
+\vspace{\parskip}
+\tituloparpegado{3. Agenda de citas}
+
+\begin{table}[H]
+  \centering
+  \caption{Resultados de WAVE para la vista Agenda de citas}
+  \label{tab:wavecitas}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{5.0cm}|p{3.0cm}|}
+    \hline
+    \textbf{Errores} & 0 \\ \hline
+    \textbf{Errores de contraste} & 0 \\ \hline
+    \textbf{Alertas} & 1 \\ \hline
+    \textbf{Funciones} & 9 \\ \hline
+    \textbf{Puntaje AIM} & 10 / 10 \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-b-3-wave-citas}
+  \caption[Resultado de WAVE para la vista Agenda de citas]{Resultado de WAVE para la vista Agenda de citas. Las celdas del calendario declaran \attr{role}{gridcell} y el formulario de nueva cita tiene etiqueta en todos sus campos.}
+  \label{fig:wavecitas}
+\end{figure}
+
+\vspace{\parskip}
+\tituloparpegado{4. Clientes}
+
+\begin{table}[H]
+  \centering
+  \caption{Resultados de WAVE para la vista Clientes}
+  \label{tab:waveclientes}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{5.0cm}|p{3.0cm}|}
+    \hline
+    \textbf{Errores} & 0 \\ \hline
+    \textbf{Errores de contraste} & 0 \\ \hline
+    \textbf{Alertas} & 1 \\ \hline
+    \textbf{Funciones} & 8 \\ \hline
+    \textbf{Puntaje AIM} & 10 / 10 \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-b-4-wave-clientes}
+  \caption[Resultado de WAVE para la vista Clientes]{Resultado de WAVE para la vista Clientes. Los botones del filtro de confiabilidad declaran su estado con \texttt{aria-pressed}.}
+  \label{fig:waveclientes}
+\end{figure}
+
+\vspace{\parskip}
+\tituloparpegado{5. Inventario}
+
+\begin{table}[H]
+  \centering
+  \caption{Resultados de WAVE para la vista Inventario}
+  \label{tab:waveinventario}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{5.0cm}|p{3.0cm}|}
+    \hline
+    \textbf{Errores} & 0 \\ \hline
+    \textbf{Errores de contraste} & 0 \\ \hline
+    \textbf{Alertas} & 42 \\ \hline
+    \textbf{Funciones} & 13 \\ \hline
+    \textbf{Puntaje AIM} & 9,4 / 10 \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-b-5-wave-inventario}
+  \caption[Resultado de WAVE para la vista Inventario]{Resultado de WAVE para la vista Inventario. Las 42 alertas son todas del tipo «posible encabezado», una por cada insumo del catálogo.}
+  \label{fig:waveinventario}
+\end{figure}
+
+\vspace{\parskip}
+\tituloparpegado{6. Cotizaciones}
+
+\begin{table}[H]
+  \centering
+  \caption{Resultados de WAVE para la vista Cotizaciones}
+  \label{tab:wavecotizaciones}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{5.0cm}|p{3.0cm}|}
+    \hline
+    \textbf{Errores} & 0 \\ \hline
+    \textbf{Errores de contraste} & 0 \\ \hline
+    \textbf{Alertas} & 0 \\ \hline
+    \textbf{Funciones} & 12 \\ \hline
+    \textbf{Puntaje AIM} & 10 / 10 \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-b-6-wave-cotizaciones}
+  \caption[Resultado de WAVE para la vista Cotizaciones]{Resultado de WAVE para la vista Cotizaciones, sin errores, errores de contraste ni alertas.}
+  \label{fig:wavecotizaciones}
+\end{figure}
+
+\vspace{\parskip}
+\tituloparpegado{7. Previsualización 3D}
+
+\begin{table}[H]
+  \centering
+  \caption{Resultados de WAVE para la vista Previsualización 3D}
+  \label{tab:waveprevisualizacion}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{5.0cm}|p{3.0cm}|}
+    \hline
+    \textbf{Errores} & 0 \\ \hline
+    \textbf{Errores de contraste} & 0 \\ \hline
+    \textbf{Alertas} & 1 \\ \hline
+    \textbf{Funciones} & 5 \\ \hline
+    \textbf{Puntaje AIM} & 10 / 10 \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-b-7-wave-previsualizacion}
+  \caption[Resultado de WAVE para la vista Previsualización 3D]{Resultado de WAVE para la vista Previsualización 3D. Los controles del visor declaran su nombre bajo \attr{role}{toolbar} y el selector de zona expone su estado.}
+  \label{fig:waveprevisualizacion}
+\end{figure}
+
+\vspace{\parskip}
+\tituloparpegado{8. Configuración}
+
+\begin{table}[H]
+  \centering
+  \caption{Resultados de WAVE para la vista Configuración}
+  \label{tab:waveconfiguracion}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{5.0cm}|p{3.0cm}|}
+    \hline
+    \textbf{Errores} & 0 \\ \hline
+    \textbf{Errores de contraste} & 0 \\ \hline
+    \textbf{Alertas} & 0 \\ \hline
+    \textbf{Funciones} & 12 \\ \hline
+    \textbf{Puntaje AIM} & 10 / 10 \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-b-8-wave-configuracion}
+  \caption[Resultado de WAVE para la vista Configuración]{Resultado de WAVE para la vista Configuración. El aviso del canal de mensajería declara \attr{role}{status}.}
+  \label{fig:waveconfiguracion}
+\end{figure}
+
+\vspace{\parskip}
+\tituloparpegado{9. Ficha de proyecto}
+
+\begin{table}[H]
+  \centering
+  \caption{Resultados de WAVE para la vista Ficha de proyecto}
+  \label{tab:waveproyecto}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{5.0cm}|p{3.0cm}|}
+    \hline
+    \textbf{Errores} & 0 \\ \hline
+    \textbf{Errores de contraste} & 0 \\ \hline
+    \textbf{Alertas} & 4 \\ \hline
+    \textbf{Funciones} & 13 \\ \hline
+    \textbf{Puntaje AIM} & 9,9 / 10 \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-b-9-wave-proyecto}
+  \caption[Resultado de WAVE para la vista Ficha de proyecto]{Resultado de WAVE para la vista Ficha de proyecto. Es la vista con más marcado semántico: la calificación de cada sesión se expone como un \attr{role}{radiogroup} con cinco opciones etiquetadas.}
+  \label{fig:waveproyecto}
+\end{figure}
+
+\vspace{\parskip}
+\tituloparpegado{10. Inicio de sesión}
+
+\begin{table}[H]
+  \centering
+  \caption{Resultados de WAVE para la vista Inicio de sesión}
+  \label{tab:wavelogin}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{5.0cm}|p{3.0cm}|}
+    \hline
+    \textbf{Errores} & 0 \\ \hline
+    \textbf{Errores de contraste} & 0 \\ \hline
+    \textbf{Alertas} & 0 \\ \hline
+    \textbf{Funciones} & 4 \\ \hline
+    \textbf{Puntaje AIM} & 10 / 10 \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-b-10-wave-login}
+  \caption[Resultado de WAVE para la vista Inicio de sesión]{Resultado de WAVE para la vista Inicio de sesión. Es una de las dos vistas que declaran región de contenido principal.}
+  \label{fig:wavelogin}
+\end{figure}
+
+\vspace{\parskip}
+\tituloparpegado{11. Crear cuenta}
+
+\begin{table}[H]
+  \centering
+  \caption{Resultados de WAVE para la vista Crear cuenta}
+  \label{tab:waveregistro}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabular}{|>{\raggedright\arraybackslash}p{5.0cm}|p{3.0cm}|}
+    \hline
+    \textbf{Errores} & 0 \\ \hline
+    \textbf{Errores de contraste} & 0 \\ \hline
+    \textbf{Alertas} & 0 \\ \hline
+    \textbf{Funciones} & 6 \\ \hline
+    \textbf{Puntaje AIM} & 10 / 10 \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{fig-b-11-wave-registro}
+  \caption[Resultado de WAVE para la vista Crear cuenta]{Resultado de WAVE para la vista Crear cuenta. Los cuatro campos del formulario declaran etiqueta y estado de validación.}
+  \label{fig:waveregistro}
+\end{figure}
 
 \end{document}

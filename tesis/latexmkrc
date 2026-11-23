@@ -1,0 +1,55 @@
+# Configuración de latexmk para compilar la memoria.
+#
+# EL PROBLEMA
+# MiKTeX devuelve código de salida 1 cuando el registro trae cualquier error,
+# incluidos los que LaTeX se recupera solo y marca como «ignored error». Esta
+# memoria dispara uno de esos por cada longtable que ocupa más de una página
+# (las Tablas 3.1 y 3.2 del Capítulo 3):
+#
+#   main.tex:909: ignored error: Infinite glue shrinkage found in box being split
+#
+# No es un problema del documento ni de una edición mal hecha: cualquier
+# longtable de varias páginas lo produce en esta instalación (longtable v4.24,
+# MiKTeX 25.12), incluso una de dos columnas y sin formato. El PDF sale
+# completo y correcto. Pero latexmk toma ese código 1 como fallo, se detiene en
+# la primera pasada y nunca llega a resolver las referencias: de ahí el
+# «Latex failed to resolve 222 reference(s)» con el que aborta.
+#
+# LA SOLUCIÓN
+# Se envuelve pdflatex: si terminó con código 1 pero el único error del
+# registro es ese aviso de longtable y el PDF se escribió, se informa éxito.
+# Cualquier otro error —uno de verdad, de los que una edición puede
+# introducir— se reporta tal cual y latexmk se detiene como corresponde.
+
+$pdf_mode = 1;
+$pdflatex = 'internal compilar_pdflatex %O %S';
+
+sub compilar_pdflatex {
+    my @argumentos = @_;
+    # latexmk espera el valor crudo de system(), no el código ya desplazado.
+    my $codigo = system('pdflatex', '-synctex=1', '-interaction=nonstopmode',
+                        '-file-line-error', @argumentos);
+    return $codigo if $codigo == 0;
+
+    my $registro = $argumentos[-1];
+    $registro =~ s/\.tex$//;
+    $registro .= '.log';
+    open(my $fh, '<', $registro) or return $codigo;
+
+    my $errores_reales = 0;
+    my $pdf_escrito = 0;
+    while (my $linea = <$fh>) {
+        $pdf_escrito = 1 if $linea =~ /^Output written on /;
+        next if $linea =~ /ignored error: Infinite glue shrinkage/;
+        $errores_reales++ if $linea =~ /^! / || $linea =~ /:\d+: /;
+    }
+    close($fh);
+
+    return ($errores_reales == 0 && $pdf_escrito) ? 0 : $codigo;
+}
+
+# La bibliografía va con biber (biblatex), no con bibtex.
+$bibtex_use = 2;
+
+# Archivos intermedios que `latexmk -c` debe llevarse.
+$clean_ext = 'bbl bcf run.xml synctex.gz fdb_latexmk fls';

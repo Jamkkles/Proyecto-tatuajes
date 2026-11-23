@@ -157,3 +157,26 @@ fig-5-7-planilla-resumen.png  (width=1.0)  — hoja «Resumen» de la misma plan
     la que compara cada reducción con su meta.
     Las cuatro se dibujan desde el .xlsx y se capturan con Chrome headless
     (backend/medicion/capturas.js): si la planilla cambia, hay que volver a generarlas.
+
+Anexo B.2 (evaluación de accesibilidad con WAVE). Capturas reales del panel de
+WAVE (extensión de WebAIM para Chrome) sobre la aplicación corriendo en local,
+con sesión del usuario de prueba. Todas van a width=1.0 y ya vienen recortadas
+sin la barra del navegador.
+fig-b-1-wave-resumen.png
+fig-b-2-wave-bocetos.png
+fig-b-3-wave-citas.png
+fig-b-4-wave-clientes.png
+fig-b-5-wave-inventario.png
+fig-b-6-wave-cotizaciones.png
+fig-b-7-wave-previsualizacion.png
+fig-b-8-wave-configuracion.png
+fig-b-9-wave-proyecto.png
+fig-b-10-wave-login.png
+fig-b-11-wave-registro.png
+
+Anexo A.1 (Carta Gantt). Se dibujan desde docs/Carta Gantt_Pablo Correa (1).xlsx
+con `node tesis/gantt.js`, que captura la tabla con Chrome headless. Van con
+height=0.86\textheight: son altas, una por página. Si se corrige la planilla
+hay que volver a correr el guion.
+fig-a-1-gantt-1.png   semanas 1 a 16
+fig-a-2-gantt-2.png   semanas 17 a 30

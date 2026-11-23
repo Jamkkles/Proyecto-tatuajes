@@ -134,6 +134,22 @@ volver a correrlo o las figuras quedan mostrando lo anterior.
 rotulada así en cada hoja, solo para mostrar cómo se llena: sus cifras nunca
 van a la tesis.
 
+### Figuras y anexos de la memoria
+```bash
+node tesis/gantt.js     # tesis/imagenes/fig-a-1|2-gantt-*.png, desde el .xlsx de la Carta Gantt
+node tesis/fichas.js    # tesis/fichas-hu.tex, las 38 fichas de historia de usuario
+```
+Los dos **derivan de una fuente única y no se editan a mano**: `gantt.js` dibuja
+`docs/Carta Gantt_Pablo Correa (1).xlsx` y lo captura con Chrome headless por
+CDP (igual que `capturas.js`); `fichas.js` lee del propio `main.tex` las tablas
+de historias, priorización e iteraciones del Capítulo 3 y arma el Anexo A.2, de
+modo que corregir una descripción en el Capítulo 3 y volver a generar basta
+para que la ficha quede al día. Lo único que vive dentro de `fichas.js` es el
+nombre corto de cada historia y la observación sobre su cobertura o descarte.
+Anexos: **A** Planificación (A.1 Carta Gantt, A.2 fichas) y **B** Pruebas
+(B.1 aceptación, B.2 accesibilidad con WAVE, con capturas reales de la
+extensión de WebAIM sobre las 11 vistas).
+
 Se corren **dentro del contenedor**: en el host `jest` se cuelga cuando el
 proyecto está en una carpeta sincronizada con iCloud. Lo mismo pasa con `tsc` y
 `eslint` del frontend (leen `node_modules` desde iCloud y se quedan bloqueados sin
