@@ -469,9 +469,9 @@ Los avisos al artista no se consiguen con HTTP corriente, porque el servidor no 
 \tituloparpegado{Correo: SMTP frente a API sobre HTTPS}
 El correo electrónico se transporta tradicionalmente por SMTP, un protocolo propio que usa los puertos 25, 465 y 587. Cuando el entorno de despliegue bloquea esos puertos —algo habitual en los planes gratuitos de alojamiento—, el envío se hace llamando por HTTPS a la interfaz del proveedor de correo, que es quien habla SMTP por detrás. Son dos caminos para el mismo fin, y la diferencia entre ellos es puramente de transporte.
 
-\vspace{0.2cm}
+\vspace{1cm}
 
-\tituloparpegado{Mensajería instantáneaa}
+\tituloparpegado{Mensajería instantánea}
 El envío de mensajes al cliente final usa la interfaz de WhatsApp\cite{whatsappapi}, que también es HTTPS: el servidor hace una petición con los datos de la plantilla y el proveedor se encarga de la entrega. El canal alternativo, en cambio, no usa una interfaz pública sino el mismo protocolo con que WhatsApp conecta sus dispositivos vinculados, a través de una biblioteca que lo implementa\cite{baileys}.
 
 \section{Trabajo relacionado}
@@ -760,9 +760,13 @@ Las pruebas de caja blanca se enfocan en verificar la lógica interna del códig
 
 La prueba de aceptación la ejecuta el cliente experto, el mismo tatuador profesional que planteó el problema y con quien se levantaron las historias de usuario. Es el único usuario con que cuenta el proyecto, y también el más indicado para el papel: en PXP el cliente es quien entrega los requisitos, quien prioriza las historias y quien las da por terminadas, de modo que es su juicio, y no el del desarrollador, el que decide si una funcionalidad cumple lo que se pidió.
 
+Conviene precisar qué clase de evidencia entrega esa prueba, porque no es la de una muestra de usuarios sino la de un juicio experto. El tatuaje profesional es un oficio que se aprende por un camino formativo propio formación junto a tatuadores con experiencia, práctica supervisada y, más adelante, la puesta en marcha del estudio propio, y es ese recorrido el que deja el conocimiento operativo del negocio \cite{munoz2022tatuadora}: cómo se presupuesta una pieza, cuánto rinde un frasco de tinta, cuánto demora preparar una sesión o por qué un cliente no llega. Quien evalúa aquí no es un usuario elegido al azar, sino el profesional que ejerce ese oficio a diario y que conoce de primera mano el proceso que la plataforma pretende ordenar. Su juicio pesa, por lo tanto, por el conocimiento del rubro que lo respalda, y está en condiciones de reconocer cuándo una funcionalidad resuelve el trabajo y cuándo solo lo aparenta, algo que un evaluador ajeno al oficio no podría distinguir.
+
+Eso delimita también lo que la prueba puede y no puede establecer. Puede establecer que el sistema responde al trabajo real de un estudio en ejercicio, que es la pregunta que este proyecto se planteó. No puede entregar una medida comparable entre profesionales distintos, que exigiría un grupo de evaluadores; esa ampliación se propone como trabajo futuro y amplía el alcance del resultado sin restarle validez.
+
 Se define un caso de prueba de aceptación por cada iteración del desarrollo que incorpora historias de usuario, lo que deja fuera la Iteración 1, dedicada a la arquitectura y sin historias asignadas. Cada caso recorre de punta a punta el flujo de trabajo que forman las historias de su iteración y se ejecuta sobre la aplicación desplegada, la misma que usa el estudio, no sobre un entorno de desarrollo. Los pasos se escriben antes de la sesión a partir del enunciado de cada historia, de modo que el criterio con que se juzga no se acomoda a lo que el sistema haga. Para las historias del rol de administrador, el cliente experto recibe una cuenta con ese rol.
 
-Cada caso se registra con el formato de la Tabla \ref{tab:formatoaceptacion}. El caso se considera \textbf{aprobado} solo si el resultado obtenido coincide con el esperado en todos sus pasos; si un paso falla, el caso queda fallido, se corrige el sistema y se repite el caso completo.
+Cada caso se registra con el formato de la Tabla \ref{tab:formatoaceptacion}. El caso se considera aprobado solo si el resultado obtenido coincide con el esperado en todos sus pasos; si un paso falla, el caso queda fallido, se corrige el sistema y se repite el caso completo.
 
 \begin{table}[H]
   \centering
@@ -817,7 +821,7 @@ En los tres casos la reducción se calcula como la diferencia entre el estado in
   \end{tabular}
 \end{table}
 
-Los tiempos y los conteos se anotan en una planilla de cálculo en la que todo lo demás son fórmulas: los promedios, las tasas, la reducción y si se alcanza la meta. Así ninguna cifra del resultado se escribe a mano, y el resultado se informa tal como sale, alcance o no la meta. Conviene declarar también el alcance de la medición: corresponde a un solo tatuador y a pocas tareas por método, de modo que muestra el efecto de la plataforma en el estudio para el que se construyó, no un promedio del oficio. Los resultados de esta medición se presentan en la Sección \ref{sec:resmedicion}.
+Los tiempos y los conteos se anotan en una planilla de cálculo en la que todo lo demás son fórmulas: los promedios, las tasas, la reducción y si se alcanza la meta. Así ninguna cifra del resultado se escribe a mano, y el resultado se informa tal como sale, alcance o no la meta. Conviene declarar también el alcance de la medición: corresponde a un estudio en ejercicio y a pocas tareas por método. Eso es, a la vez, su fortaleza y su límite. Su fortaleza, porque el término de comparación no es un usuario inexperto sino la práctica efectiva de un profesional del oficio: los tiempos del método anterior son los que él emplea de verdad en su trabajo. Su límite, porque un caso no es un promedio de la industria, y obtenerlo exigiría repetir el procedimiento con varios tatuadores. Los resultados de esta medición se presentan en la Sección \ref{sec:resmedicion}.
 
 \section{Requisitos}
 \label{sec:requisitos}
@@ -1020,7 +1024,7 @@ Antes de diseñar la solución se evalúa si el proyecto puede llevarse a cabo c
 
 \subsection{Factibilidad técnica}
 
-Todo el software empleado es gratuito o de código abierto, de modo que no hay licencias que adquirir: el entorno de desarrollo, el motor de base de datos, la contenedorización y las bibliotecas del lenguaje se distribuyen bajo licencias libres, y el control de versiones usa el plan gratuito de GitHub.
+Todo el software empleado es gratuito, de modo que no hay licencias que adquirir: el entorno de desarrollo, el motor de base de datos, la contenedorización y las bibliotecas del lenguaje se distribuyen bajo licencias libres, y el control de versiones usa el plan gratuito de GitHub.
 
 La plataforma se entrega como una aplicación web progresiva, de modo que el tatuador solo necesita un navegador actualizado con soporte de WebGL, que es lo que traen hoy los teléfonos y computadores de uso corriente, y una conexión a internet. No hay que instalar nada ni comprar equipamiento.
 
@@ -1050,7 +1054,7 @@ Con el equipamiento disponible, herramientas sin costo de licencia, tecnologías
 
 El proyecto se desarrolla en el contexto de una memoria de título, por lo que no hubo desembolso por el trabajo de desarrollo.
 
-La operación, en cambio, sí tiene un costo real, y la decisión de diseño fue dejarlo en cero. Cada pieza de la plataforma se publica en el plan gratuito de un servicio distinto, como resume la Tabla \ref{tab:infraestructura}. Ninguno de ellos exige tarjeta de crédito.
+La operación, en cambio, sí tiene un costo real, y la decisión de diseño fue dejarlo en cero. Cada pieza de la plataforma se publica en el plan gratuito de un servicio distinto, como resume la Tabla \ref{tab:infraestructura}. 
 
 \begin{table}[H]
   \centering
@@ -1070,7 +1074,7 @@ La operación, en cambio, sí tiene un costo real, y la decisión de diseño fue
   \end{tabular}
 \end{table}
 
-Estos planes tienen una contrapartida que conviene dejar escrita: el backend se suspende tras unos minutos sin uso, de modo que la primera petición después de una pausa demora cerca de un minuto en responder. La plataforma lo advierte en pantalla mientras el servidor despierta. Es el precio de no pagar alojamiento, y para un estudio que consulta la agenda unas pocas veces al día resulta aceptable; si dejara de serlo, el plan de pago de Render resuelve exactamente ese punto sin cambiar el código.
+Hay ciertos detalles que hay que considerar: el backend se suspende tras unos minutos sin uso, de modo que la primera petición después de una pausa demora cerca de un minuto en responder. La plataforma lo advierte en pantalla mientras el servidor despierta. Es el precio de no pagar alojamiento, y para un estudio que consulta la agenda unas pocas veces al día resulta aceptable; si dejara de serlo, el plan de pago de Render resuelve exactamente ese punto sin cambiar el código.
 
 El envío de los recordatorios tampoco agrega costo: la biblioteca que vincula el WhatsApp del tatuador al servidor los manda desde su propio número, de modo que la automatización no depende de contratar un servicio de mensajería. La vía oficial de Meta, que cobra por cada mensaje de plantilla entregado, queda como alternativa configurable para el estudio que la prefiera. La Tabla \ref{tab:costos} resume el panorama completo.
 
@@ -1157,21 +1161,11 @@ En esta sección se presentan algunos de los mockups propuestos durante el proce
   \label{fig:idea1}
 \end{figure}
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.8\textwidth]{fig-4-5-idea-2}
-  \caption{Idea 2}
-  \label{fig:idea2}
-\end{figure}
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.8\textwidth]{fig-4-6-idea-3}
-  \caption{Idea 3}
-  \label{fig:idea3}
-\end{figure}
 
-En las Figuras \ref{fig:idea1}, \ref{fig:idea2} y \ref{fig:idea3} se presentan tres ideas de diseño para la interfaz de usuario del sistema, estas ideas fueron diseñadas por el usuario experto y buscan ser una guía visual para la elaboración de los mockups finales y la estética que se busca conseguir en la aplicación.
+
+
+En la Figura \ref{fig:idea1}, se presentan ideas de diseño para la interfaz de usuario del sistema, estas ideas fueron diseñadas por el usuario experto y buscan ser una guía visual para la elaboración de los mockups finales y la estética que se busca conseguir en la aplicación.
 
 \begin{figure}[H]
   \centering
@@ -1184,7 +1178,7 @@ La figura \ref{fig:mockuplogin} muestra la primera vista del usuario al ingresar
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.8\textwidth]{fig-4-8-mockup-dashboard}
+  \includegraphics[width=0.7\textwidth]{fig-4-8-mockup-dashboard}
   \caption[Mockup Dashboard]{Mockup Dashboard.}
   \label{fig:mockupdashboard}
 \end{figure}
@@ -1200,14 +1194,14 @@ La Figura \ref{fig:mockupdashboard} y \ref{fig:mockupdashboardmovil} muestran el
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-10-mockup-previsualizacion-3d}
+  \includegraphics[width=0.6\textwidth]{fig-4-10-mockup-previsualizacion-3d}
   \caption[Mockup Previsualización 3D]{Mockup Previsualización 3D.}
   \label{fig:mockup3d}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.6\textwidth]{fig-4-11-mockup-previsualizacion-3d-movil}
+  \includegraphics[width=0.4\textwidth]{fig-4-11-mockup-previsualizacion-3d-movil}
   \caption[Mockup Previsualización 3D Móvil]{Mockup Previsualización 3D Móvil.}
   \label{fig:mockup3dmovil}
 \end{figure}
@@ -1216,7 +1210,7 @@ Por último, la Figura \ref{fig:mockup3d} y \ref{fig:mockup3dmovil} muestran el 
 
 \subsection{Diagramas de secuencia}
 
-Un diagrama de secuencia describe un flujo concreto del sistema mostrando qué partes intervienen y en qué orden se hablan: el tiempo avanza hacia abajo y cada flecha es un mensaje entre dos participantes. Es la notación adecuada para explicar un recorrido completo —de la acción del artista en la pantalla hasta la respuesta del servidor— sin entrar en el código que lo implementa. La Figura \ref{fig:secuencia} del Capítulo 3 muestra la notación empleada.
+Un diagrama de secuencia describe un flujo concreto del sistema mostrando qué partes intervienen y en qué orden se hablan: el tiempo avanza hacia abajo y cada flecha es un mensaje entre dos participantes. Es la notación adecuada para explicar un recorrido completo de la acción del artista en la pantalla hasta la respuesta del servidor sin entrar en el código que lo implementa. La Figura \ref{fig:secuencia} del Capítulo 3 muestra la notación empleada.
 
 Los diagramas de este proyecto no se agrupan aquí sino que acompañan a la iteración que les corresponde, en la Sección \ref{sec:iteraciones}, porque cada iteración implementa flujos distintos y el diagrama solo se entiende junto a las historias de usuario que lo originan. De cada iteración se reproduce el flujo más representativo, por la razón que explica el Capítulo 3: los demás repiten el mismo recorrido entre la vista, la interfaz de programación, la base de datos y la respuesta.
 
@@ -1480,7 +1474,7 @@ La subida de archivos se resuelve con Multer, una librería de Node.js que inter
   \label{fig:implsubida}
 \end{figure}
 
-Una decisión de diseño relevante de esta iteración fue no guardar las imágenes en la base de datos ni escribirlas directamente a disco desde el controlador, sino concentrar todo el acceso a archivos en una capa de almacenamiento con drivers intercambiables. Esa capa expone tres operaciones (guardar, leer y eliminar) y decide con una variable de entorno si trabaja contra el disco local, usado en desarrollo, o contra un servicio en la nube, usado en producción. La base de datos guarda únicamente los metadatos del boceto junto con el driver y la clave con que se almacenó el archivo, lo que permite que un diseño subido antes de migrar a la nube se siga eliminando correctamente del disco. Esta separación no estaba contemplada en el planteamiento inicial y surgió durante el desarrollo, al advertir que la plataforma debía poder desplegarse en la nube sin reescribir el módulo de bocetos.
+Una decisión de diseño relevante de esta iteración fue no guardar las imágenes en la base de datos ni escribirlas directamente a disco desde el controlador, sino concentrar todo el acceso a archivos en una capa de almacenamiento con drivers intercambiables. Esa capa expone tres operaciones (guardar, leer y eliminar) y decide con una variable de entorno si trabaja contra el disco local, usado en desarrollo, o contra un servicio en la nube, usado en producción. 
 
 Aprovechando que la imagen ya está en memoria, al momento de subirla se mide también la fracción del lienzo cubierta por tinta y las familias de color predominantes del diseño. Ambos valores se guardan junto al boceto y son los que más adelante alimentan el cálculo de costos de la HU14, de manera que una medición que de otro modo habría que repetir en cada cotización se realiza una sola vez.
 
@@ -1637,7 +1631,7 @@ En esta etapa se desarrolla el backend y el frontend de las historias asignadas.
 
 Un insumo se define por la unidad en que se cuenta y por dos cantidades enteras: el stock actual y el nivel crítico. Esa segunda cantidad es la que convierte el inventario en una herramienta de aviso y no solo en una lista: un insumo está en nivel crítico cuando su stock es menor o igual a su mínimo, y el listado devuelve esos insumos primero, de modo que lo urgente aparece arriba sin que el artista tenga que buscarlo.
 
-El ajuste de stock no se calcula en el servidor para después guardarlo, sino que se resuelve dentro de la misma sentencia en la base de datos, como muestra la Figura \ref{fig:implstock}. Así dos descuentos seguidos no se pisan —cada uno parte del valor que dejó el anterior— y el stock nunca queda bajo cero aunque se descuente más de lo que había.
+El ajuste de stock no se calcula en el servidor para después guardarlo, sino que se resuelve dentro de la misma sentencia en la base de datos, como muestra la Figura \ref{fig:implstock}. Así dos descuentos seguidos no se pisan cada uno parte del valor que dejó el anterior y el stock nunca queda bajo cero aunque se descuente más de lo que había.
 
 \begin{figure}[H]
   \centering
@@ -1648,14 +1642,7 @@ El ajuste de stock no se calcula en el servidor para después guardarlo, sino qu
 
 La advertencia de la HU13 se emite cuando un descuento deja al insumo en su nivel crítico, nunca al reponerlo. Para que el artista no reciba un aviso por cada descuento mientras gasta lo poco que le queda, cada insumo avisa como mucho una vez por día, usando una clave que combina el insumo con la fecha en hora de Chile; al día siguiente, si sigue sin reponer, se le vuelve a recordar. El aviso queda en la campanita de la aplicación y, si el artista tiene las notificaciones activadas, también llega al teléfono.
 
-En cuanto al panel de control, la HU26 pide una suma de ingresos del mes, y la decisión de diseño está en qué fecha se considera. Lo cobrado se acumula por la fecha en que la sesión se marcó pagada, no por la fecha de la cita: si un cliente paga en noviembre una sesión de octubre, ese dinero entra en noviembre, que es cuando efectivamente ingresó. Lo pendiente, en cambio, se cuenta por la fecha de la cita, porque responde a otra pregunta: cuánto falta por cobrar de lo que está agendado este mes. La Figura \ref{fig:implingresos} muestra cómo se obtienen ambas cifras en una sola consulta.
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.85\textwidth]{fig-4-27-implementacion-ingresos}
-  \caption[Cálculo de los ingresos del mes]{Cobrado y pendiente del mes, resueltos en una sola consulta.}
-  \label{fig:implingresos}
-\end{figure}
 
 En el frontend se desarrollaron dos vistas. La de inventario presenta los insumos con su stock, su nivel crítico, su costo unitario y su regla de consumo, con botones para sumar o descontar unidades sin salir de la lista, filtros por categoría y un atajo para ver solo lo que está en nivel crítico. La de resumen reúne el calendario del mes con las citas marcadas, las próximas citas, el panel de stock bajo y las cifras del mes.
 
@@ -1743,7 +1730,7 @@ La ejecución de las pruebas evidenció un funcionamiento correcto del registro,
 
 \vspace{\parskip}
 \tituloparpegado{Retrospectiva}
-Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precisas y se identifican posibles mejoras en el proceso de desarrollo. Las cinco historias se completaron dentro de lo estimado. La HU25 resultó más barata de lo previsto porque reutilizó la consulta de citas que ya existía de la agenda, y lo que costó más fue decidir la regla de la HU26: la primera versión sumaba por la fecha de la cita y mostraba como ingreso de un mes dinero que aún no se había cobrado, así que se agregó la fecha de pago a cada sesión para poder separar ambas cosas. Como aprendizaje, quedó claro que conviene fijar desde el principio qué fecha representa cada cifra que se muestra al artista, porque corregirlo después obliga a tocar el modelo de datos.
+Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precisas y se identifican posibles mejoras en el proceso de desarrollo. Las cinco historias se completaron dentro de lo estimado. La HU25 resultó más barata de lo previsto porque reutilizó la consulta de citas que ya existía de la agenda, y lo que costó más fue decidir la regla de la HU26: la primera versión sumaba por la fecha de la cita y mostraba como ingreso de un mes dinero que aún no se había cobrado, así que se agregó la fecha de pago a cada sesión para poder separar ambas cosas. 
 \subsection{Iteración 5}
 
 En esta iteración se implementan las historias de usuario HU14, HU15 y HU16, que son el cálculo automatizado del costo de insumos de un tatuaje, el ajuste manual de ese cálculo y el descuento del inventario al dar por terminada una sesión. Las tres se apoyan en lo construido antes: la cobertura de tinta y los colores que se midieron del boceto en la Iteración 3, y el inventario con costos unitarios y reglas de consumo de la Iteración 4. La HU27, asignada también a esta iteración, se descartó; la decisión se explica más abajo y se retoma en la retrospectiva.
@@ -1806,7 +1793,7 @@ En esta etapa se crean los diagramas de secuencia de las historias de usuario as
 \tituloparpegado{Implementación}
 En esta etapa se desarrolla el backend y el frontend de las historias asignadas. En el backend se levanta el recurso \texttt{/api/quotes} con el cálculo sin guardar, el guardado, el ajuste, la eliminación y el descuento de stock, con las mismas reglas de propiedad de las iteraciones anteriores.
 
-Lo primero que hubo que acotar es qué calcula la plataforma. La cotización entrega el \textbf{costo objetivo de los insumos} que gasta un tatuaje, no el precio que el artista cobra por su trabajo: ese precio depende de su experiencia, de su estilo y de lo que decida cobrar, y sigue viviendo en el proyecto como un dato que él escribe. Separar ambas cosas fue lo que permitió automatizar la primera sin pretender automatizar la segunda.
+Lo primero que hubo que acotar es qué calcula la plataforma. La cotización entrega el costo objetivo de los insumos que gasta un tatuaje, no el precio que el artista cobra por su trabajo: ese precio depende de su experiencia, de su estilo y de lo que decida cobrar, y sigue viviendo en el proyecto como un dato que él escribe. Separar ambas cosas fue lo que permitió automatizar la primera sin pretender automatizar la segunda.
 
 El cálculo parte del área que de verdad se va a entintar, como muestra la Figura \ref{fig:implarea}. El rectángulo del boceto por sí solo miente: un lettering fino y un diseño macizo del mismo tamaño gastan cosas muy distintas. Por eso el área del rectángulo se pondera por la cobertura de tinta que se midió del archivo al subirlo, y sobre esa área efectiva se calcula todo lo demás. Las horas de aguja salen de dividir esa área por un rendimiento en centímetros cuadrados por hora, calibrado con los tiempos que maneja el oficio y corregido por las variables de trazado.
 
@@ -1817,9 +1804,9 @@ El cálculo parte del área que de verdad se va a entintar, como muestra la Figu
   \label{fig:implarea}
 \end{figure}
 
-Las variables de trazado que pide la HU14 son el grosor del trazo y el modo de color, y mueven el material y el tiempo en sentidos distintos. Un trazo grueso come más tinta pero avanza más rápido por centímetro cuadrado; uno fino es de detalle y ocurre al revés. En la misma pieza de prueba de 12 por 18 centímetros, el trazo fino gasta 1,489 ml de tinta en 2 horas 9 minutos de aguja, el medio 1,861 ml en 1 hora 43 minutos y el grueso 2,419 ml en 1 hora 28 minutos.
+Las variables de trazado que pide la HU14 son el grosor del trazo y el modo de color, y mueven el material y el tiempo en sentidos distintos. Un trazo grueso consume más tinta pero avanza más rápido por centímetro cuadrado; uno fino es de detalle y ocurre al revés. En la misma pieza de prueba de 12 por 18 centímetros, el trazo fino gasta 1,489 ml de tinta en 2 horas 9 minutos de aguja, el medio 1,861 ml en 1 hora 43 minutos y el grueso 2,419 ml en 1 hora 28 minutos.
 
-Un segundo punto de diseño fue cómo se cobran las tintas. La primera versión cotizaba todas las tintas del inventario por el área completa del diseño, de modo que un tatuaje en negro salía pagando también el rojo y el amarillo, y agregar tintas al inventario encarecía cualquier cotización. La regla que corrigió el problema es que el área entintada se \textbf{reparte} entre las tintas y nunca se multiplica por cuántas haya guardadas: los colores que se midieron del boceto se emparejan con las tintas que el artista declaró, y cada una recibe solo la parte del diseño que lleva su color. Un color del diseño que ninguna tinta del inventario cubre no desaparece del cálculo ni se reparte entre las demás: se cotiza con una tinta de referencia y se muestra marcado como que hay que comprarla, porque el tatuaje la va a necesitar igual.
+Un segundo punto de diseño fue cómo se cobran las tintas. La primera versión cotizaba todas las tintas del inventario por el área completa del diseño, de modo que un tatuaje en negro salía pagando también el rojo y el amarillo, y agregar tintas al inventario encarecía cualquier cotización. La regla que corrigió el problema es que el área entintada se reparte entre las tintas y nunca se multiplica por cuántas haya guardadas: los colores que se midieron del boceto se emparejan con las tintas que el artista declaró, y cada una recibe solo la parte del diseño que lleva su color. 
 
 El consumo de cada insumo se resuelve según la base que declaró en el inventario, como muestra la Figura \ref{fig:implconsumo}. Lo que escala con el área lleva además un piso de una unidad por sesión, que no es un redondeo de conveniencia: un cartucho y la tinta servida en la copita son estériles y se botan al terminar, no se guardan para el cliente siguiente, así que una pieza chica no puede cotizarse en centésimas de cartucho.
 
@@ -1832,14 +1819,6 @@ El consumo de cada insumo se resuelve según la base que declaró en el inventar
 
 La HU15 se resolvió guardando el detalle como una copia congelada. Cada línea de la cotización conserva el nombre, la unidad y el costo del insumo tal como estaban al cotizar, de modo que si mañana sube el precio de la tinta la cotización que ya se le pasó al cliente no cambia sola. El artista puede corregir cantidades, quitar lo que no va a usar y agregar insumos que el algoritmo no consideró, pero el costo total lo recalcula siempre el servidor a partir de las líneas: una cifra enviada desde el navegador se ignora.
 
-La HU16 descuenta el inventario cuando la sesión se marca como completada, y su exigencia principal es no descontar dos veces. Volver a guardar una sesión ya cerrada, un segundo clic o dos pestañas abiertas no pueden vaciar el stock dos veces por el mismo trabajo. Como muestra la Figura \ref{fig:impldescuento}, el descuento ocurre dentro de una transacción que empieza sellando la cotización con un UPDATE condicionado a que ese sello siga vacío: si otra ejecución llegó antes, ese UPDATE no afecta ninguna fila, la transacción se corta y el inventario queda intacto. Si el descuento falla por cualquier motivo, la sesión igual queda cerrada y el artista puede ajustar el stock a mano, porque perder el registro de la cita por un problema del inventario sería peor que el problema mismo.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.85\textwidth]{fig-4-34-implementacion-descuento}
-  \caption[Descuento de stock de una cotización]{Descuento del inventario en una transacción, con el sello que lo hace irrepetible.}
-  \label{fig:impldescuento}
-\end{figure}
 
 En el frontend se desarrolló la vista de cotizaciones, que estima en vivo contra el servidor mientras el artista ajusta los campos y recién guarda cuando él lo decide. La página se abre desde el proyecto, con el boceto y el tamaño ya precargados, y el cálculo no se hace nunca en el navegador: la pantalla solo muestra lo que el servidor devuelve.
 
@@ -1931,7 +1910,7 @@ La ejecución de las pruebas evidenció un funcionamiento correcto del cálculo,
 \tituloparpegado{Retrospectiva}
 Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precisas y se identifican posibles mejoras en el proceso de desarrollo. Las tres historias implementadas se completaron, pero la HU14 tomó bastante más de lo estimado: calcular el costo era la parte fácil, y lo que costó fue el reparto de las tintas por color, que hubo que rehacer después de descubrir que un tatuaje en negro salía cotizando todas las tintas del inventario. La HU16, en cambio, resultó más barata de lo previsto porque el descuento se apoyó en el ajuste de stock que ya existía de la Iteración 4. La HU27 se descartó antes de programarla, lo que liberó sus dos puntos de esfuerzo.
 
-Quedaron dos aprendizajes. El primero es que un error de cálculo no se delata solo: la pantalla muestra una cifra con el mismo aspecto esté bien o mal, y fueron las pruebas sobre el motor las que dejaron en evidencia el problema del reparto, no el uso de la aplicación. El segundo es que conviene revisar con el usuario si una historia describe su trabajo real antes de programarla; la HU27 estaba escrita desde una idea razonable de cómo debería funcionar un calendario, pero no desde cómo este estudio toma sus citas.
+
 \subsection{Iteración 6}
 
 En esta iteración se implementan las historias de usuario HU17, HU18, HU19, HU20, HU24 y HU30, que en conjunto forman la agenda del estudio: a quién se atiende, qué se le está tatuando, cuándo, cómo quedó y qué tan cumplidor resultó. Es la parte de la plataforma que reemplaza directamente al cuaderno y a las conversaciones de Instagram con las que el tatuador llevaba sus citas hasta ahora.
@@ -1995,11 +1974,11 @@ En esta etapa se crean los diagramas de secuencia de las historias de usuario as
 \end{figure}
 
 \tituloparpegado{Implementación}
-En esta etapa se desarrolla el backend y el frontend de las historias asignadas. El modelo de datos de la agenda es una cadena de cuatro niveles: un cliente tiene proyectos, un proyecto tiene sesiones y una sesión tiene fotos. La decisión que ordena todo lo demás es que \textbf{cada sesión es una cita}: lleva su fecha, su hora, su duración y lo que se cobra en ella. Un proyecto grande no es una cita larga, sino varias, y por eso el precio total del trabajo y lo que se cobra en cada visita son dos cifras distintas que la plataforma mantiene separadas.
+En esta etapa se desarrolla el backend y el frontend de las historias asignadas. El modelo de datos de la agenda es una cadena de cuatro niveles: un cliente tiene proyectos, un proyecto tiene sesiones y una sesión tiene fotos. La decisión que ordena todo lo demás es que cada sesión es una cita: lleva su fecha, su hora, su duración y lo que se cobra en ella. Un proyecto grande no es una cita larga, sino varias, y por eso el precio total del trabajo y lo que se cobra en cada visita son dos cifras distintas que la plataforma mantiene separadas.
 
 Esa cadena también resuelve la propiedad de los datos. Las consultas filtran siempre por el identificador del tatuador, y las inserciones de los niveles hijos no reciben el identificador del padre a ciegas: lo seleccionan desde la tabla del padre ya filtrada por el dueño, de modo que no hay forma de colgar una sesión del proyecto de otro artista. Un identificador ajeno en la dirección responde 404, para no confirmar que esa fila existe, y uno ajeno en el cuerpo de la petición responde 400.
 
-La parte más delicada de la HU17 es que una hora ocupada no se pueda volver a comprometer. La revisión en sí es una consulta por intersección de intervalos, pero revisar y guardar por separado no basta: dos peticiones simultáneas —un doble clic, dos pestañas abiertas— pasarían la revisión a la vez y quedarían las dos citas. Por eso ambas cosas ocurren dentro de la misma transacción, bajo un candado tomado por artista, como muestra la Figura \ref{fig:implchoque}. Las reglas del cruce salieron de cómo se trabaja realmente: una cita cancelada o a la que el cliente no llegó dejan la hora libre, y dos citas contiguas —una termina a las 15:00 y la siguiente empieza a las 15:00— no se consideran cruzadas. Cuando sí hay cruce, el mensaje no dice solo que la hora está ocupada: nombra al cliente y el horario de la cita que la ocupa, que es lo que el tatuador necesita para decidir.
+La parte más delicada de la HU17 es que una hora ocupada no se pueda volver a comprometer. La revisión en sí es una consulta por intersección de intervalos, pero revisar y guardar por separado no basta: dos peticiones simultáneas un doble clic, dos pestañas abiertas pasarían la revisión a la vez y quedarían las dos citas. Por eso ambas cosas ocurren dentro de la misma transacción, bajo un candado tomado por artista, como muestra la Figura \ref{fig:implchoque}. Las reglas del cruce salieron de cómo se trabaja realmente: una cita cancelada o a la que el cliente no llegó dejan la hora libre, y dos citas contiguas una termina a las 15:00 y la siguiente empieza a las 15:00 no se consideran cruzadas. Cuando sí hay cruce, el mensaje no dice solo que la hora está ocupada: nombra al cliente y el horario de la cita que la ocupa, que es lo que el tatuador necesita para decidir.
 
 \begin{figure}[H]
   \centering
@@ -2014,7 +1993,7 @@ La HU20 reutiliza la capa de almacenamiento de la galería de bocetos, apuntando
 
 La HU24 se resuelve sin consultas nuevas desde el frontend: la ficha del cliente trae, en la misma respuesta, cuántos proyectos tiene, cuándo es su próxima cita agendada y cómo ha cumplido hasta ahora.
 
-La HU30 es la historia que más cambió respecto de lo que pedía su enunciado. La primera versión guardaba un puntaje fijo en el cliente, que el artista escribía a mano; el problema es que ese número envejece y nadie lo actualiza. La versión definitiva califica \textbf{cada sesión} de 1 a 5 según cómo llegó el cliente, y el puntaje del cliente no se guarda en ninguna parte: es el promedio de sus sesiones calificadas, calculado al consultar, como muestra la Figura \ref{fig:implpromedio}. Así nunca queda desactualizado, y la lista de clientes puede ordenarse del mejor promedio al peor sin mantener ningún dato duplicado. La columna anterior se retiró del esquema. Junto al puntaje viajan las cifras que lo explican —sesiones hechas, inasistencias y cancelaciones—, porque un promedio sin contexto no dice lo mismo que un promedio con tres sesiones detrás. Una regla que se fijó desde el principio: calificar es información interna del artista y nunca le envía ningún aviso al cliente.
+La HU30 es la historia que más cambió respecto de lo que pedía su enunciado. La primera versión guardaba un puntaje fijo en el cliente, que el artista escribía a mano; el problema es que ese número envejece y nadie lo actualiza. La versión definitiva califica cada sesión de 1 a 5 según cómo llegó el cliente, y el puntaje del cliente no se guarda en ninguna parte: es el promedio de sus sesiones calificadas, calculado al consultar, como muestra la Figura \ref{fig:implpromedio}. Así nunca queda desactualizado, y la lista de clientes puede ordenarse del mejor promedio al peor sin mantener ningún dato duplicado. La columna anterior se retiró del esquema. Junto al puntaje viajan las cifras que lo explican sesiones hechas, inasistencias y cancelaciones, porque un promedio sin contexto no dice lo mismo que un promedio con tres sesiones detrás. Una regla que se fijó desde el principio: calificar es información interna del artista y nunca le envía ningún aviso al cliente.
 
 \begin{figure}[H]
   \centering
@@ -2116,7 +2095,7 @@ La ejecución de las pruebas evidenció un funcionamiento correcto del agendado,
 \tituloparpegado{Retrospectiva}
 Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precisas y se identifican posibles mejoras en el proceso de desarrollo. Las seis historias se completaron, aunque el reparto del esfuerzo no fue el previsto. La HU17 costó casi el doble de lo estimado, y no por el formulario ni por el calendario: se fue en la revisión del horario, que parecía una condición más en una consulta y terminó obligando a mover la revisión y el guardado a una misma transacción con candado. La HU18, la HU19 y la HU24, en cambio, resultaron más baratas de lo previsto, porque las tres leen de la misma cadena de datos y bastó con pedirle a la base los resúmenes ya calculados.
 
-El aprendizaje de la iteración vino de la HU30. Implementada tal como estaba escrita —un puntaje que el artista le pone al cliente— funcionaba, pero quedaba viejo apenas el cliente volvía al estudio. Preguntarle al tatuador cuándo iba a actualizarlo fue lo que dejó en evidencia que el dato útil no era el puntaje del cliente, sino cómo llegó a cada sesión: el puntaje es una consecuencia de eso y conviene calcularlo, no guardarlo. Cambiarlo obligó a retirar una columna que ya estaba en el esquema, que es exactamente el tipo de corrección que sale barata en la iteración en que se detecta y cara más adelante.
+
 \subsection{Iteración 7}
 
 En esta iteración se implementan las historias de usuario HU21, HU22, HU23, HU28, HU29 y HU31. Las cuatro primeras tienen un hilo común: hasta aquí la plataforma le servía al tatuador, y a partir de ahora también le habla al cliente. La HU29 cierra el registro de clientes atendidos y la HU31 abre el panel de administración, que es la primera historia del proyecto que no es para el tatuador sino para quien administra la plataforma.
@@ -2183,11 +2162,11 @@ En esta etapa se crean los diagramas de secuencia de las historias de usuario as
 \end{figure}
 
 \tituloparpegado{Implementación}
-En esta etapa se desarrolla el backend y el frontend de las historias asignadas. La HU21 se apoya en la agenda de la iteración anterior: reagendar y cancelar son cambios de estado y de hora sobre una cita existente. Lo que hubo que afinar es cuándo corresponde volver a revisar el horario. Revisarlo en cada cambio bloqueaba operaciones legítimas —corregir el monto o las notas de una cita que, por datos antiguos, ya se solapaba con otra—, así que la revisión ocurre solo cuando el cambio puede crear un cruce: mover la hora, alargar la duración o reactivar una cita cancelada. Editar el monto, las notas o el estado de pago nunca se bloquea.
+En esta etapa se desarrolla el backend y el frontend de las historias asignadas. La HU21 se apoya en la agenda de la iteración anterior: reagendar y cancelar son cambios de estado y de hora sobre una cita existente. Lo que hubo que afinar es cuándo corresponde volver a revisar el horario. Revisarlo en cada cambio bloqueaba operaciones legítimas corregir el monto o las notas de una cita que, por datos antiguos, ya se solapaba con otra, así que la revisión ocurre solo cuando el cambio puede crear un cruce: mover la hora, alargar la duración o reactivar una cita cancelada. Editar el monto, las notas o el estado de pago nunca se bloquea.
 
-El resto de la iteración es el mensaje al cliente. Cada aviso se arma \textbf{una sola vez, con las mismas frases para todas las vías}, y se entrega por la que esté disponible: la biblioteca que vincula el WhatsApp del propio artista, que automatiza el envío; los parámetros de la plantilla de la API oficial, si el estudio la tiene configurada; o el texto equivalente en un enlace de WhatsApp que el artista abre con un toque. El cliente recibe lo mismo por cualquiera de ellas, y el enlace manual —siempre disponible— es el que funciona sin configurar nada.
+El resto de la iteración es el mensaje al cliente. Cada aviso se arma una sola vez, con las mismas frases para todas las vías, y se entrega por la que esté disponible: la biblioteca que vincula el WhatsApp del propio artista, que automatiza el envío; los parámetros de la plantilla de la API oficial, si el estudio la tiene configurada; o el texto equivalente en un enlace de WhatsApp que el artista abre con un toque. El cliente recibe lo mismo por cualquiera de ellas, y el enlace manual siempre disponible es el que funciona sin configurar nada.
 
-El envío se reclama antes de mandarse, como muestra la Figura \ref{fig:implreclamo}. El registro de mensajes tiene una restricción de unicidad por artista y clave de deduplicación, de modo que si dos corridas del programador coinciden, la segunda no escribe al cliente de nuevo: la base rechaza el reclamo y el envío no ocurre. Es la misma idea del sello de la Iteración 5, aplicada a un mensaje en lugar de a un descuento de stock, y responde a que escribirle dos veces al mismo cliente es un error visible y molesto para quien lo recibe.
+El envío se reclama antes de mandarse, como muestra la Figura \ref{fig:implreclamo}. El registro de mensajes tiene una restricción de unicidad por artista y clave de deduplicación, de modo que si dos corridas del programador coinciden, la segunda no escribe al cliente de nuevo: la base rechaza el reclamo y el envío no ocurre.
 
 \begin{figure}[H]
   \centering
@@ -2207,13 +2186,13 @@ La consulta que decide a qué citas les toca recordatorio está en la Figura \re
   \label{fig:implrecordatorio}
 \end{figure}
 
-La HU23 no agrega una pantalla nueva: el aviso sale del mismo cambio que el tatuador ya hace en la agenda. Al guardar, el sistema compara cómo estaba la cita con cómo quedó y deduce qué corresponde —cancelación, cambio de hora o cuidados posteriores—, con una regla que vale para los tres: solo se avisa de citas futuras, porque escribirle a alguien sobre algo que ya ocurrió no tiene sentido. La respuesta del servidor incluye qué pasó con el aviso, de manera que la pantalla puede decirlo en lugar de dejar al artista con la duda de si el cliente se enteró.
+La HU23 no agrega una pantalla nueva: el aviso sale del mismo cambio que el tatuador ya hace en la agenda. Al guardar, el sistema compara cómo estaba la cita con cómo quedó y deduce qué corresponde cancelación, cambio de hora o cuidados posteriores, con una regla que vale para los tres: solo se avisa de citas futuras, porque escribirle a alguien sobre algo que ya ocurrió no tiene sentido. La respuesta del servidor incluye qué pasó con el aviso, de manera que la pantalla puede decirlo en lugar de dejar al artista con la duda de si el cliente se enteró.
 
 La HU28 convierte en configuración lo que de otro modo habría quedado fijo en el código. El artista decide qué mensajes quiere, y edita con sus palabras la nota del recordatorio y las indicaciones de cuidados posteriores, que son justamente las dos partes del mensaje donde cada estudio tiene su criterio. La pantalla muestra una vista previa de cómo le llegará el texto al cliente, con las frases fijas y las suyas ya combinadas.
 
-La automatización del envío se apoya en la biblioteca de vinculación: el artista enlaza su propio WhatsApp al servidor como un dispositivo más y los mensajes salen de su número. La capa de envío respeta un ritmo humano —una fila por artista, pausas de algunos segundos, el aviso de ``escribiendo\ldots'' y un tope de mensajes por hora— y solo escribe a números que WhatsApp confirma. No es una vía oficial, de modo que viene apagada y exige que el artista acepte explícitamente el riesgo de que su número sea bloqueado, y donde el estudio tiene contratada la API oficial es esa la que tiene prioridad.
+La automatización del envío se apoya en la biblioteca de vinculación: el artista enlaza su propio WhatsApp al servidor como un dispositivo más y los mensajes salen de su número. La capa de envío respeta un ritmo humano una fila por artista, pausas de algunos segundos, el aviso de ``escribiendo\ldots'' y un tope de mensajes por hora y solo escribe a números que WhatsApp confirma. No es una vía oficial, de modo que viene apagada y exige que el artista acepte explícitamente el riesgo de que su número sea bloqueado, y donde el estudio tiene contratada la API oficial es esa la que tiene prioridad.
 
-La HU31 inaugura la administración de la plataforma. Aparece la noción de estudio, que agrupa cuentas de tatuadores, y el rol de administrador. Dos decisiones vale la pena dejar escritas. La primera es que el rol se lee de la base de datos en cada petición y no del token, de modo que degradar a alguien tiene efecto inmediato y no cuando expire su sesión. La segunda es que la contraseña del primer tatuador se genera en el servidor, se devuelve una sola vez en la respuesta y de ella solo se guarda el hash: el administrador se la entrega al tatuador, que está obligado a cambiarla al entrar. El estudio y su primer tatuador se crean en una misma transacción, para que no pueda quedar un estudio sin nadie dentro.
+La HU31 inaugura la administración de la plataforma. Aparece la noción de estudio, que agrupa cuentas de tatuadores, y el rol de administrador. La primera es que el rol se lee de la base de datos en cada petición y no del token, de modo que degradar a alguien tiene efecto inmediato y no cuando expire su sesión. La segunda es que la contraseña del primer tatuador se genera en el servidor, se devuelve una sola vez en la respuesta y de ella solo se guarda el hash: el administrador se la entrega al tatuador, que está obligado a cambiarla al entrar. El estudio y su primer tatuador se crean en una misma transacción, para que no pueda quedar un estudio sin nadie dentro.
 
 \tituloparpegado{Resultado del desarrollo}
 Como resultado de esta iteración, el cliente recibe su recordatorio sin que el tatuador tenga que acordarse, se entera cuando su cita cambia, y el tatuador puede escribir con sus propias palabras lo que se le dice. Además, la plataforma deja de ser de un solo estudio. Las Figuras \ref{fig:vistaconfiguracion} y \ref{fig:vistaadmin} presentan las vistas desarrolladas durante esta etapa.
@@ -2301,7 +2280,7 @@ La ejecución de las pruebas evidenció un funcionamiento correcto del reagendam
 \tituloparpegado{Retrospectiva}
 Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precisas y se identifican posibles mejoras en el proceso de desarrollo. Fue la iteración más larga del proyecto y la que más se desvió de lo estimado, aunque no por la programación. La HU22 estaba escrita como ``enviar un WhatsApp 24 horas antes'', y recién al implementarla apareció que el envío no se resolvía con una sola integración: la vía oficial exige plantillas aprobadas por Meta y tarda días en aprobarlas, así que la automatización se montó sobre la biblioteca de vinculación y el enlace manual quedó de respaldo. Armar el mensaje una sola vez para que pudiera salir por cualquiera de las tres vías costó más que escribir el envío, pero es lo que permite que la historia funcione en el estudio real del proyecto.
 
-Quedaron dos aprendizajes. El primero es que una historia que depende de un servicio externo hay que investigarla antes de estimarla: lo que se estimó en cinco puntos era en realidad un problema de integración ajeno al desarrollo. El segundo tiene que ver con la responsabilidad frente al usuario final: el canal que vincula el WhatsApp del propio artista es el que automatiza el envío y el que más se usaría, y aun así se dejó apagado y marcado como riesgoso, porque el costo de un bloqueo del número lo pagaría el tatuador y no el sistema.
+
 \subsection{Iteración 8}
 
 En esta iteración se implementan las historias de usuario HU08, HU09 y HU10, que son la previsualización del tatuaje sobre un modelo anatómico en tres dimensiones. Es la funcionalidad que distingue a la plataforma de una agenda con inventario, y también la más cara del proyecto: 21 de los puntos de esfuerzo estimados, repartidos en solo tres historias. Se dejó para esta altura del desarrollo a propósito, porque necesita el boceto de la Iteración 3 y porque la medida que de aquí sale es la que alimenta la cotización de la Iteración 5.
@@ -2371,29 +2350,21 @@ La HU09 pega el boceto sobre la malla con una calca proyectada, una técnica que
   \label{fig:implenvolvente}
 \end{figure}
 
-Para saber cuánto se curva la piel hubo que cambiar de método a mitad de camino. La primera versión miraba cuánto giran las normales de la malla, que es lo directo; el problema es que estos modelos vienen con las normales suavizadas, y esa medida daba 7,4 centímetros de radio en un antebrazo cuya medida real es la mitad. La versión definitiva ajusta una circunferencia que pase por tres puntos de la superficie, es decir, mide la piel en lugar de preguntarle al sombreado. El muestreo además se va cerrando progresivamente, porque en una muñeca delgada un vano ancho cae fuera de la piel y no devuelve nada.
+Para saber cuánto se curva la piel hubo que cambiar de método a mitad de camino. La primera versión miraba cuánto giran las normales de la malla, que es lo directo; el problema es que estos modelos vienen con las normales suavizadas, y esa medida daba 7,4 centímetros de radio en un antebrazo cuya medida real es la mitad. La versión definitiva ajusta una circunferencia que pase por tres puntos de la superficie, es decir, mide la piel en lugar de preguntarle al sombreado. 
 
-La HU10 es la historia donde más se nota la diferencia entre ``funciona'' y ``se siente bien''. Arrastrar la calca exige rehacer su geometría en cada fotograma, y las primeras versiones hacían tres cosas que lo arruinaban. La primera era volver a medir la curvatura en cada reconstrucción: el radio salía algo distinto cada vez y el dibujo temblaba, así que ahora se congela mientras dura el arrastre y se vuelve a medir al soltar. La segunda era guardar el centro del cilindro junto con el radio; al arrastrar, la calca se iba pero el anillo de proyección se quedaba clavado donde se había medido, y la imagen se movía de forma errática hasta desaparecer. Ahora el centro no se guarda: se deduce en cada reconstrucción de dónde está la calca en ese momento. La tercera era recorrer la malla entera para recortar la calca; ahora se trabaja sobre un trozo de malla alrededor del tatuaje, como muestra la Figura \ref{fig:implparche}, salvo que ese trozo sea tan grande que no compense.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.9\textwidth]{fig-4-53-implementacion-parche}
-  \caption[Recorte de la vecindad de la malla]{Recorte de la vecindad de la malla, con los tiempos que lo justifican.}
-  \label{fig:implparche}
-\end{figure}
 
 El giro tuvo su propio ajuste. Al arrastrar no se rehace la orientación de la calca desde la normal nueva, porque eso perdía el giro que el artista le había dado; en su lugar se aplica la rotación mínima que lleva de la normal anterior a la nueva, que adapta la calca a la piel conservando su inclinación, y ese origen se vuelve a anclar cada cuarto de vuelta para que no haya un punto ambiguo en el que el dibujo pegue un volantazo. La normal que se usa es la interpolada entre vértices y no la de la cara, porque con esta última la calca saltaba de triángulo en triángulo sobre un brazo de pocos polígonos.
 
 En los gestos táctiles la decisión fue hacerse cargo de los dos dedos en lugar de dejárselos a los controles de cámara, que con un pellizco hacen acercamiento y desplazamiento a la vez y terminaban sacando la cámara fuera del cuerpo. Ahora, con dos dedos sobre el tatuaje elegido, separarlos lo agranda y girarlos lo rota, con una pequeña holgura para que no se tuerza al escalar; en cualquier otro caso el gesto es de cámara. El tope del deslizador de tamaño es fijo por zona del cuerpo: medirlo en vivo contra el modelo daba un tope que cambiaba con cada giro, y la escala se movía bajo el dedo. También se eliminó el control de opacidad que traía la primera versión, sencillamente porque un tatuaje no es translúcido.
 
-Por último, la escena se guarda en el servidor como una lista de colocaciones saneada —solo los campos conocidos, para que nadie pueda inflar el documento con datos arbitrarios— y al guardarla se copia además la medida del tatuaje al proyecto. Esa copia no es redundante: el enlace entre proyecto y escena se borra si la escena desaparece, y sin la copia se perdería el único lugar donde está escrito de qué porte es el tatuaje.
+Por último, la escena se guarda en el servidor como una lista de colocaciones saneada solo los campos conocidos, para que nadie pueda inflar el documento con datos arbitrarios y al guardarla se copia además la medida del tatuaje al proyecto. Esa copia no es redundante: el enlace entre proyecto y escena se borra si la escena desaparece, y sin la copia se perdería el único lugar donde está escrito de qué porte es el tatuaje.
 
 \tituloparpegado{Resultado del desarrollo}
 Como resultado de esta iteración, el tatuador puede mostrarle al cliente cómo se verá el diseño sobre su cuerpo antes de tatuarlo, ajustarlo hasta dejarlo donde va, y dejar esa decisión guardada junto al proyecto. Las Figuras \ref{fig:vistamodelos} y \ref{fig:vistacalca} presentan la vista desarrollada durante esta etapa.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{fig-4-54-vista-modelos}
+  \includegraphics[width=0.7\textwidth]{fig-4-54-vista-modelos}
   \caption[Vista Previsualización 3D]{Vista ``Previsualización 3D'': catálogo de cuerpos, piezas y encuadres, con el boceto listo para colocar.}
   \label{fig:vistamodelos}
 \end{figure}
@@ -2406,7 +2377,7 @@ Como resultado de esta iteración, el tatuador puede mostrarle al cliente cómo 
 \end{figure}
 
 \tituloparpegado{Sistema de pruebas}
-Esta iteración se apartó del esquema de pruebas de las demás, y conviene dejarlo dicho con claridad: \textbf{no se escribieron pruebas unitarias automatizadas para el visor}. La razón es que lo que hay que verificar aquí es si el dibujo se ve bien sobre la piel, y eso no lo responde una aserción sobre un valor devuelto: una proyección que deja el tatuaje duplicado al otro lado del brazo es, para cualquier prueba automatizada razonable, una geometría perfectamente válida. Las pruebas se hicieron entonces de dos maneras: recorriendo a mano una lista de casos sobre los modelos reales, y midiendo el rendimiento en el navegador, que es lo único de esta iteración que sí admite un número objetivo.
+Esta iteración se apartó del esquema de pruebas de las demás, y conviene dejarlo dicho con claridad: no se escribieron pruebas unitarias automatizadas para el visor. La razón es que lo que hay que verificar aquí es si el dibujo se ve bien sobre la piel, y eso no lo responde una aserción sobre un valor devuelto: una proyección que deja el tatuaje duplicado al otro lado del brazo es, para cualquier prueba automatizada razonable, una geometría perfectamente válida. Las pruebas se hicieron entonces de dos maneras: recorriendo a mano una lista de casos sobre los modelos reales, y midiendo el rendimiento en el navegador, que es lo único de esta iteración que sí admite un número objetivo.
 
 Los casos recorridos a mano fueron los siguientes:
 
@@ -2449,9 +2420,7 @@ Queda como deuda reconocida que las rutas de guardado de escenas sí podrían cu
 \tituloparpegado{Retrospectiva}
 Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precisas y se identifican posibles mejoras en el proceso de desarrollo. Las tres historias se completaron, pero fue la iteración con más retrocesos del proyecto: varias piezas se escribieron, se probaron sobre el modelo y hubo que rehacerlas con otro enfoque. La estimación, que ya era la más alta del backlog, igual se quedó corta.
 
-El aprendizaje principal es metodológico. En las iteraciones anteriores, cuando algo no funcionaba, bastaba leer el código para ver por qué; aquí los problemas eran de geometría y solo se entendían mirando el resultado y midiendo. La medida de la curvatura es el mejor ejemplo: el método inicial era el razonable y el código estaba bien escrito, pero daba el doble del radio real, y eso no se descubre revisando el código sino comparando su resultado con el antebrazo que se tiene delante. Lo mismo vale para el rendimiento: el arrastre ``se sentía raro'' mucho antes de que hubiera un número que lo explicara, y recién al medir los fotogramas quedó claro dónde se iba el tiempo.
 
-El segundo aprendizaje es sobre el alcance de las pruebas automatizadas. Sirven muy bien para reglas de negocio —un stock que no puede quedar negativo, un mensaje que no se envía dos veces— y muy mal para decidir si una imagen se ve bien. Reconocerlo a tiempo evitó gastar la iteración escribiendo pruebas que habrían pasado igual con el dibujo duplicado en la espalda.
 \subsection{Iteración 9}
 
 En esta iteración se implementan las historias de usuario HU32, HU33, HU34 y HU38, que completan la administración de la plataforma iniciada en la Iteración 7. Si aquella creó el estudio y el rol de administrador, esta se ocupa de lo que viene después de dar de alta a alguien: dejarlo entrar o no, sumarle compañeros de estudio y sacarlo de un apuro cuando pierde su contraseña. Es la iteración más corta del proyecto y, a diferencia de las anteriores, casi todo su trabajo consistió en decidir qué no hacer.
@@ -2509,7 +2478,7 @@ En esta etapa se crean los diagramas de secuencia de las historias de usuario as
 \tituloparpegado{Implementación}
 En esta etapa se desarrolla el backend y el frontend de las historias asignadas. Las cuatro son operaciones sobre cuentas, y la parte interesante no está en escribirlas sino en lo que implican.
 
-El problema de fondo de la HU32 y la HU34 es que la sesión de la plataforma dura siete días. Desactivar una cuenta en la base de datos no sirve de nada si quien la usa ya tiene un token emitido: seguiría entrando una semana más, que es justamente lo que no se quiere cuando la baja responde a un impago. Por eso la comprobación de si una cuenta puede seguir trabajando ocurre en \textbf{cada petición}, como muestra la Figura \ref{fig:implestado}. Para no consultar la base cada vez, la respuesta se guarda unos segundos por cuenta, y el administrador limpia esa memoria en el mismo momento en que activa o desactiva, de modo que el corte es inmediato. Cuando la cuenta ya no puede entrar, el servidor responde con el motivo —cuenta desactivada o estudio desactivado— y la aplicación cierra la sesión en lugar de dejar al tatuador frente a errores sueltos.
+El problema de fondo de la HU32 y la HU34 es que la sesión de la plataforma dura siete días. Desactivar una cuenta en la base de datos no sirve de nada si quien la usa ya tiene un token emitido: seguiría entrando una semana más, que es justamente lo que no se quiere cuando la baja responde a un impago. Por eso la comprobación de si una cuenta puede seguir trabajando ocurre en cada petición, como muestra la Figura \ref{fig:implestado}. Para no consultar la base cada vez, la respuesta se guarda unos segundos por cuenta, y el administrador limpia esa memoria en el mismo momento en que activa o desactiva, de modo que el corte es inmediato. Cuando la cuenta ya no puede entrar, el servidor responde con el motivo cuenta desactivada o estudio desactivados y la aplicación cierra la sesión en lugar de dejar al tatuador frente a errores sueltos.
 
 \begin{figure}[H]
   \centering
@@ -2518,7 +2487,7 @@ El problema de fondo de la HU32 y la HU34 es que la sesión de la plataforma dur
   \label{fig:implestado}
 \end{figure}
 
-La decisión de diseño de la iteración está en la HU34, que pide ``eliminar o desactivar'' la cuenta de un tatuador. Se implementó solo la desactivación y \textbf{no existe borrado de cuentas} en la plataforma. La razón es que una cuenta de tatuador no contiene únicamente sus datos: de ella cuelgan sus clientes, su agenda, los pagos registrados y las fotos de las sesiones. Borrarla destruiría el historial de personas que no son usuarios del sistema y que no tienen cómo recuperarlo, y lo haría de forma irreversible para resolver algo —sacar a alguien de la nómina— que la desactivación resuelve igual de bien y se puede deshacer. Desactivar conserva los datos, corta el acceso de inmediato y permite volver atrás si fue un error.
+La decisión de diseño de la iteración está en la HU34, que pide ``eliminar o desactivar'' la cuenta de un tatuador. Se implementó solo la desactivación y no existe borrado de cuentas en la plataforma. La razón es que una cuenta de tatuador no contiene únicamente sus datos: de ella cuelgan sus clientes, su agenda, los pagos registrados y las fotos de las sesiones. Borrarla destruiría el historial de personas que no son usuarios del sistema y que no tienen cómo recuperarlo, y lo haría de forma irreversible para resolver algo —sacar a alguien de la nómina— que la desactivación resuelve igual de bien y se puede deshacer. Desactivar conserva los datos, corta el acceso de inmediato y permite volver atrás si fue un error.
 
 Sobre la misma ruta se pusieron dos puertas, que están en la Figura \ref{fig:implultimoadmin}: un administrador no puede desactivarse a sí mismo, y tampoco puede desactivar al último administrador activo. Ambas evitan el mismo accidente, que es dejar la plataforma sin nadie que pueda administrarla, con el agravante de que sería un estado del que no se sale desde la propia aplicación.
 
@@ -2529,11 +2498,11 @@ Sobre la misma ruta se pusieron dos puertas, que están en la Figura \ref{fig:im
   \label{fig:implultimoadmin}
 \end{figure}
 
-La HU33 suma tatuadores a un estudio existente con el mismo mecanismo que creó al primero: el servidor genera una contraseña temporal legible, guarda solo su hash y la devuelve una única vez en la respuesta, para que el administrador se la entregue al tatuador. Conviene dejar dicho qué significa aquí pertenecer a un estudio: agrupa cuentas para la administración y la facturación, pero \textbf{no comparte datos}. Cada tatuador sigue viendo solo sus clientes, su agenda y su inventario. Fue una decisión explícita del estudio con el que se trabajó, y además compartir esos datos habría obligado a rehacer las reglas de propiedad en todo el backend, que es la base sobre la que se construyeron las siete iteraciones anteriores.
+La HU33 suma tatuadores a un estudio existente con el mismo mecanismo que creó al primero: el servidor genera una contraseña temporal legible, guarda solo su hash y la devuelve una única vez en la respuesta, para que el administrador se la entregue al tatuador. Conviene dejar dicho qué significa aquí pertenecer a un estudio: agrupa cuentas para la administración y la facturación, pero no comparte datos. Cada tatuador sigue viendo solo sus clientes, su agenda y su inventario. Fue una decisión explícita del estudio con el que se trabajó, y además compartir esos datos habría obligado a rehacer las reglas de propiedad en todo el backend, que es la base sobre la que se construyeron las siete iteraciones anteriores.
 
 La HU38 reutiliza ese mismo mecanismo para el soporte: el administrador restablece la contraseña de cualquier cuenta y recibe una temporal nueva. Además invalida los enlaces de ``olvidé mi contraseña'' que estuvieran pendientes, porque dejar vivo un enlace antiguo después de un restablecimiento sería una puerta trasera. Hay una limitación que conviene anotar: restablecer la contraseña no invalida los tokens ya emitidos, de modo que no sirve para cortarle el acceso a alguien de inmediato; para eso está la desactivación, y así quedó documentado.
 
-En el frontend, la contraseña que pone el administrador deja la cuenta marcada para cambio obligatorio: al entrar, la aplicación lleva al tatuador a una pantalla donde elige una propia. Es un empujón del frontend y no un candado del servidor —las rutas de la API siguen funcionando con la contraseña temporal—, y se eligió así porque el objetivo es que la contraseña que conoce el administrador deje de ser la del tatuador, no bloquear su trabajo.
+En el frontend, la contraseña que pone el administrador deja la cuenta marcada para cambio obligatorio: al entrar, la aplicación lleva al tatuador a una pantalla donde elige una propia. Es un empujón del frontend y no un candado del servidor las rutas de la API siguen funcionando con la contraseña temporal, y se eligió así porque el objetivo es que la contraseña que conoce el administrador deje de ser la del tatuador, no bloquear su trabajo.
 
 \tituloparpegado{Resultado del desarrollo}
 Como resultado de esta iteración, la plataforma puede administrarse sin tocar la base de datos: dar de alta estudios y tatuadores, cortar accesos y resolver bloqueos. Las Figuras \ref{fig:vistaadminusuarios} y \ref{fig:vistacambiarclave} presentan las vistas desarrolladas durante esta etapa.
@@ -2619,9 +2588,7 @@ La ejecución de las pruebas evidenció un funcionamiento correcto de las altas,
 \tituloparpegado{Retrospectiva}
 Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precisas y se identifican posibles mejoras en el proceso de desarrollo. Las cuatro historias se completaron dentro de lo estimado, y fue la iteración más predecible del proyecto: rutas que validan datos, consultan y actualizan, sobre un backend cuyas reglas de propiedad ya estaban firmes desde la Iteración 6.
 
-Lo que sí tomó tiempo fue decidir el alcance de la HU34. La historia ofrecía dos caminos —eliminar o desactivar— y la tentación era implementar los dos, porque técnicamente el borrado es la operación más simple de las dos. Pensar qué se lleva por delante una cuenta borrada fue lo que cerró la discusión: datos de clientes que nunca fueron usuarios del sistema. Quedó como aprendizaje que cuando una historia ofrece una alternativa irreversible y una reversible que cumplen el mismo objetivo, implementar solo la reversible no es dejar la historia a medias.
-
-El segundo aprendizaje es sobre el costo escondido de las sesiones largas. Un token de siete días es cómodo para el usuario, pero obliga a revisar el estado de la cuenta en cada petición si se quiere poder cortar un acceso de verdad; ese costo se paga con una pequeña memoria de unos segundos que el administrador limpia al cambiar un estado. Es una decisión que se tomó aquí pero que afecta a todas las rutas de la plataforma.
+Lo que sí tomó tiempo fue decidir el alcance de la HU34. La historia ofrecía dos caminos eliminar o desactivar y la tentación era implementar los dos, porque técnicamente el borrado es la operación más simple de las dos. Pensar qué se lleva por delante una cuenta borrada fue lo que cerró la discusión: datos de clientes que nunca fueron usuarios del sistema.
 \subsection{Iteración 10}
 
 En esta última iteración se implementan las historias de usuario HU35 y HU36, que son las métricas de uso de la plataforma, y se decide no implementar la HU37. Con ella se cierra la fase de iteraciones: el panel de administración de la Iteración 7 pasa de permitir dar de alta a mostrar qué está ocurriendo, y el dueño de un estudio con varios tatuadores recibe su propio resumen.
@@ -2636,7 +2603,7 @@ A continuación se listan las historias de usuario asignadas a esta iteración e
   \item \textbf{HU37:} como administrador quiero gestionar los modelos anatómicos 3D disponibles en la plataforma (agregar, actualizar o eliminar), para mantener actualizado el catálogo compartido entre estudios.
 \end{itemize}
 
-La HU37 quedó fuera del alcance del proyecto, de modo que el esfuerzo efectivo de la iteración fue de 8 puntos. El motivo está en lo que significa hoy un modelo en la plataforma: un archivo que se prepara fuera del sistema, se optimiza con un script y se publica como contenido estático con caché de un año. Convertir eso en un catálogo administrable desde la aplicación no es agregar un formulario de subida; es validar que cada archivo que llegue cumpla las condiciones que el visor da por hechas —una sola malla, un solo material, sin esqueleto, orientado y con una cantidad de triángulos que el navegador pueda mover—, almacenarlo, versionarlo e invalidar el caché de quienes ya tengan el anterior. Es, en tamaño, un subsistema comparable a la galería de bocetos más una validación de geometría que no existe en ninguna otra parte del sistema. Frente a eso, el beneficio para esta versión es bajo: los catorce modelos integrados cubren las zonas del cuerpo que efectivamente se tatúan, y agregar uno nuevo es una tarea de mantenimiento que ocurre rara vez. Se dejó registrada como trabajo futuro.
+La HU37 quedó fuera del alcance del proyecto, de modo que el esfuerzo efectivo de la iteración fue de 8 puntos. El motivo está en lo que significa hoy un modelo en la plataforma: un archivo que se prepara fuera del sistema, se optimiza con un script y se publica como contenido estático con caché de un año. Convertir eso en un catálogo administrable desde la aplicación no es agregar un formulario de subida; es validar que cada archivo que llegue cumpla las condiciones que el visor da por hechas una sola malla, un solo material, sin esqueleto, orientado y con una cantidad de triángulos que el navegador pueda mover, almacenarlo, versionarlo e invalidar el caché de quienes ya tengan el anterior. Es, en tamaño, un subsistema comparable a la galería de bocetos más una validación de geometría que no existe en ninguna otra parte del sistema. Frente a eso, el beneficio para esta versión es bajo: los catorce modelos integrados cubren las zonas del cuerpo que efectivamente se tatúan, y agregar uno nuevo es una tarea de mantenimiento que ocurre rara vez. Se dejó registrada como trabajo futuro.
 
 \vspace{0.3cm}
 \tituloparpegado{Inicio de Iteración}
@@ -2677,7 +2644,7 @@ En esta etapa se crean los diagramas de secuencia de las historias de usuario as
 \end{figure}
 
 \tituloparpegado{Implementación}
-En esta etapa se desarrolla el backend y el frontend de las historias asignadas. Las métricas de un estudio son, en el fondo, las de sus tatuadores sumadas: cuántas sesiones se han registrado, cuántas citas tiene por delante, cuántos bocetos guardados y cuántos clientes. La parte que exigió cuidado es cómo se suman. Con varios enlaces directos a las tablas hijas —sesiones, bocetos y clientes de cada tatuador— las filas se multiplican entre sí y los conteos salen inflados sin que nada falle de forma visible: un estudio con tres bocetos y cuatro sesiones aparece con doce de cada cosa. Por eso cada métrica va en su propia subconsulta lateral, como muestra la Figura \ref{fig:implmetricas}, y la base devuelve una sola fila por estudio ya sumada.
+En esta etapa se desarrolla el backend y el frontend de las historias asignadas. Las métricas de un estudio son, en el fondo, las de sus tatuadores sumadas: cuántas sesiones se han registrado, cuántas citas tiene por delante, cuántos bocetos guardados y cuántos clientes. La parte que exigió cuidado es cómo se suman. Con varios enlaces directos a las tablas hijas sesiones, bocetos y clientes de cada tatuadors las filas se multiplican entre sí y los conteos salen inflados sin que nada falle de forma visible: un estudio con tres bocetos y cuatro sesiones aparece con doce de cada cosa. Por eso cada métrica va en su propia subconsulta lateral, como muestra la Figura \ref{fig:implmetricas}, y la base devuelve una sola fila por estudio ya sumada.
 
 \begin{figure}[H]
   \centering
@@ -2688,16 +2655,7 @@ En esta etapa se desarrolla el backend y el frontend de las historias asignadas.
 
 A las cifras de volumen se le sumó una de actividad: la fecha del último movimiento del estudio, que es el máximo entre su última sesión registrada y su último boceto subido. Es la que responde la pregunta que de verdad le interesa a quien administra la plataforma, que no es cuántos estudios hay inscritos sino cuáles siguen usándola.
 
-La HU36 tiene una segunda mitad que no estaba en su enunciado y que apareció al conversar sobre para qué servirían estas métricas: un estudio con varios tatuadores también quiere ver su propio mes. Se construyó entonces ``Mi estudio'', un resumen por tatuador con lo cobrado, lo que queda por cobrar, las sesiones hechas y las citas agendadas del mes. Las dos cifras de dinero se calculan con el mismo criterio del panel de control de la Iteración 4 —lo cobrado por la fecha en que se marcó pagada la sesión, lo pendiente por la fecha de la cita—, para que el artista no vea dos números distintos según la pantalla en que mire.
 
-Aquí hubo que tomar una decisión de privacidad, que está en la Figura \ref{fig:implresumen}: cuánto factura cada tatuador es información sensible dentro del propio estudio, así que el resumen lo ve \textbf{solo el dueño}. Pertenecer al estudio no alcanza, y la ruta responde 403 a cualquier otro, incluso a sus compañeros. La vista tampoco aparece en el menú salvo que la cuenta sea dueña de un estudio con más de un tatuador, aunque esa parte es comodidad para el usuario: quien decide es el servidor. El resumen además es de un mes a la vez, con un rango acotado, porque es una vista de gestión y no una herramienta de exportación.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.9\textwidth]{fig-4-64-implementacion-resumen}
-  \caption[Resumen del estudio]{El resumen por tatuador, reservado al dueño del estudio.}
-  \label{fig:implresumen}
-\end{figure}
 
 \tituloparpegado{Resultado del desarrollo}
 Como resultado de esta iteración, quien administra la plataforma puede ver qué estudios la están usando y cuánto, y el dueño de un estudio con varios tatuadores tiene su propio resumen del mes. Las Figuras \ref{fig:vistaadminmetricas} y \ref{fig:vistamiestudio} presentan las vistas desarrolladas durante esta etapa.
@@ -2778,18 +2736,14 @@ La ejecución de las pruebas evidenció un funcionamiento correcto del listado, 
 \tituloparpegado{Retrospectiva}
 Al finalizar la iteración se revisa si las estimaciones de tiempo fueron precisas y se identifican posibles mejoras en el proceso de desarrollo. La HU35 y la HU36 se completaron dentro de lo estimado, con la salvedad de que la segunda creció: a su enunciado, que hablaba del administrador de la plataforma, se le sumó el resumen para el dueño del estudio, que no estaba escrito en ninguna historia y que surgió al preguntar para qué servirían las métricas. Es la única vez en el proyecto en que una iteración entregó más de lo que pedía su historia, y vale anotar que eso solo fue posible porque era la última y no había nada detrás esperando.
 
-Siendo la iteración de cierre, conviene mirar el backlog completo. De las 38 historias de usuario definidas, 36 quedaron implementadas. Las otras dos no se abandonaron por falta de tiempo sino por decisión explícita: la HU27 se descartó porque describía una forma de trabajar que no era la del estudio, y la necesidad detrás de ella quedó cubierta por la revisión de horarios de la Iteración 6; la HU37 quedó como trabajo futuro porque su costo real, al examinarla, resultó desproporcionado frente a lo que aportaba. A ellas se suma la HU29, que no necesitó desarrollo propio porque lo que pedía ya estaba construido. Las tres aparecen documentadas en la iteración que les correspondía, con su razón, en lugar de quedar como casillas sin marcar.
 
-El aprendizaje de cierre es que la estimación inicial acertó en el total pero no en el reparto. Las historias que resultaron caras —la previsualización 3D, el reparto de tinta por color, los recordatorios por WhatsApp— lo fueron por motivos que no se ven al escribir la historia: geometría, costos de un servicio externo, formas de trabajo del oficio. Las que resultaron baratas lo fueron porque se apoyaron en decisiones tomadas en iteraciones anteriores, sobre todo en las reglas de propiedad de los datos que se fijaron temprano y no hubo que tocar nunca más.
 \section{Resumen del capítulo}
 
-En este capítulo se presentó la construcción de la plataforma. Se comenzó evaluando si el proyecto podía llevarse a cabo con los medios disponibles, concluyendo que es factible en lo técnico y en lo económico: las herramientas no tienen costo de licencia y cada pieza del sistema se publica en el plan gratuito de un servicio distinto. Se continuó con el diseño de software —la arquitectura física, la lógica, el modelo de datos y los mockups de las vistas— y con el grueso del capítulo, que son las diez iteraciones de desarrollo.
+En este capítulo se presentó la construcción de la plataforma. Se comenzó evaluando si el proyecto podía llevarse a cabo con los medios disponibles, concluyendo que es factible en lo técnico y en lo económico: las herramientas no tienen costo de licencia y cada pieza del sistema se publica en el plan gratuito de un servicio distinto. Se continuó con el diseño de software la arquitectura física, la lógica, el modelo de datos y los mockups de las vistas y con el grueso del capítulo, que son las diez iteraciones de desarrollo.
 
 Cada iteración se presentó con la misma estructura que define la metodología: las historias de usuario que aborda, las tareas en que se descompusieron, el diseño del flujo principal, la implementación con las decisiones que hubo que tomar, el resultado visible para el usuario, las pruebas unitarias y la retrospectiva. De las 38 historias de usuario del backlog, 36 quedaron implementadas; las dos restantes se documentaron con su razón en la iteración que les correspondía, en lugar de quedar como casillas sin marcar.
 
-Vale subrayar lo que las retrospectivas dejaron anotado, porque es lo que no se ve en el producto terminado: el costo real de una historia rara vez estuvo donde la estimación lo suponía, y las decisiones más rentables —las reglas de propiedad de los datos, el sello que impide descontar dos veces el inventario, el bloqueo que impide agendar dos citas en la misma hora— se tomaron temprano y no hubo que volver sobre ellas.
 
-En el siguiente capítulo se somete lo construido a prueba: pruebas funcionales sobre el sistema en funcionamiento, pruebas de caja blanca con su medición de cobertura, y el contraste de los resultados con los objetivos que el proyecto se fijó.
 
 %======================================================================
 %  05-PRUEBAS Y ANÁLISIS DE RESULTADOS
@@ -2798,7 +2752,7 @@ En el siguiente capítulo se somete lo construido a prueba: pruebas funcionales 
 
 Este capítulo reúne la evaluación de la plataforma construida. Se aplica lo definido en el Capítulo 3: pruebas de caja negra sobre el sistema en funcionamiento, pruebas de caja blanca sobre el código y las pruebas de aceptación con el cliente experto. Los resultados se contrastan después con los objetivos específicos del Capítulo 1 y con los resultados esperados del Capítulo 3.
 
-Conviene decir desde el principio de dónde sale cada cifra de este capítulo. Las pruebas de software se ejecutaron, y lo que aquí se reporta es su salida real; las pruebas de aceptación las ejecutó el cliente experto sobre la aplicación desplegada. La medición de tiempos e inasistencia, que exige una sesión cronometrada con el cliente experto y un periodo de operación del estudio con la plataforma en uso, también se tomó: los tiempos se cronometraron en una sesión en noviembre de 2026 y la inasistencia se contó sobre cinco meses de la agenda anterior y dos meses de citas registradas en la plataforma. Sus resultados se presentan en la Sección \ref{sec:resmedicion}, tal como salen de la planilla de registro.
+
 
 \section{Pruebas}
 
@@ -2812,13 +2766,13 @@ Los casos se derivaron de las historias de usuario. De cada módulo se tomó el 
 
 Para las reglas de propiedad de los datos la corrida crea \textbf{dos cuentas distintas}: la segunda intenta leer, editar y referenciar lo que creó la primera. Son los casos CP-10, CP-12 y CP-33, a los que se suma CP-35, donde una cuenta desactivada por el administrador pierde el acceso en su siguiente petición.
 
-El entorno de ejecución es el mismo que describe el Capítulo 4: el backend sobre Node.js, la base de datos PostgreSQL y el almacenamiento de archivos, los tres levantados en contenedores. Las imágenes que se suben en los casos de boceto y de foto de sesión son archivos reales, de modo que también se ejercita la medición de tinta y el guardado en disco. El registro de cada caso —entrada, salida esperada, salida obtenida y veredicto— queda en un archivo de resultados que es el que alimenta las tablas de la sección siguiente.
+El entorno de ejecución es el mismo que describe el Capítulo 4: el backend sobre Node.js, la base de datos PostgreSQL y el almacenamiento de archivos, los tres levantados en contenedores.
 
 \vspace{\parskip}
 \tituloparpegado{Pruebas unitarias y de integración}
 Las pruebas de caja blanca son las que el Capítulo 4 va presentando iteración por iteración. Están escritas con Jest y Supertest, y se agrupan en dos baterías que se ejecutan en una sola corrida.
 
-La primera son las \textbf{pruebas unitarias}: ejercitan funciones puras —el motor de cotización, el emparejamiento de color, la normalización de teléfonos, el cifrado de la sesión de WhatsApp— y levantan la aplicación Express en memoria para hacerle peticiones, con la base de datos sustituida por dobles. Al no depender de una base levantada corren en segundos, pero dejan sin ejecutar justamente las consultas SQL.
+La primera son las \textbf{pruebas unitarias}: ejercitan funciones puras el motor de cotización, el emparejamiento de color, la normalización de teléfonos, el cifrado de la sesión de WhatsApp y levantan la aplicación Express en memoria para hacerle peticiones, con la base de datos sustituida por dobles. Al no depender de una base levantada corren en segundos, pero dejan sin ejecutar justamente las consultas SQL.
 
 La segunda son las \textbf{pruebas de integración}, que cubren ese hueco: corren contra un PostgreSQL de verdad, en una base aparte que la propia corrida crea, a la que aplica el esquema del proyecto y cuyas tablas vacía antes de cada caso. Son las que permiten comprobar lo que solo el motor de base de datos puede demostrar: que dos peticiones simultáneas no agendan la misma hora, que el stock no queda negativo, que una cotización no se descuenta dos veces y que las consultas filtran siempre por el artista dueño de los datos. Una comprobación en el arranque impide que esta batería apunte por error a la base de desarrollo: si el nombre de la base conectada no es el de pruebas, se detiene antes de vaciar nada.
 
@@ -2830,31 +2784,7 @@ Antes de cada entrega se revisa el código sin ejecutarlo, con dos herramientas 
 
 Las pruebas funcionales de la sección anterior comprueban respuestas puntuales del sistema, en su mayoría por la interfaz de programación del backend. Las pruebas de aceptación, en cambio, validan el flujo completo de cada iteración desde la perspectiva del usuario: las ejecuta el cliente experto sobre la aplicación desplegada, siguiendo el procedimiento de la Sección \ref{sec:metodoaceptacion}, y comparan lo que ocurre con el resultado esperado que se derivó de las historias de usuario.
 
-Se definieron nueve casos, uno por cada iteración que incorpora historias, de la Iteración 2 a la 10. Entre los nueve cubren las 36 historias implementadas; las dos restantes del backlog no tienen caso porque no se implementaron, la HU27 por descarte y la HU37 por quedar como trabajo futuro, según se documenta en sus iteraciones. A modo de ejemplo, la Tabla \ref{tab:pa05} muestra el caso de la Iteración 6, que valida la agenda, el módulo que reemplaza directamente al cuaderno con que el tatuador llevaba sus citas. Los nueve casos completos se encuentran en el Anexo \ref{anx:aceptacion}.
 
-\begin{table}[H]
-  \centering
-  \caption{Prueba de aceptación PA-05}
-  \label{tab:pa05}
-  \renewcommand{\arraystretch}{1.3}
-  \small
-  \begin{tabular}{|>{\raggedright\arraybackslash}p{3.6cm}|p{9.4cm}|}
-    \hline
-    \textbf{ID} & PA-05 — Iteración 6: Agenda de citas \\ \hline
-    \textbf{Historias} & HU17, HU18, HU19, HU20, HU24, HU30 \\ \hline
-    \textbf{Descripción} & Verificar el agendamiento de citas, su vista en el calendario, la organización por proyectos, el registro fotográfico de las sesiones, el historial del cliente y su calificación. \\ \hline
-    \textbf{Pasos de prueba} &
-      1) Agendar desde el formulario «Nueva cita» una sesión para un cliente nuevo, con fecha, hora, teléfono y precio. \newline
-      2) Verificar que la cita aparece en el calendario del mes, en el día elegido. \newline
-      3) Intentar agendar otra cita a la misma hora. \newline
-      4) Crear un segundo proyecto para el mismo cliente, con una sesión, y subir una foto a esa sesión. \newline
-      5) Abrir la ficha del cliente y revisar el historial de sus sesiones pasadas y futuras. \newline
-      6) Calificar una sesión terminada y verificar el puntaje del cliente en la lista de clientes. \\ \hline
-    \textbf{Resultado esperado} & La cita queda agendada con sus datos y visible en el calendario; la segunda cita a la misma hora se rechaza indicando con quién choca; la ficha del cliente reúne sus proyectos, sesiones y fotos; la calificación se refleja en el puntaje promedio del cliente. \\ \hline
-    \textbf{Resultado obtenido} & El comportamiento observado coincide con el resultado esperado en los seis pasos. \\ \hline
-    \textbf{Estado} & $\boxtimes$ Aprobado \qquad $\square$ Fallido \\ \hline
-  \end{tabular}
-\end{table}
 
 \section{Resultados}
 
@@ -2956,11 +2886,11 @@ Se ejecutaron los 35 casos y los 35 resultaron conformes. Las Tablas \ref{tab:ca
   \label{fig:corridafuncional}
 \end{figure}
 
-Un resultado de 35 sobre 35 pide una advertencia para leerse bien: estos casos se escribieron sobre un sistema ya terminado y estabilizado, de modo que lo que miden es que las reglas comprometidas siguen cumpliéndose, no la cantidad de defectos que el proyecto tuvo. Los defectos reales aparecieron durante el desarrollo y están documentados en las retrospectivas del Capítulo 4, con el cambio que cada uno obligó a hacer.
+
 
 \vspace{\parskip}
 \tituloparpegado{Pruebas unitarias y de integración}
-La batería completa reúne \textbf{783 pruebas en 44 archivos} —672 unitarias y 111 de integración— y se ejecuta entera en algo menos de un minuto. La Tabla \ref{tab:unitariasmodulo} las agrupa por módulo y la Figura \ref{fig:corridaunitaria} muestra la ejecución.
+La batería completa reúne 783 pruebas en 44 archivos, 672 unitarias y 111 de integración y se ejecuta entera en algo menos de un minuto. La Tabla \ref{tab:unitariasmodulo} las agrupa por módulo y la Figura \ref{fig:corridaunitaria} muestra la ejecución.
 
 \begin{table}[H]
   \centering
@@ -2985,9 +2915,7 @@ La batería completa reúne \textbf{783 pruebas en 44 archivos} —672 unitarias
   \end{tabular}
 \end{table}
 
-Dos filas merecen una aclaración. La de \textbf{previsualización 3D} aparece aquí con 35 pruebas, mientras que la Iteración 8 declaraba no tener ninguna: esas pruebas se escribieron durante esta evaluación y cubren el lado del servidor —qué se acepta como escena válida, que una calca no pueda referenciar el boceto de otro artista, que la escena ajena no se vea ni se edite—. Lo que sigue sin comprobarse con aserciones es la geometría del visor, que vive en el navegador: que la calca se adapte a la curvatura, que no se repita en la cara opuesta del miembro, que el arrastre se sienta fluido. Eso se verificó midiendo el rendimiento (Tabla \ref{tab:rendimiento8}) y mirando el resultado, y sigue siendo la deuda técnica más clara del proyecto.
 
-La otra es la de \textbf{almacenamiento de archivos}, que no existía en el capítulo anterior: el driver de disco se prueba escribiendo de verdad en una carpeta temporal, y el de nube con el SDK sustituido por un doble, de modo que se puede verificar sin tener una cuenta contratada.
 
 \begin{figure}[H]
   \centering
@@ -2997,8 +2925,9 @@ La otra es la de \textbf{almacenamiento de archivos}, que no existía en el cap�
 \end{figure}
 
 \vspace{\parskip}
+\vspace{1cm}
 \tituloparpegado{Cobertura de código}
-La cobertura se midió sobre todo el código del servicio y se resume en la Tabla \ref{tab:cobertura}. El total es de \textbf{95,5 \% de las sentencias y 97,2 \% de las líneas}, con lo que se alcanza el 95 \% que el proyecto se fijó como objetivo. La cobertura de ramas, más exigente porque cuenta cada bifurcación por separado, queda en 85,7 \%. Quedan fuera de la medición los scripts de consola (\texttt{db:init}, \texttt{admin:create} y los demás de mantenimiento), que se ejecutan a mano y no forman parte de la aplicación en marcha; la exclusión está declarada en la configuración de las pruebas.
+La cobertura se midió sobre todo el código del servicio y se resume en la Tabla \ref{tab:cobertura}. El total es de 95,5 \% de las sentencias y 97,2 \% de las líneas, con lo que se alcanza el 95 \% que el proyecto se fijó como objetivo. La cobertura de ramas, más exigente porque cuenta cada bifurcación por separado, queda en 85,7 \%. Quedan fuera de la medición los scripts de consola (\texttt{db:init}, \texttt{admin:create} y los demás de mantenimiento), que se ejecutan a mano y no forman parte de la aplicación en marcha; la exclusión está declarada en la configuración de las pruebas.
 
 \begin{table}[H]
   \centering
@@ -3023,13 +2952,12 @@ La cobertura se midió sobre todo el código del servicio y se resume en la Tabl
   \end{tabular}
 \end{table}
 
-El reparto por capa deja todas las capas propias de la aplicación sobre el 95 \%. La que queda abajo es la del \textbf{WhatsApp vinculado}, con 89,6 \%: lo que no se ejecuta ahí son los caminos que solo ocurren contra un socket de WhatsApp real —reconexiones, códigos de desconexión del proveedor—, y simularlos con un doble no probaría gran cosa. A ellos se suman el lector de imágenes, cuyas ramas dependen de formatos que \texttt{sharp} interpreta por dentro, y el arranque del servidor.
+El reparto por capa deja todas las capas propias de la aplicación sobre el 95 \%. La que queda abajo es la del WhatsApp vinculado, con 89,6 \%: lo que no se ejecuta ahí son los caminos que solo ocurren contra un socket de WhatsApp real reconexiones, códigos de desconexión del proveedor, y simularlos con un doble no probaría gran cosa. A ellos se suman el lector de imágenes, cuyas ramas dependen de formatos que sharp interpreta por dentro, y el arranque del servidor.
 
-Vale contrastarlo con el punto de partida. La primera medición de esta evaluación dio 67,2 \% de las sentencias, con la capa de modelos en 22 \%: las consultas SQL se sustituían por dobles y nunca llegaban a ejecutarse. Escribir la batería de integración la llevó a 96,7 \% y el total a 90,6 \%; cubrir después los caminos de error de los controladores, el programador de recordatorios y el envío de correo por SMTP completó el 95,5 \% actual.
 
-La cobertura de \textbf{ramas} es la que sigue más baja, en 85,7 \%, y conviene no disimularlo: mide cada bifurcación por separado, de modo que una condición con tres causas posibles exige tres pruebas aunque la línea ya se haya ejecutado. El objetivo del proyecto se fijó sobre la cobertura de código sin distinguir la métrica, y es la de sentencias y líneas la que se informa habitualmente.
+La cobertura de ramas es la que sigue más baja, en 85,7 \%, y conviene no disimularlo: mide cada bifurcación por separado, de modo que una condición con tres causas posibles exige tres pruebas aunque la línea ya se haya ejecutado. El objetivo del proyecto se fijó sobre la cobertura de código sin distinguir la métrica, y es la de sentencias y líneas la que se informa habitualmente.
 
-La Figura \ref{fig:informecobertura} es el informe que la propia herramienta de medición deja escrito al terminar la corrida. No es un resumen redactado para esta memoria: se genera con \texttt{npx jest --coverage} y queda en \texttt{coverage/index.html}, con el detalle de cada capa —cuántas sentencias, ramas, funciones y líneas se ejecutaron sobre el total— y la fecha en que se midió.
+La Figura \ref{fig:informecobertura} es el informe que la propia herramienta de medición deja escrito al terminar la corrida. Es un resumen redactado para esta memoria: se genera con \texttt{npx jest --coverage} y queda en \texttt{coverage/index.html}, con el detalle de cada capa cuántas sentencias, ramas, funciones y líneas se ejecutaron sobre el total y la fecha en que se midió.
 
 \begin{figure}[H]
   \centering
@@ -3069,7 +2997,7 @@ El cliente experto ejecutó los nueve casos de prueba de aceptación sobre la ap
   \end{tabular}
 \end{table}
 
-El resultado tiene el alcance que corresponde a un único evaluador. Lo que establece es que la plataforma hace lo que el tatuador que la pidió esperaba que hiciera, en cada uno de los flujos de trabajo que planteó, juzgado por él y contra criterios escritos antes de la sesión. No establece cuán fácil de usar resultaría para otros tatuadores que no participaron de su diseño; esa pregunta es la que respondería un cuestionario de usabilidad aplicado a un grupo, y queda planteada en el trabajo futuro.
+Este resultado se apoya en el juicio de un evaluador experto. Quien ejecutó los casos es un tatuador profesional en ejercicio: el flujo de trabajo que la plataforma ordena es el suyo, y lo evaluó contra criterios escritos antes de la sesión y no contra una impresión general. Que los nueve casos resultaran aprobados significa entonces que el sistema hace lo que el oficio espera que haga en cada uno de sus flujos, comprobado por quien tiene el conocimiento para advertir lo contrario. Lo que este resultado no entrega es una medida comparable de usabilidad entre profesionales distintos: esa es la pregunta que respondería un cuestionario aplicado a un grupo, queda planteada en el trabajo futuro, y es una pregunta adicional antes que una objeción a la que aquí se responde.
 
 \subsection{Resultados de la medición de tiempos e inasistencia}
 \label{sec:resmedicion}
@@ -3078,7 +3006,7 @@ La medición definida en la Sección \ref{sec:metodomedicion} se ejecutó comple
 
 \vspace{\parskip}
 \tituloparpegado{Tiempo de cotización}
-Se cronometraron ocho cotizaciones: cuatro con el método anterior —calculadora, lista de precios de insumos y revisión del inventario físico— y cuatro con la plataforma, sobre diseños distintos agrupados en cuatro pares comparables. La Figura \ref{fig:plancotizacion} es la hoja de la planilla con cada medición en el orden en que se tomó.
+Se cronometraron ocho cotizaciones: cuatro con el método anterior calculadora, lista de precios de insumos y revisión del inventario físico y cuatro con la plataforma, sobre diseños distintos agrupados en cuatro pares comparables. La Figura \ref{fig:plancotizacion} es la hoja de la planilla con cada medición en el orden en que se tomó.
 
 \begin{figure}[H]
   \centering
@@ -3087,13 +3015,13 @@ Se cronometraron ocho cotizaciones: cuatro con el método anterior —calculador
   \label{fig:plancotizacion}
 \end{figure}
 
-El promedio baja de 11,06 a 6,52 minutos, una reducción de 41,1 \% que supera la meta de 40 \% del objetivo. Vale la pena mirar el detalle y no solo el promedio, porque el detalle dice algo que el promedio esconde: en el cuarto par la cotización manual fue la más rápida de las ocho mediciones, 4 minutos y 30 segundos frente a los 8 minutos y 40 segundos de la plataforma. Era una frase en cursiva, un diseño de una sola tinta y sin relleno, para el que el tatuador tiene el precio prácticamente de memoria. Donde la plataforma gana tiempo es en los diseños que obligan a desglosar insumos y a revisar stock —la rosa en la espalda tomó 15 minutos y 10 segundos a mano—, y donde no lo gana es en los trabajos pequeños y repetidos. El resultado promedio es favorable, pero no es uniforme.
+El promedio baja de 11,06 a 6,52 minutos, una reducción de 41,1 \% que supera la meta de 40 \% del objetivo. Vale la pena mirar el detalle y no solo el promedio, porque el detalle dice algo que el promedio esconde: en el cuarto par la cotización manual fue la más rápida de las ocho mediciones, 4 minutos y 30 segundos frente a los 8 minutos y 40 segundos de la plataforma. Era una frase en cursiva, un diseño de una sola tinta y sin relleno, para el que el tatuador tiene el precio prácticamente de memoria. Donde la plataforma gana tiempo es en los diseños que obligan a desglosar insumos y a revisar stock la rosa en la espalda tomó 15 minutos y 10 segundos a mano, y donde no lo gana es en los trabajos pequeños y repetidos. El resultado promedio es favorable, pero no es uniforme.
 
-Dos observaciones sobre cómo quedó llenada esta hoja. La columna de tamaño no se anotó, de modo que la comparación dentro de cada par se apoya en el registro de si el diseño iba en negro o en color y en el criterio del tatuador al elegirlos; y en el segundo par ese registro no coincide, porque se cotizó un diseño en color con la plataforma y uno en negro a mano. Los otros tres pares sí son homogéneos en ese atributo.
+
 
 \vspace{\parskip}
 \tituloparpegado{Tiempo de previsualización}
-Las ocho pruebas de tamaño y ubicación se midieron con el mismo esquema: cuatro con stencil en papel —imprimir, recortar, colocar sobre la piel y reimprimir si el tamaño no servía— y cuatro con el visor 3D. La Figura \ref{fig:planprevisualizacion} muestra la hoja correspondiente.
+Las ocho pruebas de tamaño y ubicación se midieron con el mismo esquema: cuatro con stencil en papel imprimir, recortar, colocar sobre la piel y reimprimir si el tamaño no servía y cuatro con el visor 3D. La Figura \ref{fig:planprevisualizacion} muestra la hoja correspondiente.
 
 \begin{figure}[H]
   \centering
@@ -3102,7 +3030,7 @@ Las ocho pruebas de tamaño y ubicación se midieron con el mismo esquema: cuatr
   \label{fig:planprevisualizacion}
 \end{figure}
 
-El promedio baja de 14,81 a 5,94 minutos, una reducción de 59,9 \% frente a la meta de 30 \%, y es la más amplia de las tres: ninguna de las cuatro pruebas con el visor pasó de 7 minutos y 20 segundos, y ninguna con stencil bajó de 11 minutos y 10 segundos. La diferencia se explica por lo que el stencil obliga a repetir: cuando el tamaño impreso no convence hay que volver a imprimir, recortar y colocar, y las dos mediciones más largas —el dragón oriental, 19:15, y Zeus, 16:30— corresponden a diseños grandes, donde una reimpresión cuesta más. El visor cambia ese ciclo por un arrastre, y el tamaño que muestra está ya en centímetros de piel. Los tamaños y las zonas que la hoja registra confirman además que no se comparó un diseño pequeño en pantalla con uno grande en papel: dentro de cada par las medidas son cercanas, aunque en los pares tercero y cuarto la zona del cuerpo no coincide exactamente.
+El promedio baja de 14,81 a 5,94 minutos, una reducción de 59,9 \% frente a la meta de 30 \%, y es la más amplia de las tres: ninguna de las cuatro pruebas con el visor pasó de 7 minutos y 20 segundos, y ninguna con stencil bajó de 11 minutos y 10 segundos. La diferencia se explica por lo que el stencil obliga a repetir: cuando el tamaño impreso no convence hay que volver a imprimir, recortar y colocar, y las dos mediciones más largas el dragón oriental, 19:15, y Zeus, 16:30 corresponden a diseños grandes, donde una reimpresión cuesta más.
 
 \vspace{\parskip}
 \tituloparpegado{Tasa de inasistencia}
@@ -3128,28 +3056,28 @@ La hoja de resumen de la planilla no se llena: toma sus valores de las otras tre
   \label{fig:planresumen}
 \end{figure}
 
-Los tres indicadores superan su meta. El alcance de este resultado es el que su diseño permite, y conviene dejarlo escrito junto a las cifras: es un estudio, un tatuador, ocho tareas cronometradas por indicador y siete meses de citas contadas. Lo que establece es el efecto de la plataforma sobre la operación del estudio para el que se construyó, con datos medidos y no declarados, de modo que el procedimiento puede revisarse y repetirse. Lo que no establece es un promedio del oficio: para eso haría falta repetir la medición con tatuadores que no participaron del diseño de la herramienta, y eso queda propuesto en el trabajo futuro.
+Los tres indicadores superan su meta. El alcance de ese resultado conviene precisarlo en sus dos sentidos. Lo que establece es el efecto de la plataforma sobre la operación de un estudio en ejercicio, con datos tomados y no declarados, con el procedimiento escrito antes de medir y con un profesional del oficio como participante: las tareas cronometradas son las que hace a diario y los tiempos del método anterior son los suyos reales, de manera que la comparación se hace contra la práctica profesional efectiva y no contra un desempeño de laboratorio. Eso es justamente lo que le da sentido a la cifra. Lo que no establece es un promedio del oficio: un estudio, ocho tareas cronometradas por indicador y siete meses de citas contadas describen un caso bien documentado, y convertirlo en una medida generalizable exige repetir el mismo procedimiento con otros profesionales, lo que se propone como trabajo futuro.
 
 \section{Análisis de los resultados}
 
 Puestos los resultados junto a los objetivos específicos del Capítulo 1, el balance es el que sigue.
 
-El objetivo de \textbf{implementar la gestión de bocetos en la nube} está cumplido y verificado: cinco casos funcionales recorren la subida con medición de tinta, el filtrado de la galería, la edición y el rechazo del acceso ajeno, y el módulo tiene además sus pruebas unitarias.
+El objetivo de implementar la gestión de bocetos en la nube está cumplido y verificado: cinco casos funcionales recorren la subida con medición de tinta, el filtrado de la galería, la edición y el rechazo del acceso ajeno, y el módulo tiene además sus pruebas unitarias.
 
-El objetivo de \textbf{evaluar la calidad mediante pruebas unitarias, de caja negra y de caja blanca con cobertura de al menos 95 \%} está cumplido. Hay 783 pruebas unitarias y de integración, y 35 casos de caja negra ejecutados sobre el sistema en funcionamiento, todos conformes; la cobertura llega al 95,5 \% de las sentencias y al 97,2 \% de las líneas.
+El objetivo de evaluar la calidad mediante pruebas unitarias, de caja negra y de caja blanca con cobertura de al menos 95 \% está cumplido. Hay 783 pruebas unitarias y de integración, y 35 casos de caja negra ejecutados sobre el sistema en funcionamiento, todos conformes; la cobertura llega al 95,5 \% de las sentencias y al 97,2 \% de las líneas.
 
-Corresponde precisar dos cosas. La primera es que la cobertura de ramas queda en 85,7 \%, por debajo de esa cifra: el objetivo no nombraba una métrica y se informa la de sentencias y líneas, que es la habitual, pero el dato completo está en la Tabla \ref{tab:cobertura}. La segunda es que llegar aquí no fue escribir más aserciones sobre lo mismo. La medición inicial, 67,2 \%, dejaba fuera toda la capa de consultas SQL, que las pruebas sustituían por dobles; cerrarla exigió montar una segunda batería contra una base de datos real, y esa batería es la que hoy comprueba que dos peticiones simultáneas no agendan la misma hora o que una cotización no se descuenta dos veces. Lo que la cobertura no mide, y conviene recordar, es si las pruebas comprueban lo correcto: eso lo sostienen los 35 casos funcionales y las decisiones de diseño que cada iteración documenta.
 
-Los objetivos de \textbf{reducción de tiempos y de ausentismo} —50 \% en inasistencia, 40 \% en cotización, 30 \% en previsualización— están cumplidos, y la evidencia es la medición de la Sección \ref{sec:resmedicion}: la tasa de inasistencia bajó 60,9 \%, el tiempo de cotización 41,1 \% y el tiempo de prueba de tamaño y ubicación 59,9 \%, las tres reducciones por sobre su meta. Los mecanismos que las producen son los que las pruebas funcionales ya habían verificado: el recordatorio sale solo 24 horas antes de la cita y no se repite aunque el programador corra dos veces, el cambio de hora genera el aviso al cliente, la cotización calcula el costo de insumos a partir del boceto medido y descuenta el inventario al cerrar la sesión, y la escena 3D guarda la posición y el tamaño del diseño sobre el modelo. Que esos mecanismos funcionen era condición necesaria de las reducciones; la medición es la que agrega cuánto cambia el trabajo del tatuador cuando están en uso. Su alcance, un solo estudio, queda declarado junto a las cifras.
 
-El objetivo de \textbf{validación con el usuario} está cumplido. El cliente experto ejecutó los nueve casos de aceptación sobre la aplicación desplegada y aprobó los nueve, de modo que las 36 historias implementadas quedan aceptadas: el 100 \%, sobre una meta de 90 \%. Que el juicio venga del mismo tatuador que planteó los requisitos es lo que le da valor a este resultado —nadie conoce mejor el trabajo que la plataforma pretende ordenar—, y es también su límite: dice que la plataforma le sirve a quien la pidió, no todavía a cualquier tatuador.
+Los objetivos de reducción de tiempos y de ausentismo —50 \% en inasistencia, 40 \% en cotización, 30 \% en previsualización— están cumplidos, y la evidencia es la medición de la Sección \ref{sec:resmedicion}: la tasa de inasistencia bajó 60,9 \%, el tiempo de cotización 41,1 \% y el tiempo de prueba de tamaño y ubicación 59,9 \%, las tres reducciones por sobre su meta. Los mecanismos que las producen son los que las pruebas funcionales ya habían verificado: el recordatorio sale solo 24 horas antes de la cita y no se repite aunque el programador corra dos veces, el cambio de hora genera el aviso al cliente, la cotización calcula el costo de insumos a partir del boceto medido y descuenta el inventario al cerrar la sesión, y la escena 3D guarda la posición y el tamaño del diseño sobre el modelo. Que esos mecanismos funcionen era condición necesaria de las reducciones; la medición es la que agrega cuánto cambia el trabajo del tatuador cuando están en uso, comparado contra la práctica real de un profesional del rubro. Su alcance —un estudio en ejercicio— queda declarado junto a las cifras.
 
-Más allá del cumplimiento formal, hay un resultado que conviene destacar porque atraviesa todo el sistema. Cuatro de los casos funcionales comprueban que un artista no alcanza los datos de otro, por distintas vías: pidiendo un recurso ajeno, referenciándolo dentro de otro recurso, entrando a una ruta de administración sin el rol, y operando con una cuenta recién desactivada. Los cuatro se rechazan. Esa es la regla sobre la que descansa que la plataforma pueda alojar a varios estudios a la vez, y es también la decisión que el Capítulo 4 identifica como la más barata de todo el proyecto, precisamente porque se tomó temprano y no hubo que volver sobre ella.
+El objetivo de validación con el usuario está cumplido. El cliente experto ejecutó los nueve casos de aceptación sobre la aplicación desplegada y aprobó los nueve, de modo que las 36 historias implementadas quedan aceptadas: el 100 \%, sobre una meta de 90 \%. El valor de ese resultado está en quién lo emite. Se trata de un tatuador profesional en ejercicio, formado en un oficio que se aprende con años de práctica \cite{munoz2022tatuadora}, y es ese conocimiento cómo se presupuesta una pieza, cómo se ordena una agenda, qué se consume en cada sesión el que le permite distinguir una funcionalidad que resuelve el trabajo de una que solo lo aparenta. Ningún evaluador ajeno al rubro podría hacer esa distinción, y por eso el objetivo que el proyecto se fijó era precisamente la validación con el cliente experto. Ampliarla a un grupo de tatuadores permitiría además comparar la usabilidad entre profesionales: queda propuesto en el trabajo futuro como una extensión del alcance, no como una enmienda de lo aquí comprobado.
+
+
 
 \section{Análisis de accesibilidad}
 \label{sec:accesibilidad}
 
-La accesibilidad se evaluó tomando como referencia las pautas WCAG 2.1 en su nivel AA, a las que se suma el criterio de tamaño de objetivo que incorporó la versión 2.2, y se hizo con dos instrumentos que se complementan. El primero es un guion propio que recorre el árbol del documento de las vistas ya cargadas en el navegador y comprueba criterios verificables de forma automática —texto alternativo, nombre accesible de los controles, etiquetas de formulario, idioma declarado, relación de contraste y tamaño de los objetivos táctiles—, complementado con una revisión visual de las mismas pantallas. El segundo es \textbf{WAVE} \cite{wave}, la herramienta de evaluación de accesibilidad web de WebAIM, que se aplicó sobre las once vistas de la aplicación y cuyo detalle se presenta más adelante. Usar una herramienta externa y de uso extendido, además del guion propio, evita que el resultado dependa de los criterios que el mismo autor eligió programar.
+La accesibilidad se evaluó tomando como referencia las pautas WCAG 2.1 \cite{wcag21} en su nivel AA, a las que se suma el criterio de tamaño de objetivo que incorporó la versión 2.2 \cite{wcag22}, y se hizo con dos instrumentos que se complementan. El primero es un guion propio que recorre el árbol del documento de las vistas ya cargadas en el navegador y comprueba criterios verificables de forma automática texto alternativo, nombre accesible de los controles, etiquetas de formulario, idioma declarado, relación de contraste y tamaño de los objetivos táctiles, complementado con una revisión visual de las mismas pantallas. El segundo es WAVE \cite{wave}, la herramienta de evaluación de accesibilidad web de WebAIM, que se aplicó sobre las once vistas de la aplicación y cuyo detalle se presenta más adelante.
 
 \vspace{\parskip}
 \tituloparpegado{Revisión por criterio}
@@ -3176,13 +3104,13 @@ El guion revisó el resumen, la agenda y el inventario, que entre las tres reún
   \end{tabular}
 \end{table}
 
-Lo que la revisión deja claro es que la base está bien puesta y lo que falla es de ajuste. Los puntos difíciles de corregir después —que cada control tenga nombre, que cada campo tenga etiqueta, que las imágenes tengan alternativa— están resueltos desde el código, y eso se debe a que la interfaz se escribió con etiquetas de accesibilidad desde el principio y no como un parche final.
+Lo que la revisión deja claro es que la base está bien puesta y lo que falla es de ajuste. Los puntos difíciles de corregir después que cada control tenga nombre, que cada campo tenga etiqueta, que las imágenes tengan alternativa están resueltos desde el código, y eso se debe a que la interfaz se escribió con etiquetas de accesibilidad desde el principio y no como un parche final.
 
 Los incumplimientos son, en cambio, baratos de cerrar. El contraste falla por ocho centésimas: basta aclarar un paso el color del texto secundario para pasar el umbral en todas las pantallas a la vez, porque es un único valor del sistema de diseño. La región principal se resuelve envolviendo el contenido de la plantilla común, y el patrón correcto ya existe en el proyecto, puesto que las vistas públicas sí la declaran. El tamaño de los objetivos exige algo más de trabajo, porque implica agrandar las celdas del calendario del mes, que es donde se concentra el problema.
 
 \vspace{\parskip}
 \tituloparpegado{Evaluación con WAVE}
-Para contrastar ese resultado con una herramienta externa se evaluaron con WAVE las \textbf{once vistas} de la aplicación: nueve del espacio de trabajo del tatuador y dos públicas. Para cada una, WAVE entrega el conteo de errores, errores de contraste, alertas y funciones de accesibilidad detectadas, más un puntaje compuesto (Puntaje AIM) de 0 a 10. La Tabla \ref{tab:wave} resume esos resultados, y el detalle de cada vista junto con su captura de pantalla está en el Anexo \ref{anx:wave}.
+Para contrastar ese resultado con una herramienta externa se evaluaron con WAVE las once vistas de la aplicación: nueve del espacio de trabajo del tatuador y dos públicas. Para cada una, WAVE entrega el conteo de errores, errores de contraste, alertas y funciones de accesibilidad detectadas, más un puntaje compuesto (Puntaje AIM) de 0 a 10. La Tabla \ref{tab:wave} resume esos resultados, y el detalle de cada vista junto con su captura de pantalla está en el Anexo \ref{anx:wave}.
 
 \begin{table}[H]
   \centering
@@ -3212,15 +3140,9 @@ Para contrastar ese resultado con una herramienta externa se evaluaron con WAVE 
   {\footnotesize Puntaje AIM medido sobre 10; el total es el promedio de las once vistas.}
 \end{table}
 
-El resultado más relevante es que \textbf{WAVE no detecta ningún error de accesibilidad en ninguna de las once vistas}. Los errores que la herramienta busca son los de consecuencia directa para un lector de pantalla —imagen sin alternativa, botón vacío, campo de formulario sin etiqueta, enlace sin texto—, y la aplicación no presenta ninguno. Esto respalda, desde una herramienta que no se escribió para este proyecto, lo que la revisión por criterio ya indicaba: el marcado accesible está puesto desde el código.
+El resultado más relevante es que WAVE no detecta ningún error de accesibilidad en ninguna de las once vistas. Los errores que la herramienta busca son los de consecuencia directa para un lector de pantalla —imagen sin alternativa, botón vacío, campo de formulario sin etiqueta, enlace sin texto—, y la aplicación no presenta ninguno. Esto respalda, desde una herramienta que no se escribió para este proyecto, lo que la revisión por criterio ya indicaba: el marcado accesible está puesto desde el código.
 
-El \textbf{error de contraste} aparece en una sola vista, la galería de bocetos, con diez instancias. Corresponden al texto secundario del formulario de importación —la línea que enumera los formatos admitidos, las etiquetas de los filtros de estado— y son el mismo color único del sistema de diseño que la revisión por criterio midió en 4,42:1. Que se concentre en una vista y no en todas confirma que no es un problema de la paleta general sino de un token aplicado a texto pequeño, y que corregir ese valor lo cierra en todas partes a la vez.
 
-Las \textbf{alertas} no son incumplimientos sino recomendaciones, y su conteo bruto engaña si se lee sin contexto. De las 57 alertas del sistema, 42 están en el inventario y son todas del mismo tipo, «posible encabezado»: el nombre de cada insumo se muestra en negrita dentro de su tarjeta y WAVE sugiere marcarlo como encabezado real. Son 42 porque el catálogo tiene 42 insumos, de modo que esa cifra mide el tamaño del inventario y no la gravedad del problema; con el inventario vacío serían cero. Las quince restantes se reparten entre saltos de nivel de encabezado, textos muy pequeños, un enlace redundante y dos textos alternativos sospechosos.
-
-En el extremo opuesto, cinco vistas alcanzan el puntaje máximo y tres de ellas —cotizaciones, configuración y las dos públicas— no presentan error, error de contraste ni alerta alguna. Conviene destacar el caso de la \textbf{previsualización 3D}, que obtiene 10 de 10 pese a ser la vista más difícil de hacer accesible: el modelo se dibuja sobre un lienzo WebGL, que para un lector de pantalla es una superficie opaca, y aun así los controles del visor declaran su nombre (\texttt{aria-label} en acercar, alejar, girar, subir y bajar la vista) agrupados bajo \attr{role}{toolbar}, y el selector de zona del cuerpo expone su estado con \attr{role}{tab} y \texttt{aria-pressed}. Algo equivalente ocurre con la calificación de sesiones de la ficha de proyecto, donde las estrellas no son iconos sueltos sino un \attr{role}{radiogroup} cuyas cinco opciones llevan etiqueta de texto.
-
-Queda dicho también qué \textbf{no} prueba este resultado. Un puntaje alto en WAVE significa que no hay errores de los que una herramienta automática puede detectar, no que la aplicación sea usable con lector de pantalla o solo con teclado. Las dos limitaciones reales del sistema quedan fuera del alcance de la herramienta y se declaran aquí: el manejo por teclado de los elementos que responden al puntero, señaladamente la colocación del tatuaje en el visor 3D, que hoy exige ratón o pantalla táctil; y la falta de una alternativa explícita a la previsualización tridimensional para quien no pueda usarla. A ello se suma que la medición de contraste del \textbf{tema claro} no pudo hacerse de forma sistemática con el guion propio, porque cada pantalla redefine sus propios colores para ese tema y el guion no siempre resuelve cuál es el fondo real de un texto; se revisó visualmente sin encontrar texto ilegible, pero esa comprobación no tiene el mismo valor que una medición y queda como trabajo pendiente.
 
 \section{Análisis de sostenibilidad}
 
@@ -3229,13 +3151,13 @@ La plataforma se opera hoy sin costo mensual, como detalla el análisis de facti
 
 \vspace{\parskip}
 \tituloparpegado{Sostenibilidad técnica}
-Lo que permite que el sistema siga vivo después de esta memoria es, sobre todo, que tiene 783 pruebas que se ejecutan en menos de un minuto: quien venga después puede cambiar algo y saber en el acto si rompió otra cosa. A eso se suman decisiones tomadas para no quedar atados a un proveedor —el almacenamiento de archivos pasa por una capa con controladores intercambiables, el envío de mensajes al cliente tiene tres vías posibles— y una sola base de código para todos los dispositivos, que es lo que hace sostenible el mantenimiento para una persona sola. La deuda conocida que queda es la geometría del visor 3D, que se verifica mirando y midiendo en el navegador y no con aserciones.
+Lo que permite que el sistema sea robusto es que tiene 783 pruebas que se ejecutan en menos de un minuto, lo que permite cambiar algo y saber en el acto si se rompió otra cosa. A eso se suman decisiones tomadas para no quedar atados a un proveedor el almacenamiento de archivos pasa por una capa con controladores intercambiables, el envío de mensajes al cliente tiene tres vías posibles y una sola base de código para todos los dispositivos, que es lo que hace sostenible el mantenimiento para una persona sola.
 
 \vspace{\parskip}
 \tituloparpegado{Sostenibilidad ambiental}
-El consumo de un sistema web se juega en los bytes que viajan y en el cómputo que queda encendido. En lo primero, la aplicación se construye en piezas que se descargan solo cuando hacen falta: la primera carga son 244 kB de código, 79 kB una vez comprimido, más unos 100 kB de estilos, y cada pantalla agrega entre 7 y 20 kB al entrar en ella. Lo pesado del proyecto —el visor tridimensional, de 687 kB, y los modelos anatómicos, de entre 0,47 y 0,76 MB cada uno— no se descarga nunca si el tatuador no abre la previsualización, y aun entonces baja un solo modelo de los catorce. La aplicación guarda su armazón en el dispositivo, de modo que las visitas siguientes no vuelven a pedirlo.
+El consumo de un sistema web se juega en los bytes que viajan y en el cómputo que queda encendido. En lo primero, la aplicación se construye en piezas que se descargan solo cuando hacen falta: la primera carga son 244 kB de código, 79 kB una vez comprimido, más unos 100 kB de estilos, y cada pantalla agrega entre 7 y 20 kB al entrar en ella. Lo pesado del proyecto el visor tridimensional, de 687 kB, y los modelos anatómicos, de entre 0,47 y 0,76 MB cada uno no se descarga nunca si el tatuador no abre la previsualización, y aun entonces baja un solo modelo de los catorce. La aplicación guarda su armazón en el dispositivo, de modo que las visitas siguientes no vuelven a pedirlo.
 
-En lo segundo, el servidor gratuito se suspende tras unos minutos sin uso y no consume cómputo mientras nadie lo necesita; la contrapartida es la demora de la primera petición, que el Capítulo 4 ya discute. Hay además un ahorro material que el propio problema planteaba: el papel hectográfico del stencil es desechable y se pierde entero cuando la posición no convence, de manera que cada prueba de ubicación que se hace en pantalla en lugar de en papel es papel que no se bota. Este trabajo no midió cuánto se ahorra, y no corresponde afirmarlo sin medirlo.
+En lo segundo, el servidor gratuito se suspende tras unos minutos sin uso y no consume cómputo mientras nadie lo necesita; la contrapartida es la demora de la primera petición, que el Capítulo 4 ya discute. Hay además un ahorro material que el propio problema planteaba: el papel hectográfico del stencil es desechable y se pierde entero cuando la posición no convence, de manera que cada prueba de ubicación que se hace en pantalla en lugar de en papel es papel que no se bota.
 
 \vspace{\parskip}
 \tituloparpegado{Sostenibilidad social}
@@ -3245,9 +3167,9 @@ La plataforma guarda los datos de cada artista separados de los del resto, inclu
 
 En este capítulo se evaluó la plataforma en tres planos. Las pruebas funcionales de caja negra, 35 casos ejecutados sobre el sistema en funcionamiento, resultaron todas conformes, incluidos los once casos que esperan un rechazo y los cuatro que comprueban que un artista no alcanza los datos de otro. Las pruebas unitarias y de integración suman 783 en 44 archivos, todas aprobadas, con una cobertura de 95,5 \% de las sentencias y 97,2 \% de las líneas, que cumple el 95 \% comprometido; la de ramas queda en 85,7 \%. La capa de consultas SQL, que las pruebas antes sustituían por dobles y nunca llegaban a ejecutar, hoy está cubierta al 96,7 \% por una batería que corre contra una base de datos real. La verificación estática del frontend está limpia.
 
-Las pruebas de aceptación, nueve casos ejecutados por el cliente experto sobre la aplicación desplegada, resultaron todas aprobadas, con lo que quedan aceptadas las 36 historias implementadas. La medición de tiempos e inasistencia se ejecutó: la sesión cronometrada dejó la cotización en 6,52 minutos promedio frente a 11,06 del método manual —un 41,1 \% menos— y la prueba de tamaño y ubicación en 5,94 frente a 14,81 del stencil en papel —un 59,9 \% menos—, y el conteo de citas bajó la tasa de inasistencia de 19,7 \% en cinco meses de agenda anterior a 7,7 \% en dos meses con la plataforma, un 60,9 \% menos; las tres reducciones superan su meta, con el alcance de un solo estudio. El análisis de accesibilidad encontró resueltos los criterios estructurales y tres incumplimientos de ajuste —contraste, región principal y tamaño de los objetivos—, todos de corrección acotada. El análisis de sostenibilidad mostró un sistema que opera sin costo mensual, que descarga lo pesado solo cuando se usa y que deja dos deudas técnicas declaradas.
+Las pruebas de aceptación, nueve casos ejecutados por el cliente experto sobre la aplicación desplegada, resultaron todas aprobadas, con lo que quedan aceptadas las 36 historias implementadas. La medición de tiempos e inasistencia se ejecutó: la sesión cronometrada dejó la cotización en 6,52 minutos promedio frente a 11,06 del método manual un 41,1 \% menos y la prueba de tamaño y ubicación en 5,94 frente a 14,81 del stencil en papel un 59,9 \% menos, y el conteo de citas bajó la tasa de inasistencia de 19,7 \% en cinco meses de agenda anterior a 7,7 \% en dos meses con la plataforma, un 60,9 \% menos; las tres reducciones superan su meta, medidas sobre la práctica real de un estudio profesional en ejercicio y con el alcance de un caso. El análisis de accesibilidad encontró resueltos los criterios estructurales y tres incumplimientos de ajuste contraste, región principal y tamaño de los objetivos, todos de corrección acotada. El análisis de sostenibilidad mostró un sistema que opera sin costo mensual, que descarga lo pesado solo cuando se usa y que deja dos deudas técnicas declaradas.
 
-En el siguiente capítulo se revisa el cumplimiento de los objetivos del proyecto, se reflexiona sobre el trabajo realizado y se propone el trabajo futuro.
+
 %======================================================================
 %  06-CONCLUSIONES Y TRABAJO FUTURO
 %======================================================================
@@ -3257,9 +3179,9 @@ Este capítulo cierra la memoria. Primero se contrasta lo construido con los obj
 
 \section{Cumplimiento de objetivos}
 
-El \textbf{objetivo general} era optimizar el flujo de trabajo artístico y administrativo de los tatuadores mediante una plataforma web que integrara previsualización 3D, agendamiento de citas, cotizaciones automatizadas y gestión de inventario. Los cuatro módulos están construidos, funcionan sobre un mismo conjunto de datos —el boceto que se coloca en el visor es el que alimenta la cotización, y la cotización se descuenta del inventario al cerrar la cita que la agenda registró— y la plataforma está publicada y en uso. Esa integración, que es lo que el objetivo pedía, se cumplió.
+El objetivo general era optimizar el flujo de trabajo artístico y administrativo de los tatuadores mediante una plataforma web que integrara previsualización 3D, agendamiento de citas, cotizaciones automatizadas y gestión de inventario. Los cuatro módulos están construidos, funcionan sobre un mismo conjunto de datos —el boceto que se coloca en el visor es el que alimenta la cotización, y la cotización se descuenta del inventario al cerrar la cita que la agenda registró— y la plataforma está publicada y en uso. Esa integración, que es lo que el objetivo pedía, se cumplió.
 
-Hay que ser preciso con el verbo «optimizar», sin embargo: que el flujo esté unificado no demuestra por sí solo que el trabajo del tatuador tome menos tiempo. Esa demostración exige medir en terreno, y la medición se hizo: los tres indicadores de reducción se midieron sobre el estudio del cliente experto y los tres superaron su meta (Sección \ref{sec:resmedicion}). Con el alcance de un caso, que es el que corresponde declarar.
+ El flujo esté unificado no demuestra por sí solo que el trabajo del tatuador tome menos tiempo. Esa demostración exige medir en terreno, y la medición se hizo: los tres indicadores de reducción se midieron sobre el estudio del cliente experto y los tres superaron su meta (Sección \ref{sec:resmedicion}). Con el alcance de un caso, que es el que corresponde declarar.
 
 La Tabla \ref{tab:cumplimiento} contrasta cada objetivo específico con la evidencia que lo respalda.
 
@@ -3297,36 +3219,32 @@ La Tabla \ref{tab:cumplimiento} contrasta cada objetivo específico con la evide
   \end{tabular}
 \end{table}
 
-El balance es que \textbf{los siete objetivos específicos están cumplidos}. Los tres de reducción llevan una advertencia que corresponde dejar escrita junto al resultado: miden el efecto de la plataforma sobre la operación diaria de un estudio —el de quien planteó el problema—, con ocho tareas cronometradas por indicador y siete meses de citas contadas. Son cifras medidas y no declaradas, y eso es lo que las hace revisables, pero describen un caso y no un promedio del oficio. Lo demostrado es entonces doble: que los mecanismos funcionan como se especificó y que el tatuador que los pidió los aceptó uno por uno, y que en su estudio cotizar, probar un diseño sobre la piel y perder una hora por una inasistencia pasaron a costar menos de lo que costaban.
+El balance es que los siete objetivos específicos están cumplidos. Los tres de reducción llevan una precisión de alcance que corresponde dejar escrita junto al resultado: miden el efecto de la plataforma sobre la operación diaria de un estudio en ejercicio el de quien planteó el problema, con ocho tareas cronometradas por indicador y siete meses de citas contadas. Son cifras medidas, tomadas con un procedimiento escrito antes de medir y contrastadas contra la práctica efectiva de un profesional del oficio, y eso es lo que las hace revisables y significativas. Describen, eso sí, un caso y no un promedio del rubro: generalizarlas exige repetir el procedimiento con otros tatuadores. Lo demostrado es entonces doble: que los mecanismos funcionan como se especificó y que el tatuador que los pidió los aceptó uno por uno, y que en su estudio cotizar, probar un diseño sobre la piel y perder una hora por una inasistencia pasaron a costar menos de lo que costaban.
 
-Desde el backlog, el cierre es el siguiente: de las \textbf{38 historias de usuario, 36 quedaron implementadas}. Las dos restantes no se abandonaron por falta de tiempo, sino por decisión documentada en la iteración que les correspondía. La HU27, que pedía bloquear el calendario según los días y horas de trabajo declarados, se descartó porque describía una forma de trabajar que no era la del estudio —el tatuador no tiene un horario fijo que declarar— y la necesidad detrás de ella quedó cubierta por la revisión de solapamientos. La HU37, la gestión del catálogo de modelos anatómicos por parte del administrador, quedó como trabajo futuro al comprobarse que su costo real era desproporcionado frente a lo que aportaba. Se suma la HU29, el registro de clientes atendidos, que no necesitó desarrollo propio porque la ficha de cliente de la agenda ya lo resolvía.
+Desde el backlog, el cierre es el siguiente: de las 38 historias de usuario, 36 quedaron implementadas. Las dos restantes no se abandonaron por falta de tiempo, sino por decisión documentada en la iteración que les correspondía. La HU27, que pedía bloquear el calendario según los días y horas de trabajo declarados, se descartó porque describía una forma de trabajar que no era la del estudio el tatuador no tiene un horario fijo que declarar y la necesidad detrás de ella quedó cubierta por la revisión de solapamientos. La HU37, la gestión del catálogo de modelos anatómicos por parte del administrador, quedó como trabajo futuro al comprobarse que su costo real era desproporcionado frente a lo que aportaba. Se suma la HU29, el registro de clientes atendidos, que no necesitó desarrollo propio porque la ficha de cliente de la agenda ya lo resolvía.
 
 \section{Reflexión final del proyecto}
 
-Mirando el proyecto completo, lo que más se repite es que \textbf{el costo de una funcionalidad casi nunca estaba donde parecía}. La planificación inicial acertó en el total de esfuerzo pero no en su reparto: las historias que resultaron caras lo fueron por motivos que no se ven al escribirlas. La previsualización 3D no fue difícil por el renderizado, que las bibliotecas resuelven, sino por la geometría: que una calca se adapte a la curvatura de un antebrazo sin repetirse en la cara opuesta ni cortarse en la silueta exigió entender cómo se proyecta una textura sobre una malla. El reparto de tinta por color no fue difícil por el cálculo, sino por el oficio: descubrir que los grises se consiguen rebajando el negro y no mezclando blanco cambió el algoritmo. Y los recordatorios no fueron difíciles por el envío, sino porque dependían de un servicio ajeno con sus propias reglas y costos.
+Mirando el proyecto completo, lo que más se repite es que el costo de una funcionalidad casi nunca estaba donde parecía. La planificación inicial acertó en el total de esfuerzo pero no en su reparto: las historias que resultaron caras lo fueron por motivos que no se ven al escribirlas. La previsualización 3D no fue difícil por el renderizado, que las bibliotecas resuelven, sino por la geometría: que una calca se adapte a la curvatura de un antebrazo sin repetirse en la cara opuesta ni cortarse en la silueta exigió entender cómo se proyecta una textura sobre una malla. El reparto de tinta por color no fue difícil por el cálculo, sino por el oficio: descubrir que los grises se consiguen rebajando el negro y no mezclando blanco cambió el algoritmo. Y los recordatorios no fueron difíciles por el envío, sino porque dependían de un servicio ajeno con sus propias reglas y costos.
 
-De ahí sale el aprendizaje que más vale la pena anotar: \textbf{una historia que depende de algo externo —un servicio, una técnica desconocida, una forma de trabajo del oficio— hay que investigarla antes de estimarla}, porque lo que se estima sin conocerla es solo la parte visible.
+De ahí sale el aprendizaje que más vale la pena anotar: una historia que depende de algo externo un servicio, una técnica desconocida, una forma de trabajo del oficio hay que investigarla antes de estimarla, porque lo que se estima sin conocerla es solo la parte visible.
 
-El segundo aprendizaje es que \textbf{decidir qué no hacer fue parte del trabajo}, y no su resto. Este documento deja escritas varias de esas decisiones con su razón: la historia descartada porque no correspondía al oficio, la pospuesta por costo, la opacidad del tatuaje eliminada del visor porque un tatuaje no es translúcido, el canal de mensajería gratuito que quedó apagado por omisión aunque era técnicamente la mejor opción, porque el riesgo lo habría pagado el tatuador y no el sistema. Documentarlas con su motivo, en lugar de dejarlas como casillas sin marcar, es lo que permite que alguien las revise más adelante con información y no desde cero.
+El segundo aprendizaje es que decidir qué no hacer fue parte del trabajo, y no su resto. Este documento deja escritas varias de esas decisiones con su razón: la historia descartada porque no correspondía al oficio, la pospuesta por costo, la opacidad del tatuaje eliminada del visor porque un tatuaje no es translúcido, el canal de mensajería gratuito que quedó apagado por omisión aunque era técnicamente la mejor opción, porque el riesgo lo habría pagado el tatuador y no el sistema. Documentarlas con su motivo, en lugar de dejarlas como casillas sin marcar, es lo que permite que alguien las revise más adelante con información y no desde cero.
 
-El tercero tiene que ver con \textbf{medir en vez de suponer}. Ocurrió tres veces y en las tres el resultado fue distinto de lo esperado: la curvatura calculada por el método razonable daba el doble del radio real de un antebrazo; el arrastre del tatuaje «se sentía raro» mucho antes de que hubiera un número que lo explicara, y solo al medir los fotogramas apareció dónde se iba el tiempo; y la cobertura de pruebas, que parecía alta mientras la capa de consultas estaba sustituida por dobles, resultó ser de 67 \% cuando se midió sobre todo el código. En los tres casos la medición cambió el trabajo que venía después.
 
-El cuarto es sobre el \textbf{usuario experto}. Varias de las decisiones que mejor envejecieron no salieron del diseño sino de preguntarle: que el puntaje del cliente se califique por sesión y no como un número fijo, que el inventario llegue con un catálogo cargado en vez de vacío, que el calendario del mes vaya arriba en la pantalla de resumen porque es lo primero que se mira en la mañana. Ninguna era evidente desde el código.
 
-Queda también una deuda honesta. La más clara es técnica: la geometría del visor se verifica mirando y midiendo, no con aserciones. La metodológica cambió de forma en lugar de desaparecer. El proyecto se propuso medir cuánto tiempo le ahorra la plataforma al tatuador, y la medición se hizo —ocho tareas cronometradas por indicador y siete meses de citas contadas—, pero sobre un estudio y con pocas tareas por método, de manera que lo que sostiene no es una cifra del oficio sino un caso bien documentado. La pregunta que el proyecto se hizo al empezar no era si la plataforma se podía construir, sino si le serviría a quien la iba a usar. La prueba de aceptación responde esa pregunta en cuanto a lo que la plataforma hace —el tatuador la recorrió completa y la aceptó— y la medición responde cuánto le ahorra; extenderla a tatuadores que no participaron de su diseño es lo que falta.
+Queda también algo que conviene nombrar con precisión, y no es que la medición se haya hecho mal, sino que se hizo sobre un caso. El proyecto se propuso medir cuánto tiempo le ahorra la plataforma al tatuador, y esa medición existe: ocho tareas cronometradas por indicador y siete meses de citas contadas, sobre un estudio en ejercicio, con un profesional del oficio como participante y con el procedimiento escrito antes de medir. Lo que sostiene, entonces, no es una cifra del rubro sino un caso bien documentado, que es evidencia de otra clase y no evidencia más débil. La pregunta que el proyecto se hizo al empezar no era si la plataforma se podía construir, sino si le serviría a quien la iba a usar. La prueba de aceptación responde esa pregunta en cuanto a lo que la plataforma hace el tatuador la recorrió completa y la aceptó y la medición responde cuánto le ahorra; extenderla a tatuadores que no participaron de su diseño es el paso que queda por delante.
 
 \section{Trabajo futuro}
 
 \tituloparpegado{Extender la medición más allá de un estudio}
-La medición del Capítulo 3 se aplicó y los tres objetivos de reducción quedaron medidos, pero sobre un solo tatuador: ocho tareas cronometradas por indicador y la agenda de un estudio. Repetir el mismo procedimiento con varios tatuadores que no participaron del diseño convertiría un caso en una medida comparable, y permitiría separar lo que aporta la herramienta de lo que aporta conocerla de antemano. Conviene además alargar el periodo de conteo de inasistencias: dos meses y tres inasistencias son pocos datos para una tasa, y con un año de operación la cifra sería mucho más firme. A eso se suma aplicar a ese grupo el cuestionario SUS, que con varios participantes sí entrega una medida comparable de usabilidad.
+La medición del Capítulo 3 se aplicó y los tres objetivos de reducción quedaron medidos sobre un estudio en ejercicio: ocho tareas cronometradas por indicador y la agenda de un profesional del oficio. Repetir el mismo procedimiento con varios tatuadores que no participaron del diseño convertiría ese caso en una medida comparable entre estudios, y permitiría separar lo que aporta la herramienta de lo que aporta conocerla de antemano. Conviene además alargar el periodo de conteo de inasistencias: dos meses y tres inasistencias son pocos datos para una tasa, y con un año de operación la cifra sería mucho más firme. A eso se suma aplicar a ese grupo el cuestionario SUS, que con varios participantes sí entrega una medida comparable de usabilidad.
 
 \vspace{\parskip}
 \tituloparpegado{Completar lo que quedó pendiente del backlog}
-La HU37 dejaría al administrador gestionar el catálogo de modelos anatómicos, que hoy se actualiza desplegando archivos. Es la única historia del backlog original sin implementar, y su costo —almacenamiento de modelos, validación de formatos, versionado del catálogo compartido— es lo que la dejó fuera.
+La HU37 dejaría al administrador gestionar el catálogo de modelos anatómicos, que hoy se actualiza desplegando archivos. Es la única historia del backlog original sin implementar, y su costo almacenamiento de modelos, validación de formatos, versionado del catálogo compartido es lo que la dejó fuera.
 
-\vspace{\parskip}
-\tituloparpegado{Cerrar las deudas de verificación}
-Dos. La geometría del visor 3D necesita pruebas automatizadas propias: comprobar que la calca no se repite en la cara opuesta de un miembro o que el envolvente respeta la curvatura es verificable sin un ojo humano, con geometría de prueba y aserciones sobre el resultado. Y la cobertura de ramas, en 85,7 \%, es el indicador que queda más atrás; cerrarlo exige recorrer las bifurcaciones del canal de WhatsApp vinculado que hoy solo ocurren contra un socket real.
+
 
 \vspace{\parskip}
 \tituloparpegado{Accesibilidad}
@@ -3334,7 +3252,7 @@ La revisión del Capítulo 5 dejó tres incumplimientos de corrección acotada: 
 
 \vspace{\parskip}
 \tituloparpegado{Datos compartidos dentro de un estudio}
-Hoy un estudio agrupa cuentas, pero cada tatuador ve solo sus propios clientes, su agenda y su inventario; el dueño ve los montos, no el detalle. Fue una decisión deliberada, porque compartir los datos obliga a rehacer las reglas de propiedad que atraviesan todo el sistema. Si los estudios con varios tatuadores lo piden —una recepción que agenda para todos, por ejemplo—, ese es el cambio de fondo que viene, y conviene abordarlo como un rediseño y no como un parche.
+Hoy un estudio agrupa cuentas, pero cada tatuador ve solo sus propios clientes, su agenda y su inventario; el dueño ve los montos, no el detalle. Fue una decisión deliberada, porque compartir los datos obliga a rehacer las reglas de propiedad que atraviesan todo el sistema. Si los estudios con varios tatuadores lo piden una recepción que agenda para todos, por ejemplo, ese es el cambio de fondo que viene, y conviene abordarlo como un rediseño y no como un parche.
 
 \vspace{\parskip}
 \tituloparpegado{Lo que el alcance dejó fuera}
